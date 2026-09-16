@@ -939,7 +939,7 @@ def register_handlers(client):
         )
         await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(event.sender_id))
 
-    @client.on(events.CallbackQuery(pattern=r"^vc_leave_(.+)$"))
+    @client.on(events.CallbackQuery(pattern=r"^vc_leave_(\+.+)$"))
     async def vc_leave_callback(event):
         phone = event.pattern_match.group(1).strip()
         user_id = event.sender_id
@@ -1815,7 +1815,7 @@ def register_handlers(client):
         except Exception:
             await event.respond(prompt_text, buttons=buttons)
 
-    @client.on(events.CallbackQuery(pattern=r"^vc_join_(.+)$"))
+    @client.on(events.CallbackQuery(pattern=r"^vc_join_(\+.+)$"))
     async def vc_join_callback(event):
         phone = event.pattern_match.group(1)
         user_id = event.sender_id
