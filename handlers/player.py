@@ -605,7 +605,7 @@ def register_handlers(client):
         
         bot_obj, _ = await get_or_start_userbot_for_chat(user_id, chat_id)
         if not bot_obj:
-            await event.reply(
+            await event.respond(
                 utils.format_html_message(
                     "<blockquote><b>» ⚠️ ɴᴏ ᴜsᴇʀʙᴏᴛ ғᴏᴜɴᴅ</b>\n\n"
                     "ɴᴏ ᴀᴄᴛɪᴠᴇ ᴜsᴇʀʙᴏᴛ ғᴏᴜɴᴅ ɪɴ ᴛʜɪs ᴄʜᴀᴛ sᴇssɪᴏɴ.</blockquote>"
@@ -617,27 +617,27 @@ def register_handlers(client):
             try:
                 pytg = await bot_obj.get_pytgcalls()
                 await pytg.pause_stream(chat_id)
-                await event.reply(
+                await event.respond(
                     utils.format_html_message(
                         "<blockquote><b>» ⏸️ ᴘʟᴀʏʙᴀᴄᴋ ᴘᴀᴜsᴇᴅ</b>\n\n"
                         "sᴛʀᴇᴀᴍ ɪs ᴘᴀᴜsᴇᴅ. ᴜsᴇ <code>.resume</code> ᴏʀ <code>/resume</code> ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ ᴘʟᴀʏɪɴɢ.</blockquote>"
                     )
                 )
             except Exception as e:
-                await event.reply(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ᴘᴀᴜsɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
+                await event.respond(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ᴘᴀᴜsɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
 
         elif cmd == "resume":
             try:
                 pytg = await bot_obj.get_pytgcalls()
                 await pytg.resume_stream(chat_id)
-                await event.reply(
+                await event.respond(
                     utils.format_html_message(
                         "<blockquote><b>» ▶️ ᴘʟᴀʏʙᴀᴄᴋ ʀᴇsᴜᴍᴇᴅ</b>\n\n"
                         "sᴛʀᴇᴀᴍ ʀᴇsᴜᴍᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ.</blockquote>"
                     )
                 )
             except Exception as e:
-                await event.reply(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ʀᴇsᴜᴍɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
+                await event.respond(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ʀᴇsᴜᴍɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
 
         elif cmd in ("stop", "end"):
             _chat_queues.pop(chat_id, None)
@@ -648,9 +648,9 @@ def register_handlers(client):
             # Eagerly pop from active players to prevent race conditions with new .play commands
             _active_chat_players.pop(chat_id, None)
 
-            prog = await event.reply(
+            prog = await event.respond(
                 utils.format_html_message(
-                    "<blockquote><b>\u00bb \u23f3 s\u1d1b\u1d0f\u1d18\u1d18\u026a\u0274\u0262 \u1d18\u029f\u1d00\u028f\u0299\u1d00\u1d04\u1d0b...</b></blockquote>"
+                    "<blockquote><b>» ⏳ sᴛᴏᴘᴘɪɴɢ ᴘʟᴀʏʙᴀᴄᴋ...</b></blockquote>"
                 )
             )
             success, msg = await bot_obj.stop_song(chat_id)
@@ -658,8 +658,8 @@ def register_handlers(client):
                 try:
                     await prog.edit(
                         utils.format_html_message(
-                            "<blockquote><b>\u00bb \u23f9\ufe0f \u1d18\u029f\u1d00\u028f\u0299\u1d00\u1d04\u1d0b s\u1d1b\u1d0f\u1d18\u1d18\u1d07\u1d05</b>\n\n"
-                            "\u1d20\u1d0f\u026a\u1d04\u1d07 \u1d04\u029c\u1d00\u1d1b s\u1d1b\u0280\u1d07\u1d00\u1d0d s\u1d1b\u1d0f\u1d18\u1d18\u1d07\u1d05, \u1d1c\u1d04 \u029f\u1d07\u0493\u1d1b \u1d20\u1d04 \u0026 \u01eb\u1d1c\u1d07\u1d1c\u1d07 \u1d04\u029f\u1d07\u1d00\u0280\u1d07\u1d05.</blockquote>"
+                            "<blockquote><b>» ⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ</b>\n\n"
+                            "ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ sᴛᴏᴘᴘᴇᴅ, ᴜʙ ʟᴇғᴛ ᴠᴄ & ǫᴜᴇᴜᴇ ᴄʟᴇᴀʀᴇᴅ.</blockquote>"
                         )
                     )
                 except Exception:
@@ -673,7 +673,7 @@ def register_handlers(client):
                 try:
                     await prog.edit(
                         utils.format_html_message(
-                            f"<blockquote><b>\u00bb \u274c \u0493\u1d00\u026a\u029f\u1d07\u1d05 \u1d1b\u1d0f s\u1d1b\u1d0f\u1d18</b>\n\n\u26a0\ufe0f <code>{msg}</code></blockquote>"
+                            f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ sᴛᴏᴘ</b>\n\n⚠️ <code>{msg}</code></blockquote>"
                         )
                     )
                 except Exception:
@@ -681,7 +681,7 @@ def register_handlers(client):
 
         elif cmd == "mute":
             success, msg = await bot_obj.mute_mic(chat_id)
-            await event.reply(
+            await event.respond(
                 utils.format_html_message(
                     "<blockquote><b>» 🔇 ᴍɪᴄ ᴍᴜᴛᴇᴅ</b>\n\n"
                     "ᴜsᴇʀʙᴏᴛ ᴍɪᴄʀᴏᴘʜᴏɴᴇ ʜᴀs ʙᴇᴇɴ ᴛᴜʀɴᴇᴅ <b>ᴏғғ</b>.</blockquote>"
@@ -690,7 +690,7 @@ def register_handlers(client):
 
         elif cmd == "unmute":
             success, msg = await bot_obj.unmute_mic(chat_id)
-            await event.reply(
+            await event.respond(
                 utils.format_html_message(
                     "<blockquote><b>» 🔊 ᴍɪᴄ ᴜɴᴍᴜᴛᴇᴅ</b>\n\n"
                     "ᴜsᴇʀʙᴏᴛ ᴍɪᴄʀᴏᴘʜᴏɴᴇ ʜᴀs ʙᴇᴇɴ ᴛᴜʀɴᴇᴅ <b>ᴏɴ</b>.</blockquote>"
@@ -703,26 +703,34 @@ def register_handlers(client):
         if await utils.guard(event, client):
             return
             
+        try:
+            await event.delete()
+        except Exception:
+            pass
+            
         cmd = event.pattern_match.group(1).lower()
         chat_id = event.chat_id
         user_id = event.sender_id
         
         bot_obj, err = await get_or_start_userbot_for_chat(user_id, chat_id)
         if not bot_obj:
-            await event.reply(err)
+            await event.respond(err)
             return
 
         if cmd in ("vc", "joinvc"):
-            prog = await event.reply(
+            prog = await event.respond(
                 utils.format_html_message(
                     "<blockquote><b>» ⏳ ᴊᴏɪɴɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
                     "ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ᴛᴏ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
                 )
             )
             success, msg = await bot_obj.join_voice_chat(str(chat_id))
-            await prog.delete()
+            try:
+                await prog.delete()
+            except Exception:
+                pass
             if success:
-                await event.reply(
+                await event.respond(
                     utils.format_html_message(
                         "<blockquote><b>» 🎙️ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
                         "ᴜsᴇʀʙᴏᴛ sᴜᴄᴄᴇssғᴜʟʟʏ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ!\n\n"
@@ -730,30 +738,33 @@ def register_handlers(client):
                     )
                 )
             else:
-                await event.reply(
+                await event.respond(
                     utils.format_html_message(
                         f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"
                     )
                 )
 
         elif cmd in ("leavevc", "vcleft"):
-            prog = await event.reply(
+            prog = await event.respond(
                 utils.format_html_message(
                     "<blockquote><b>» ⏳ ʟᴇᴀᴠɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
                     "ᴅɪsᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ғʀᴏᴍ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
                 )
             )
             success, msg = await bot_obj.leave_voice_chat(chat_id)
-            await prog.delete()
+            try:
+                await prog.delete()
+            except Exception:
+                pass
             if success:
-                await event.reply(
+                await event.respond(
                     utils.format_html_message(
                         "<blockquote><b>» 👋 ʟᴇғᴛ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
                         "ᴜsᴇʀʙᴏᴛ ʜᴀs ᴅɪsᴄᴏɴɴᴇᴄᴛᴇᴅ ғʀᴏᴍ ᴛʜᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.</blockquote>"
                     )
                 )
             else:
-                await event.reply(utils.format_html_message(f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴇᴀᴠᴇ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
+                await event.respond(utils.format_html_message(f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴇᴀᴠᴇ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
 
     # ------------------ /thumb, .thumb toggle command ------------------
     @client.on(events.NewMessage(pattern=r"(?i)^[./!?](thumb|thumbnail)(?:@\w+)?(?:\s+(on|off))?$"))

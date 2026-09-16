@@ -2372,7 +2372,11 @@ class UserBot:
                             return
                             
                         elif cmd == "pause":
-                            prog = await event.reply(
+                            try:
+                                await event.delete()
+                            except Exception:
+                                pass
+                            prog = await event.respond(
                                 utils.format_html_message(
                                     "<blockquote><b>» ⏳ ᴘᴀᴜsɪɴɢ sᴛʀᴇᴀᴍ</b>\n\nᴘᴀᴜsɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ...</blockquote>"
                                 )
@@ -2391,7 +2395,11 @@ class UserBot:
                             return
                             
                         elif cmd == "resume":
-                            prog = await event.reply(
+                            try:
+                                await event.delete()
+                            except Exception:
+                                pass
+                            prog = await event.respond(
                                 utils.format_html_message(
                                     "<blockquote><b>» ⏳ ʀᴇsᴜᴍɪɴɢ sᴛʀᴇᴀᴍ</b>\n\nʀᴇsᴜᴍɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ...</blockquote>"
                                 )
@@ -2454,7 +2462,11 @@ class UserBot:
                             return
                             
                         elif cmd == "mute":
-                            prog = await event.reply(
+                            try:
+                                await event.delete()
+                            except Exception:
+                                pass
+                            prog = await event.respond(
                                 utils.format_html_message(
                                     "<blockquote><b>» ⏳ ᴍᴜᴛɪɴɢ ᴍɪᴄ</b>\n\nᴍᴜᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ɪɴ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
                                 )
@@ -2468,7 +2480,11 @@ class UserBot:
                             return
                             
                         elif cmd == "unmute":
-                            prog = await event.reply(
+                            try:
+                                await event.delete()
+                            except Exception:
+                                pass
+                            prog = await event.respond(
                                 utils.format_html_message(
                                     "<blockquote><b>» ⏳ ᴜɴᴍᴜᴛɪɴɢ ᴍɪᴄ</b>\n\nᴜɴᴍᴜᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ɪɴ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
                                 )
@@ -2482,7 +2498,11 @@ class UserBot:
                             return
                             
                         elif cmd in ("vc", "joinvc"):
-                            prog = await event.reply(
+                            try:
+                                await event.delete()
+                            except Exception:
+                                pass
+                            prog = await event.respond(
                                 utils.format_html_message(
                                     "<blockquote><b>» ⏳ ᴊᴏɪɴɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\nᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ᴛᴏ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
                                 )
@@ -2505,7 +2525,11 @@ class UserBot:
                             return
                             
                         elif cmd in ("leavevc", "vcleft"):
-                            prog = await event.reply(
+                            try:
+                                await event.delete()
+                            except Exception:
+                                pass
+                            prog = await event.respond(
                                 utils.format_html_message(
                                     "<blockquote><b>» ⏳ ʟᴇᴀᴠɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\nᴅɪsᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ғʀᴏᴍ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
                                 )
