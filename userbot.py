@@ -1587,6 +1587,17 @@ class UserBot:
                     database.save_session(sess_data)
             except Exception as e:
                 logger.error(f"Error fetching dialogs for userbot {self.session_id}: {e}")
+                if "database disk image is malformed" in str(e).lower():
+                    logger.error(f"SQLite DB corrupted for {self.session_id}. Removing from MongoDB to force re-login.")
+                    sess_data = database.get_session(self.session_id)
+                    if sess_data and "session_bytes" in sess_data:
+                        del sess_data["session_bytes"]
+                        sess_data["status"] = "stopped"
+                        database.save_session(sess_data)
+                    try:
+                        os.remove(f"user_data/{self.me_id}/sessions/{self.session_id}.session")
+                    except Exception:
+                        pass
                 if not self.groups_cache:
                     self.groups_cache = []
         return self.groups_cache
