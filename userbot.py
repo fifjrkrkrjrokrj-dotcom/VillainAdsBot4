@@ -405,17 +405,37 @@ async def download_media(query: str, download_type: str = "audio") -> tuple:
         vidid = None
         duration_sec = 0
         thumb = None
+        query_str = (query or "").strip()
         
-        # 1. Search YouTube using py_yt
-        try:
-            track_details, vidid = await YouTube.track(query)
-            if vidid:
-                title = track_details.get("title") or title
-                thumb = track_details.get("thumb")
-                dur_min = track_details.get("duration_min")
-                duration_sec = int(time_to_seconds(dur_min)) if dur_min else 0
-        except Exception as yt_err:
-            logger.warning(f"YouTube.track extraction error: {yt_err}")
+        # 0. Check if query is a direct YouTube URL or 11-char Video ID
+        if "youtube.com" in query_str or "youtu.be" in query_str or re.match(r"^[a-zA-Z0-9_-]{11}$", query_str):
+            url_match = re.search(r"(?:v=|\/|vi\/|youtu\.be\/|\/v\/|\/embed\/|\/shorts\/|^)([a-zA-Z0-9_-]{11})", query_str)
+            if url_match:
+                vidid = url_match.group(1)
+
+        # Fetch metadata if vidid was extracted from URL directly
+        if vidid:
+            try:
+                track_details, _ = await YouTube.track(f"https://www.youtube.com/watch?v={vidid}")
+                if track_details:
+                    title = track_details.get("title") or title
+                    thumb = track_details.get("thumb")
+                    dur_min = track_details.get("duration_min")
+                    duration_sec = int(time_to_seconds(dur_min)) if dur_min else 0
+            except Exception:
+                pass
+
+        # 1. Search YouTube using py_yt if vidid not yet resolved
+        if not vidid:
+            try:
+                track_details, vidid = await YouTube.track(query_str)
+                if vidid:
+                    title = track_details.get("title") or title
+                    thumb = track_details.get("thumb")
+                    dur_min = track_details.get("duration_min")
+                    duration_sec = int(time_to_seconds(dur_min)) if dur_min else 0
+            except Exception as yt_err:
+                logger.warning(f"YouTube.track extraction error: {yt_err}")
 
         # Fallback search with yt_dlp if py_yt didn't find video id
         if not vidid:
@@ -425,15 +445,18 @@ async def download_media(query: str, download_type: str = "audio") -> tuple:
                     'no_warnings': True,
                     'extract_flat': 'in_playlist',
                     'skip_download': True,
+                    'geo_bypass': True,
+                    'nocheckcertificate': True,
+                    'extractor_args': {'youtube': {'player_client': ['mweb', 'tv_embedded', 'android']}},
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    search_query = query if query.startswith("http") else f"ytsearch1:{query}"
+                    search_query = query_str if query_str.startswith("http") else f"ytsearch1:{query_str}"
                     try:
                         res = ydl.extract_info(search_query, download=False)
                         if not res:
                             return None
                         if 'entries' in res:
-                            entries = res['entries']
+                            entries = res.get('entries') or []
                             if not entries or not entries[0]:
                                 return None
                             return entries[0]
@@ -495,9 +518,18 @@ async def download_media(query: str, download_type: str = "audio") -> tuple:
             logger.info(f"Using cached file: {cached_file}")
             return cached_file, title, duration_sec, final_thumb
 
-        # 3. Fast direct download via yt-dlp with android / web player clients
-        logger.info(f"Downloading {download_type} locally using fast yt-dlp engine for: {title}...")
+        # Also check any file starting with vidid_prefix
+        for fname in os.listdir(DOWNLOAD_DIR):
+            if fname.startswith(f"{vidid}_{prefix}") and not fname.endswith(".jpg"):
+                full_p = os.path.join(DOWNLOAD_DIR, fname)
+                if os.path.getsize(full_p) > 10000:
+                    logger.info(f"Using cached file matching prefix: {full_p}")
+                    return full_p, title, duration_sec, final_thumb
+
+        # 3. Fast direct download via yt-dlp with mweb / tv_embedded / android player clients
+        logger.info(f"Downloading {download_type} locally using fast yt-dlp engine for: {title} ({vidid})...")
         def _dl_sync():
+            # Strategy 1: mweb + tv_embedded + android (Best for datacenter/server IPs)
             try:
                 if download_type == "audio":
                     ydl_opts = {
@@ -507,10 +539,8 @@ async def download_media(query: str, download_type: str = "audio") -> tuple:
                         'no_warnings': True,
                         'nocheckcertificate': True,
                         'geo_bypass': True,
-                        'extractor_args': {'youtube': {'player_client': ['android', 'web', 'ios']}},
+                        'extractor_args': {'youtube': {'player_client': ['mweb', 'tv_embedded', 'android']}},
                     }
-                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                        ydl.download([youtube_url])
                 else:
                     ydl_opts = {
                         'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]/best',
@@ -520,48 +550,81 @@ async def download_media(query: str, download_type: str = "audio") -> tuple:
                         'no_warnings': True,
                         'nocheckcertificate': True,
                         'geo_bypass': True,
-                        'extractor_args': {'youtube': {'player_client': ['android', 'web', 'ios']}},
+                        'extractor_args': {'youtube': {'player_client': ['mweb', 'tv_embedded', 'android']}},
                     }
-                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                        ydl.download([youtube_url])
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([youtube_url])
                         
                 for fname in os.listdir(DOWNLOAD_DIR):
-                    if fname.startswith(f"{vidid}_{prefix}"):
+                    if fname.startswith(f"{vidid}_{prefix}") and not fname.endswith(".jpg"):
                         full_p = os.path.join(DOWNLOAD_DIR, fname)
                         if os.path.getsize(full_p) > 5000:
                             return full_p
-                return None
             except Exception as dl_ex:
-                logger.error(f"yt-dlp sync download exception: {dl_ex}")
-                # Fallback without extractor_args if client was restricted
-                try:
-                    fallback_opts = {
-                        'format': 'bestaudio/best' if download_type == "audio" else 'bestvideo[height<=720]+bestaudio/best',
-                        'outtmpl': os.path.join(DOWNLOAD_DIR, f"{vidid}_{prefix}.%(ext)s"),
-                        'quiet': True,
-                        'no_warnings': True,
-                    }
-                    with yt_dlp.YoutubeDL(fallback_opts) as ydl:
-                        ydl.download([youtube_url])
-                    for fname in os.listdir(DOWNLOAD_DIR):
-                        if fname.startswith(f"{vidid}_{prefix}"):
-                            full_p = os.path.join(DOWNLOAD_DIR, fname)
-                            if os.path.getsize(full_p) > 5000:
-                                return full_p
-                except Exception as fb_err:
-                    logger.error(f"yt-dlp fallback download exception: {fb_err}")
-                return None
+                logger.error(f"yt-dlp strategy 1 exception: {dl_ex}")
+            
+            # Strategy 2: android_creator + mweb + android fallback format ba/b
+            try:
+                fb_opts = {
+                    'format': 'ba/b' if download_type == "audio" else 'b[height<=720]/b',
+                    'outtmpl': os.path.join(DOWNLOAD_DIR, f"{vidid}_{prefix}.%(ext)s"),
+                    'quiet': True,
+                    'no_warnings': True,
+                    'nocheckcertificate': True,
+                    'geo_bypass': True,
+                    'extractor_args': {'youtube': {'player_client': ['android_creator', 'mweb', 'android']}},
+                }
+                with yt_dlp.YoutubeDL(fb_opts) as ydl:
+                    ydl.download([youtube_url])
+                for fname in os.listdir(DOWNLOAD_DIR):
+                    if fname.startswith(f"{vidid}_{prefix}") and not fname.endswith(".jpg"):
+                        full_p = os.path.join(DOWNLOAD_DIR, fname)
+                        if os.path.getsize(full_p) > 5000:
+                            return full_p
+            except Exception as fb_err:
+                logger.error(f"yt-dlp strategy 2 exception: {fb_err}")
+
+            # Strategy 3: Standard yt-dlp without player_client restrictions
+            try:
+                std_opts = {
+                    'format': 'bestaudio/best' if download_type == "audio" else 'bestvideo[height<=720]+bestaudio/best',
+                    'outtmpl': os.path.join(DOWNLOAD_DIR, f"{vidid}_{prefix}.%(ext)s"),
+                    'quiet': True,
+                    'no_warnings': True,
+                    'nocheckcertificate': True,
+                    'geo_bypass': True,
+                }
+                with yt_dlp.YoutubeDL(std_opts) as ydl:
+                    ydl.download([youtube_url])
+                for fname in os.listdir(DOWNLOAD_DIR):
+                    if fname.startswith(f"{vidid}_{prefix}") and not fname.endswith(".jpg"):
+                        full_p = os.path.join(DOWNLOAD_DIR, fname)
+                        if os.path.getsize(full_p) > 5000:
+                            return full_p
+            except Exception as std_err:
+                logger.error(f"yt-dlp strategy 3 exception: {std_err}")
+
+            return None
 
         loop = asyncio.get_running_loop()
         downloaded_file = await loop.run_in_executor(None, _dl_sync)
-        if downloaded_file and os.path.exists(downloaded_file):
-            logger.info(f"Successfully downloaded {download_type} locally via fast yt-dlp: {downloaded_file}")
-            return downloaded_file, title, duration_sec, thumb
+
+        # Fallback Strategy 4: External API stream downloading if yt-dlp failed on datacenter IP
+        if not downloaded_file or not os.path.exists(downloaded_file):
+            logger.warning(f"yt-dlp local strategies failed for {vidid}, attempting download_song/video API fallback...")
+            if download_type == "audio":
+                downloaded_file = await download_song(youtube_url)
+            else:
+                downloaded_file = await download_video(youtube_url)
+
+        if downloaded_file and os.path.exists(downloaded_file) and os.path.getsize(downloaded_file) > 5000:
+            logger.info(f"Successfully downloaded {download_type} locally: {downloaded_file}")
+            return downloaded_file, title, duration_sec, final_thumb
         else:
-            logger.error("All download methods failed.")
+            logger.error(f"All download methods failed for query: {query_str} (vidid: {vidid}).")
             return None, None, None, None
     except Exception as e:
-        logger.error(f"Download media error: {e}")
+        logger.error(f"Download media exception: {e}")
         return None, None, None, None
 
 
