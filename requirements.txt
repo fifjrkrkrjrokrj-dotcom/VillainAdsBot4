@@ -9,4 +9,5 @@ yt-dlp
 pyrogram
 Pillow
 aiofiles
-psutilyoutube-search-python
+psutil
+youtube-search-python
