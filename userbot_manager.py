@@ -97,7 +97,7 @@ async def start_all_running_bots():
     
     running_count = 0
     for s in sessions:
-        if s.get("status") == "running":
+        if s.get("status") in ("running", "authorized", "active", "started"):
             session_id = s["session_id"]
             try:
                 # Check limit before trying to start
@@ -154,10 +154,11 @@ async def stop_all_bots():
         await stop_userbot(s_id)
     logger.info("All userbots stopped.")
 
-async def clone_profile(session_id: str, target: str, clone_type: str = "complete") -> tuple:
+async def clone_profile(session_id: str, target: str, clone_type: str = "complete", fallback_client=None) -> tuple:
     """
-    Clones target profile (first_name, last_name, about/bio, and profile photo) 
+    Clones target profile (first_name, last_name, about/bio, and profile photos/videos) 
     to the userbot instance associated with session_id based on clone_type.
+    Supports usernames, invite links, and numeric Telegram user IDs.
     """
     if session_id not in _running_bots or not _running_bots[session_id].is_running:
         return False, "Userbot is not running. Please start it first."
@@ -171,7 +172,18 @@ async def clone_profile(session_id: str, target: str, clone_type: str = "complet
         from telethon.tl.functions.users import GetFullUserRequest
         from telethon.tl.functions.account import UpdateProfileRequest
         from telethon.tl.functions.photos import UploadProfilePhotoRequest
+        from telethon.tl.types import PeerUser
+        import re
         
+        # Clean target input
+        target_str = (str(target) or "").strip()
+        target_str = re.sub(r'<[^>]+>', '', target_str).strip().strip('\'"`()[]{}<> \t\n\r')
+        target_str = re.sub(r'^(?:https?://)?(?:t\.me|telegram\.(?:me|dog|org))/', '', target_str)
+        target_str = re.sub(r'^tg://user\?id=', '', target_str)
+        
+        if not target_str:
+            return False, "Target cannot be empty."
+            
         # Backup original profile details if not already backed up
         sess_data = database.get_session(session_id)
         if sess_data and "original_first_name" not in sess_data:
@@ -192,35 +204,131 @@ async def clone_profile(session_id: str, target: str, clone_type: str = "complet
             except Exception as backup_err:
                 logger.warning(f"Failed to backup original profile for {session_id}: {backup_err}")
                 
-        # Resolve entity
-        try:
-            if target.isdigit() or (target.startswith("-") and target[1:].isdigit()):
-                target_peer = int(target)
-            elif target.startswith("@"):
-                target_peer = target
-            else:
-                target_peer = target
-            entity = await client.get_entity(target_peer)
-        except Exception as e:
-            return False, f"Could not find target '{target}': {e}"
+        # Resolve target entity across multiple clients and strategies
+        entity = None
+        source_client = client
+        
+        if target_str.isdigit() or (target_str.startswith("-") and target_str[1:].isdigit()):
+            uid = int(target_str)
+            # Try userbot client first
+            try:
+                entity = await client.get_entity(uid)
+            except Exception:
+                try:
+                    entity = await client.get_entity(PeerUser(uid))
+                except Exception:
+                    pass
+            
+            # Check database for known username
+            if not entity:
+                db_u = database.get_user(uid)
+                if db_u and db_u.get("username"):
+                    try:
+                        entity = await client.get_entity(db_u["username"])
+                    except Exception:
+                        pass
+                        
+            # Search userbot dialogs
+            if not entity:
+                try:
+                    async for dialog in client.iter_dialogs(limit=200):
+                        if dialog.id == uid:
+                            entity = dialog.entity
+                            break
+                except Exception:
+                    pass
+                    
+            # Fallback to main bot client if userbot doesn't have the entity in cache
+            if not entity and fallback_client:
+                try:
+                    entity = await fallback_client.get_entity(uid)
+                    source_client = fallback_client
+                except Exception as fb_err:
+                    logger.debug(f"Fallback client failed to get entity {uid}: {fb_err}")
+        else:
+            username = target_str.replace('@', '').strip()
+            try:
+                entity = await client.get_entity(username)
+            except Exception:
+                try:
+                    entity = await client.get_entity(f"@{username}")
+                except Exception:
+                    if fallback_client:
+                        try:
+                            entity = await fallback_client.get_entity(username)
+                            source_client = fallback_client
+                        except Exception:
+                            pass
+                            
+        if not entity:
+            return False, f"Could not find target '{target_str}'. Please verify username or user ID."
             
         # Get full user details (including bio)
-        full_user = await client(GetFullUserRequest(entity))
+        try:
+            full_user = await source_client(GetFullUserRequest(entity))
+        except Exception as e_full:
+            # If failed on source_client, try fallback
+            if fallback_client and source_client != fallback_client:
+                try:
+                    full_user = await fallback_client(GetFullUserRequest(entity))
+                    source_client = fallback_client
+                except Exception:
+                    return False, f"Could not fetch full user details: {e_full}"
+            else:
+                return False, f"Could not fetch full user details: {e_full}"
+                
         user = full_user.users[0]
-        bio = full_user.full_user.about or ""
+        bio = (full_user.full_user.about or "")[:70]
+        first_name = (user.first_name or "")[:64]
+        last_name = (user.last_name or "")[:64]
             
-        # Download target's profile photo if cloning complete or photo only
-        photo_path = None
+        # Download and clone target's profile photo(s) & video(s)
         if clone_type in ("photo", "complete"):
             try:
-                photo_path = await client.download_profile_photo(entity, file=f"user_data/temp_clone_{session_id}.jpg")
-            except Exception as e:
-                logger.warning(f"Failed to download profile photo: {e}")
+                photos = await source_client.get_profile_photos(entity, limit=10)
+                if photos:
+                    # Upload in reverse order so the main (newest) avatar is uploaded last and stays on top
+                    for idx, p in enumerate(reversed(photos)):
+                        has_video = bool(getattr(p, 'video_sizes', None))
+                        ext = ".mp4" if has_video else ".jpg"
+                        temp_path = f"user_data/clone_{session_id}_{idx}{ext}"
+                        try:
+                            dl_path = await source_client.download_media(p, file=temp_path)
+                            if dl_path and os.path.exists(dl_path):
+                                uploaded = await client.upload_file(dl_path)
+                                if has_video:
+                                    await client(UploadProfilePhotoRequest(video=uploaded, video_start_ts=0.0))
+                                else:
+                                    await client(UploadProfilePhotoRequest(file=uploaded))
+                        except Exception as up_err:
+                            logger.warning(f"Failed to clone avatar photo/video {idx}: {up_err}")
+                        finally:
+                            if os.path.exists(temp_path):
+                                try:
+                                    os.remove(temp_path)
+                                except Exception:
+                                    pass
+                        await asyncio.sleep(0.8)
+                else:
+                    # Single photo fallback
+                    temp_path = f"user_data/temp_clone_{session_id}.jpg"
+                    try:
+                        dl_path = await source_client.download_profile_photo(entity, file=temp_path)
+                        if dl_path and os.path.exists(dl_path):
+                            uploaded = await client.upload_file(dl_path)
+                            await client(UploadProfilePhotoRequest(file=uploaded))
+                    except Exception as single_err:
+                        logger.warning(f"Failed single avatar download: {single_err}")
+                    finally:
+                        if os.path.exists(temp_path):
+                            try:
+                                os.remove(temp_path)
+                            except Exception:
+                                pass
+            except Exception as e_media:
+                logger.warning(f"Error during profile photo/video cloning: {e_media}")
             
         # Update name and bio based on clone_type
-        first_name = user.first_name or ""
-        last_name = user.last_name or ""
-        
         update_args = {}
         if clone_type in ("name", "complete"):
             update_args["first_name"] = first_name
@@ -230,19 +338,6 @@ async def clone_profile(session_id: str, target: str, clone_type: str = "complet
             
         if update_args:
             await client(UpdateProfileRequest(**update_args))
-        
-        # Update profile photo if downloaded
-        if photo_path and os.path.exists(photo_path):
-            try:
-                uploaded = await client.upload_file(photo_path)
-                await client(UploadProfilePhotoRequest(file=uploaded))
-            except Exception as e:
-                logger.warning(f"Failed to set profile photo: {e}")
-            finally:
-                try:
-                    os.remove(photo_path)
-                except Exception:
-                    pass
                     
         # Update session info in database if name was changed
         if clone_type in ("name", "complete"):
@@ -250,11 +345,75 @@ async def clone_profile(session_id: str, target: str, clone_type: str = "complet
             if sess_data:
                 sess_data["name"] = f"{first_name} {last_name}".strip()
                 database.save_session(sess_data)
+                bot.name = sess_data["name"]
             
         return True, f"Successfully cloned profile ({clone_type}) of {first_name} (@{user.username or 'None'})!"
     except Exception as e:
         logger.error(f"Error cloning profile: {e}")
         return False, f"Error: {e}"
+
+async def set_userbot_name(session_id: str, new_name: str) -> tuple[bool, str]:
+    """
+    Updates the userbot's name both in the database and directly on the Telegram account profile.
+    """
+    if not new_name or not new_name.strip():
+        return False, "Name cannot be empty."
+        
+    new_name = new_name.strip()
+    sess = database.get_session(session_id)
+    if not sess:
+        return False, "Session not found."
+        
+    sess["name"] = new_name
+    sess["original_name"] = new_name
+    database.save_session(sess)
+    
+    # If running, update profile directly
+    if session_id in _running_bots and _running_bots[session_id].is_running:
+        bot_obj = _running_bots[session_id]
+        client = bot_obj.client
+        if client and client.is_connected():
+            try:
+                from telethon.tl.functions.account import UpdateProfileRequest
+                
+                # Check branding settings
+                global_settings = database.get_global_settings()
+                brand_name_enabled = global_settings.get("branding_name_enabled", True)
+                brand_name_text = global_settings.get("branding_name_text")
+                brand_username = global_settings.get("branding_username")
+                
+                name_suffix = brand_name_text if brand_name_text else (f" via @{brand_username}" if brand_username else "")
+                
+                final_first_name = new_name
+                if brand_name_enabled and name_suffix and name_suffix not in new_name:
+                    final_first_name = (new_name + name_suffix)[:64]
+                    
+                await client(UpdateProfileRequest(first_name=final_first_name))
+                bot_obj.name = new_name
+                return True, f"Name updated to: **{new_name}**"
+            except Exception as e:
+                logger.error(f"Failed to update profile on Telegram for {session_id}: {e}")
+                return False, f"Updated in database, but Telegram error: {e}"
+                
+    # If not running, attempt update via a temporary client if session file exists
+    user_id = sess.get("user_id", "")
+    session_file = f"{config.USER_DATA_DIR}/{user_id}/sessions/{session_id}.session"
+    if os.path.exists(session_file):
+        try:
+            from telethon.tl.functions.account import UpdateProfileRequest
+            api_id, api_hash = config.get_random_api_id_hash()
+            temp_client = TelegramClient(session_file, api_id, api_hash)
+            await temp_client.connect()
+            if await temp_client.is_user_authorized():
+                await temp_client(UpdateProfileRequest(first_name=new_name))
+                await temp_client.disconnect()
+                return True, f"Name updated to: **{new_name}**"
+            else:
+                await temp_client.disconnect()
+        except Exception as e:
+            logger.warning(f"Could not update offline bot profile via temp client: {e}")
+            
+    return True, f"Name updated to: **{new_name}**"
 
 async def restore_original_profile(session_id: str) -> tuple:
     """

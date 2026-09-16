@@ -37,7 +37,7 @@ def check_single_instance():
             os.remove(LOCK_FILE)
         except OSError:
             logger.error("Another instance of the bot is already running! (bot.lock is locked)")
-            print("\n❌ ERROR: Another instance of the bot is already running!")
+            print("\n[X] ERROR: Another instance of the bot is already running!")
             print("Please kill the running Python processes and try again.\n")
             sys.exit(1)
             
@@ -47,7 +47,7 @@ def check_single_instance():
         _lock_fp.flush()
     except IOError:
         logger.error("Failed to acquire lock. Another instance might be running.")
-        print("\n❌ ERROR: Failed to acquire lock. Another instance might be running.\n")
+        print("\n[X] ERROR: Failed to acquire lock. Another instance might be running.\n")
         sys.exit(1)
 
 async def main():

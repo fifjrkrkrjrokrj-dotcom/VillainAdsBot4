@@ -17,7 +17,14 @@ async def show_settings_menu(event, user_id: int):
     # Fetch user wallet balance
     wallet_bal = user.get("wallet_balance", 0.0)
     
-    text = f"⚙️ **Settings Menu**\n\n👛 Wallet Balance: **₹{wallet_bal:.2f}**"
+    text = (
+        f"> ⚙️ **USER SETTINGS**\n"
+        f"> ━━━━━━━━━━━━━━━━━━━━\n"
+        f"> 👛 **Wallet Balance**: `₹{wallet_bal:.2f}`\n"
+        f"> 🌐 **Current Language**: `{lang.upper()}`\n"
+        f"> ━━━━━━━━━━━━━━━━━━━━\n"
+        f"> _Select an action below to manage your account:_"
+    )
     buttons = [
         [
             utils.styled_button(utils.get_text("btn_change_lang", lang), "settings_change_lang", style="primary"),
@@ -49,7 +56,12 @@ async def show_purchase_menu(event, user_id: int):
     
     if not plans:
         buttons = [[utils.styled_button("🔙 Back", "menu_settings", style="primary")]]
-        text = "❌ **No subscription plans are currently configured by the administrators.**"
+        text = (
+            f"> ❌ **NO PLANS AVAILABLE**\n"
+            f"> ━━━━━━━━━━━━━━━━━━━━\n"
+            f"> No subscription plans are currently configured by administrators.\n"
+            f"> ━━━━━━━━━━━━━━━━━━━━"
+        )
         try:
             await event.edit(text, buttons=buttons)
         except Exception:
@@ -57,10 +69,11 @@ async def show_purchase_menu(event, user_id: int):
         return
         
     text = (
-        f"💳 **Purchase Slot Upgrades**\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"Current Slots Limit: **{allowed}**\n\n"
-        f"__Select a subscription plan below to upgrade your slot count:__"
+        f"> 💳 **PURCHASE SLOT UPGRADES**\n"
+        f"> ━━━━━━━━━━━━━━━━━━━━\n"
+        f"> 📊 **Current Allowed Slots**: `{allowed}`\n"
+        f"> 💡 Select a subscription plan below to upgrade:\n"
+        f"> ━━━━━━━━━━━━━━━━━━━━"
     )
     
     buttons = []

@@ -8,23 +8,123 @@ from translations import TRANSLATIONS
 
 logger = logging.getLogger(__name__)
 
+SMALL_CAPS_MAP = {
+    'a': 'ᴀ', 'b': 'ʙ', 'c': 'ᴄ', 'd': 'ᴅ', 'e': 'ᴇ', 'f': 'ғ', 'g': 'ɢ', 'h': 'ʜ',
+    'i': 'ɪ', 'j': 'ᴊ', 'k': 'ᴋ', 'l': 'ʟ', 'm': 'ᴍ', 'n': 'ɴ', 'o': 'ᴏ', 'p': 'ᴘ',
+    'q': 'ǫ', 'r': 'ʀ', 's': 's', 't': 'ᴛ', 'u': 'ᴜ', 'v': 'ᴠ', 'w': 'ᴡ', 'x': 'x',
+    'y': 'ʏ', 'z': 'ᴢ',
+    'A': 'ᴀ', 'B': 'ʙ', 'C': 'ᴄ', 'D': 'ᴅ', 'E': 'ᴇ', 'F': 'ғ', 'G': 'ɢ', 'H': 'ʜ',
+    'I': 'ɪ', 'J': 'ᴊ', 'K': 'ᴋ', 'L': 'ʟ', 'M': 'ᴍ', 'N': 'ɴ', 'O': 'ᴏ', 'P': 'ᴘ',
+    'Q': 'ǫ', 'R': 'ʀ', 'S': 's', 'T': 'ᴛ', 'U': 'ᴜ', 'V': 'ᴠ', 'W': 'ᴡ', 'X': 'x',
+    'Y': 'ʏ', 'Z': 'ᴢ'
+}
+
+def to_small_caps(text: str) -> str:
+    """
+    Converts Latin alphabetic text into aesthetic small-caps font.
+    Preserves emojis, punctuation, numbers, and non-Latin scripts.
+    """
+    if not text or not isinstance(text, str):
+        return text
+    return ''.join(SMALL_CAPS_MAP.get(ch, ch) for ch in text)
+
 def styled_button(text: str, callback_data: str, style: str = "primary"):
     """
-    Creates an inline button. Handles cases where the current Telethon library version
-    does not support a 'style' parameter natively in Button.inline by attaching it as an attribute.
+    Creates an inline button with uniform small-caps font.
     """
+    styled_text = to_small_caps(text)
     try:
-        return Button.inline(text, data=callback_data, style=style)
+        return Button.inline(styled_text, data=callback_data, style=style)
     except TypeError:
         # Standard Telethon fallback
-        btn = Button.inline(text, data=callback_data)
+        btn = Button.inline(styled_text, data=callback_data)
         setattr(btn, "style", style)
         return btn
+
+# Global hook on Button methods to ensure 100% font consistency across every button in the bot
+_orig_inline = Button.inline
+_orig_url = Button.url
+_orig_text = Button.text
+
+def _hooked_inline(text, data=None, **kwargs):
+    if isinstance(text, bytes):
+        text = text.decode('utf-8', errors='ignore')
+    if isinstance(text, str):
+        text = to_small_caps(text)
+    return _orig_inline(text, data=data, **kwargs)
+
+def _hooked_url(text, url=None, **kwargs):
+    if isinstance(text, bytes):
+        text = text.decode('utf-8', errors='ignore')
+    if isinstance(text, str):
+        text = to_small_caps(text)
+    return _orig_url(text, url=url, **kwargs)
+
+def _hooked_text(text, **kwargs):
+    if isinstance(text, bytes):
+        text = text.decode('utf-8', errors='ignore')
+    if isinstance(text, str):
+        text = to_small_caps(text)
+    return _orig_text(text, **kwargs)
+
+Button.inline = staticmethod(_hooked_inline)
+Button.url = staticmethod(_hooked_url)
+Button.text = staticmethod(_hooked_text)
+
+
+import re
+
+def format_html_message(text: str) -> str:
+    """
+    Formats text into valid Telegram HTML entities with <blockquote> for card UI.
+    Converts markdown blockquotes ('> ') to native Telegram <blockquote>...</blockquote> tags.
+    Converts **bold** to <b>, `code` to <code>, and _italic_ to <i>.
+    """
+    if not text or not isinstance(text, str):
+        return text
+
+    # Check for markdown blockquote lines
+    has_md_quote = bool(re.search(r'(^|\n)>\s*', text))
+    
+    if has_md_quote:
+        lines = text.split('\n')
+        new_lines = []
+        in_quote = False
+        for line in lines:
+            if line.startswith('> '):
+                content = line[2:]
+                if not in_quote:
+                    new_lines.append('<blockquote>' + content)
+                    in_quote = True
+                else:
+                    new_lines.append(content)
+            elif line.strip() == '>':
+                if not in_quote:
+                    new_lines.append('<blockquote>')
+                    in_quote = True
+                else:
+                    new_lines.append('')
+            else:
+                if in_quote:
+                    new_lines[-1] += '</blockquote>'
+                    in_quote = False
+                new_lines.append(line)
+        if in_quote:
+            new_lines[-1] += '</blockquote>'
+        text = '\n'.join(new_lines)
+
+    # Convert markdown formatting to HTML tags
+    text = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', text)
+    text = re.sub(r'`([^`\n]+)`', r'<code>\1</code>', text)
+    text = re.sub(r'(?<!\w)_([^_]+)_(?!\w)', r'<i>\1</i>', text)
+    
+    return text
 
 def get_text(key: str, lang: Optional[str] = "en", **kwargs) -> str:
     """
     Retrieves the localized text for the given key and language.
     Falls back to English if the translation is missing.
+    Automatically ensures Telegram HTML blockquote card formatting.
     """
     lang = lang or "en"
     if lang not in TRANSLATIONS:
@@ -35,10 +135,11 @@ def get_text(key: str, lang: Optional[str] = "en", **kwargs) -> str:
         return f"[{key}]"
         
     try:
-        return text.format(**kwargs)
+        formatted = text.format(**kwargs)
+        return format_html_message(formatted)
     except Exception as e:
         logger.error(f"Formatting error for translation key '{key}': {e}")
-        return text
+        return format_html_message(text)
 
 async def show_help(event, action_key: str, user_id: int) -> bool:
     """
@@ -185,8 +286,8 @@ async def guard(event, client) -> bool:
             await event.respond(txt)
         return True
         
-    # 3. Force Subscribe Guard
-    if not is_admin:
+    # 3. Force Subscribe Guard (Only enforce in Private chats)
+    if event.is_private and not is_admin:
         not_joined = await check_force_sub(client, user_id)
         if not_joined:
             await send_force_sub_msg(event, not_joined, user.get("language", "en") or "en")
@@ -431,4 +532,27 @@ def get_device_profile(session_id: str) -> dict:
     ]
     
     return profiles[val % len(profiles)]
+
+
+_handled_commands = {}
+
+def check_and_mark_command(chat_id: int, text: str, ttl: float = 3.0) -> bool:
+    """
+    Checks if a command in a given chat was already handled in the last ttl seconds.
+    Returns True if this is a new command (and marks it), False if duplicate.
+    """
+    import time
+    now = time.time()
+    # Clean old entries
+    for k in list(_handled_commands.keys()):
+        if now - _handled_commands[k] > 10.0:
+            _handled_commands.pop(k, None)
+            
+    key = (chat_id, (text or "").strip().lower())
+    last_t = _handled_commands.get(key, 0.0)
+    if now - last_t < ttl:
+        return False
+        
+    _handled_commands[key] = now
+    return True
 

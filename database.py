@@ -137,8 +137,17 @@ def get_sessions(user_id: Optional[int] = None, include_bytes: bool = False) -> 
     return list(_db.sessions.find(query, projection))
 
 def get_session(session_id: str, include_bytes: bool = False) -> Optional[Dict[str, Any]]:
+    if not session_id:
+        return None
     projection = None if include_bytes else {"session_bytes": 0}
-    return _db.sessions.find_one({"session_id": session_id}, projection)
+    session_id_str = str(session_id).strip()
+    sess = _db.sessions.find_one({"session_id": session_id_str}, projection)
+    if not sess:
+        sess = _db.sessions.find_one({"phone": session_id_str}, projection)
+    if not sess:
+        alt = session_id_str.lstrip("+") if session_id_str.startswith("+") else f"+{session_id_str}"
+        sess = _db.sessions.find_one({"$or": [{"session_id": alt}, {"phone": alt}]}, projection)
+    return sess
 
 def save_session(session_data: Dict[str, Any]):
     session_data["user_id"] = int(session_data["user_id"])
@@ -202,16 +211,13 @@ def get_global_settings() -> Dict[str, Any]:
         # Override with current environment values at runtime so Railway environment changes take priority
         import os
         
-        # String/URL overrides
+        # String/URL overrides (exclude images so admin panel removals/sets persist in MongoDB)
         for env_key, settings_key in [
             ("SUPPORT_CHANNEL", "support_channel"),
             ("SUPPORT_GROUP", "support_group"),
             ("UPI_ID", "upi_id"),
             ("USDT_BEP20_ADDRESS", "usdt_bep20_address"),
             ("TON_ADDRESS", "ton_address"),
-            ("START_IMAGE", "start_image"),
-            ("PING_IMAGE", "ping_image"),
-            ("HELP_IMAGE", "help_image"),
             ("GPT_API_KEY", "gpt_api_key"),
             ("BRANDING_USERNAME", "branding_username"),
             ("BRANDING_NAME_TEXT", "branding_name_text"),
@@ -346,3 +352,44 @@ def get_payment_request_by_utr_and_status(utr: str, status: str = "pending") -> 
     Looks up a payment request by UTR and status directly using index.
     """
     return _db.payments.find_one({"utr_code": utr, "status": status})
+
+# ==================== Chat & Thumbnail Settings CRUD ====================
+_thumbnail_settings_cache: Dict[int, bool] = {}
+
+def get_thumbnail_setting(chat_or_user_id: int) -> bool:
+    """
+    Returns True if thumbnail previews are enabled for the chat/user (default True).
+    """
+    cid = int(chat_or_user_id)
+    if cid in _thumbnail_settings_cache:
+        return _thumbnail_settings_cache[cid]
+        
+    try:
+        if _db is not None:
+            doc = _db.chat_settings.find_one({"chat_id": cid})
+            if doc and "thumbnail" in doc:
+                res = bool(doc["thumbnail"])
+                _thumbnail_settings_cache[cid] = res
+                return res
+    except Exception as e:
+        logger.warning(f"Error reading thumbnail setting: {e}")
+        
+    _thumbnail_settings_cache[cid] = True
+    return True
+
+def set_thumbnail_setting(chat_or_user_id: int, enabled: bool):
+    """
+    Enables or disables thumbnail previews for the specified chat/user.
+    """
+    cid = int(chat_or_user_id)
+    _thumbnail_settings_cache[cid] = bool(enabled)
+    try:
+        if _db is not None:
+            _db.chat_settings.update_one(
+                {"chat_id": cid},
+                {"$set": {"thumbnail": bool(enabled)}},
+                upsert=True
+            )
+    except Exception as e:
+        logger.error(f"Error saving thumbnail setting: {e}")
+

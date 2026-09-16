@@ -12,11 +12,33 @@ api_id_val = os.getenv("API_ID", "")
 API_ID = int(api_id_val) if api_id_val.strip().isdigit() else 0
 API_HASH = os.getenv("API_HASH", "")
 
+import random
+
+def get_random_api_id_hash():
+    """
+    Returns a random (API_ID, API_HASH) from the environment to avoid floodwaits.
+    It checks API_ID, API_HASH, API_ID1, API_HASH1, ... up to 100.
+    """
+    pairs = []
+    if API_ID and API_HASH:
+        pairs.append((API_ID, API_HASH))
+        
+    for i in range(1, 100):
+        aid = os.getenv(f"API_ID{i}")
+        ahash = os.getenv(f"API_HASH{i}")
+        if aid and ahash and aid.strip().isdigit():
+            pairs.append((int(aid), ahash.strip()))
+            
+    if pairs:
+        return random.choice(pairs)
+    return (0, "")
+
 # Bot token for the main manager bot
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 # MongoDB connection URI
-MONGODB_URI = os.getenv("MONGODB_URI", "")
+MONGODB_URI = os.getenv("MONGODB_URI") or os.getenv("MONGO_DB_URI") or ""
+
 
 # Parse original admin IDs (which can be whitelisted using ORIGINAL_ADMIN_IDS or OWNER_ID)
 original_admin_ids_str = os.getenv("ORIGINAL_ADMIN_IDS") or os.getenv("original_admin_ids") or os.getenv("OWNER_ID") or os.getenv("owner_id") or ""
@@ -68,7 +90,13 @@ DEFAULT_GLOBAL_SETTINGS = {
 }
 
 # Owner Button Configuration (Read from Env)
-OWNER_1_NAME = os.getenv("OWNER_1_NAME") or os.getenv("owner_1_name") or "👑 Owner 1"
-OWNER_1_URL = os.getenv("OWNER_1_URL") or os.getenv("owner_1_url") or "https://t.me/v90001"
-OWNER_2_NAME = os.getenv("OWNER_2_NAME") or os.getenv("owner_2_name") or "👑 Owner 2"
-OWNER_2_URL = os.getenv("OWNER_2_URL") or os.getenv("owner_2_url") or "https://t.me/BL4ZEXSOUL"
+OWNER_NAME = os.getenv("OWNER_NAME") or os.getenv("owner_name") or os.getenv("OWNER_1_NAME") or "👑 Owner"
+OWNER_URL = os.getenv("OWNER_URL") or os.getenv("owner_url") or os.getenv("OWNER_1_URL") or "https://t.me/v90001"
+OWNER_1_NAME = OWNER_NAME
+OWNER_1_URL = OWNER_URL
+
+# Music API Configuration (Meow / Yuki API)
+MEOW_API_URL = os.getenv("MEOW_API_URL", "https://music.yukiapi.site")
+MEOW_API_KEY = os.getenv("MEOW_API_KEY", "YOUR_API_KEY") # 🔑 Get Key: @MeowApiRobot On Telegram
+
+

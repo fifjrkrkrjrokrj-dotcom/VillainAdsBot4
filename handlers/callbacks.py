@@ -4,37 +4,11 @@ import utils
 
 logger = logging.getLogger(__name__)
 
-def get_action_key(data: str) -> str:
-    """
-    Parses the callback data payload to identify the associated help hint translation key.
-    """
-    if data.startswith("menu_"):
-        return data.replace("menu_", "", 1)
-    if data.startswith("set_lang_"):
-        return "change_lang"
-    if data.startswith("admin_set_"):
-        return data.replace("admin_set_", "set_", 1)
-        
-    # Standard prefix list
-    prefixes = [
-        "start_bot_", "stop_bot_", "set_broadcast_", "set_welcome_",
-        "toggle_spam_", "toggle_welcome_", "toggle_vc_", "toggle_tag_",
-        "set_tag_msg_", "change_name_", "set_interval_", "toggle_gpt_",
-        "refresh_stats_", "delete_bot_", "buy_qty_", "approve_payment_",
-        "reject_payment_", "admin_", "toggle_add_contact_", "set_multi_welcome_"
-    ]
-    
-    for p in prefixes:
-        if data.startswith(p):
-            return p.rstrip("_")
-            
-    return data
-
 def register_handlers(client):
     @client.on(events.CallbackQuery)
-    async def global_callback_help_handler(event):
+    async def global_callback_handler(event):
         """
-        Intercepts all callback queries, identifies their actions, and displays help messages.
+        Global callback guard: applies security filters and cleans up transient states.
         """
         try:
             # Decode callback data
@@ -45,36 +19,47 @@ def register_handlers(client):
             if data.startswith("approve_payment_") or data.startswith("reject_payment_") or data.startswith("payment_info_"):
                 return
                 
-            # Run Guard check (exception: 'verify_sub' must pass through)
-            if data != "verify_sub":
-                if await utils.guard(event, client):
+            # Fast Ban/Maintenance Guard for callbacks
+            import database, config
+            user_id = event.sender_id
+            if user_id:
+                user = database.get_user(user_id)
+                if user and user.get("is_banned", False):
+                    try:
+                        await event.answer("🚫 You are banned from using this bot.", alert=True)
+                    except Exception:
+                        pass
                     raise events.StopPropagation
                     
-            action = get_action_key(data)
-            user_id = event.sender_id
+                global_settings = database.get_global_settings()
+                admins = global_settings.get("admins", [])
+                is_admin = user_id in admins or user_id in config.ORIGINAL_ADMIN_IDS
+                if global_settings.get("maintenance_mode", False) and not is_admin:
+                    try:
+                        await event.answer("🔧 Bot is under maintenance. Please try again later.", alert=True)
+                    except Exception:
+                        pass
+                    raise events.StopPropagation
             
-            # Clean up all active text-listening states to prevent leakage
-            try:
-                from .admin import _admin_action_states, _admin_plan_temp
-                from .my_bots import _bot_action_states
-                from .payments_extended import _payment_user_states
-                from .add_bot import clean_login_state
-                
-                _admin_action_states.pop(user_id, None)
-                _admin_plan_temp.pop(user_id, None)
-                _bot_action_states.pop(user_id, None)
-                _payment_user_states.pop(user_id, None)
-                await clean_login_state(user_id)
-            except Exception as cleanup_err:
-                logger.error(f"Error cleaning up states on callback: {cleanup_err}")
-                
-            # Show the translation help text popup
-            shown = await utils.show_help(event, action, user_id)
-            if shown:
-                return
+            # Clean up active states only on main menu navigation or explicit exit
+            if data in ("menu_start", "admin_exit_impersonation"):
+                try:
+                    from .admin import _admin_action_states, _admin_plan_temp
+                    from .my_bots import _bot_action_states
+                    from .payments_extended import _payment_user_states
+                    from .add_bot import clean_login_state
+                    
+                    _admin_action_states.pop(user_id, None)
+                    _admin_plan_temp.pop(user_id, None)
+                    _bot_action_states.pop(user_id, None)
+                    _payment_user_states.pop(user_id, None)
+                    await clean_login_state(user_id)
+                except Exception as cleanup_err:
+                    logger.error(f"Error cleaning up states on callback: {cleanup_err}")
+
         except events.StopPropagation:
             raise
         except Exception as e:
-            logger.error(f"Error in global callback help handler: {e}")
+            logger.error(f"Error in global callback handler: {e}")
 
-            # Do not raise events.StopPropagation so other matching callback handlers can still fire.
+

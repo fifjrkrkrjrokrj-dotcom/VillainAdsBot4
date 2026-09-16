@@ -1,0 +1,824 @@
+import os
+import re
+import asyncio
+import logging
+import time
+from typing import Optional, Tuple, Union
+from telethon import events, Button
+from telethon.tl import types
+from telethon.tl.types import Channel, Chat, User
+
+import config
+import database
+import utils
+import userbot_manager
+from userbot import download_media, extract_media_info, generate_silence, YouTube
+
+logger = logging.getLogger(__name__)
+
+# Track active playing sessions per chat: { chat_id: { "bot": UserBot, "song_info": dict, "msg_id": int } }
+_active_chat_players = {}
+_chat_queues = {}
+_track_timer_tasks = {}
+_main_bot = None
+
+# Rate limit for download progress edits
+_last_progress_updates = {}
+
+def download_progress_sync(current, total, msg_to_edit, operation_name="DOWNLOADING"):
+    now = time.time()
+    msg_id = id(msg_to_edit)
+    last_time = _last_progress_updates.get(msg_id, 0.0)
+    
+    percent = (current / total) * 100 if total else 0.0
+    if now - last_time < 3.0 and percent < 100.0:
+        return
+        
+    _last_progress_updates[msg_id] = now
+    filled_blocks = int(percent // 10)
+    bar = "█" * filled_blocks + "░" * (10 - filled_blocks)
+    
+    mb_curr = current / (1024 * 1024)
+    mb_tot = total / (1024 * 1024)
+    
+    txt = (
+        f"<blockquote><b>» 📥 {operation_name}</b>\n\n"
+        f"📊 <b>ᴘʀᴏɢʀᴇss :</b> <code>[{bar}] {percent:.1f}%</code>\n"
+        f"💾 <b>sɪᴢᴇ :</b> <code>{mb_curr:.2f} MB / {mb_tot:.2f} MB</code></blockquote>"
+    )
+    try:
+        asyncio.create_task(msg_to_edit.edit(txt))
+    except Exception:
+        pass
+
+
+async def get_or_start_userbot_for_chat(user_id: int, chat_id: Optional[int] = None) -> Tuple[Optional[object], str]:
+    """
+    Finds or automatically starts a suitable UserBot instance for the user/chat.
+    Ensures that only the user who connected the userbot (or system admins) can command it.
+    Returns (userbot_instance, error_message).
+    """
+    # 1. Check user's own connected accounts first
+    user_sessions = database.get_sessions(user_id) if user_id else []
+    if user_sessions:
+        for s in user_sessions:
+            phone = s["phone"]
+            if userbot_manager.is_bot_running(phone):
+                return userbot_manager._running_bots[phone], ""
+                
+        # If not running in memory, auto-start the user's first available account
+        first_session = user_sessions[0]
+        phone = first_session["phone"]
+        logger.info(f"Auto-starting UserBot {phone} for user {user_id} on-demand...")
+        started = await userbot_manager.start_userbot(phone)
+        if started and phone in userbot_manager._running_bots:
+            return userbot_manager._running_bots[phone], ""
+
+    # 2. Check if requester is a bot admin / system owner (admins can command active chat bots)
+    global_settings = database.get_global_settings()
+    admins_list = global_settings.get("admins", [])
+    is_admin = user_id in admins_list or user_id in config.ORIGINAL_ADMIN_IDS
+    
+    if is_admin:
+        if chat_id:
+            for phone, bot in list(userbot_manager._running_bots.items()):
+                if bot.is_running and bot.client and bot.client.is_connected():
+                    if getattr(bot, "current_vc_chat_id", None) == chat_id or chat_id in getattr(bot, "joined_vcs", set()):
+                        return bot, ""
+                        
+        for phone, bot in list(userbot_manager._running_bots.items()):
+            if bot.is_running and bot.client and bot.client.is_connected():
+                return bot, ""
+
+    err_txt = utils.format_html_message(
+        "<blockquote><b>» ⚠️ ɴᴏ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴜsᴇʀʙᴏᴛ ғᴏᴜɴᴅ</b>\n\n"
+        "ʏᴏᴜ ʜᴀᴠᴇ ɴᴏᴛ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴀ ᴜsᴇʀʙᴏᴛ ᴛᴏ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ.\n\n"
+        "💡 <b>ᴀᴄᴛɪᴏɴ :</b> ᴘʟᴇᴀsᴇ ᴄᴏɴɴᴇᴄᴛ ʏᴏᴜʀ ᴏᴡɴ ᴜsᴇʀʙᴏᴛ ᴜsɪɴɢ /start ɪɴ ᴘʀɪᴠᴀᴛᴇ ᴄʜᴀᴛ ᴛᴏ ᴘʟᴀʏ sᴏɴɢs!</blockquote>"
+    )
+    return None, err_txt
+
+
+def build_now_playing_markup(chat_id: int, is_paused: bool = False, is_muted: bool = False):
+    """
+    Generates inline control buttons for Now Playing cards.
+    """
+    pause_btn = utils.styled_button("▶️ ʀᴇsᴜᴍᴇ", f"player_resume_{chat_id}", style="success") if is_paused else utils.styled_button("⏸️ ᴘᴀᴜsᴇ", f"player_pause_{chat_id}", style="primary")
+    mute_btn = utils.styled_button("🔊 ᴜɴᴍᴜᴛᴇ", f"player_unmute_{chat_id}", style="success") if is_muted else utils.styled_button("🔇 ᴍᴜᴛᴇ", f"player_mute_{chat_id}", style="primary")
+    
+    return [
+        [
+            pause_btn,
+            utils.styled_button("⏹️ sᴛᴏᴘ", f"player_stop_{chat_id}", style="danger"),
+            mute_btn
+        ],
+        [
+            utils.styled_button("⏭️ sᴋɪᴘ", f"player_skip_{chat_id}", style="primary"),
+            utils.styled_button("📜 ǫᴜᴇᴜᴇ", f"player_queue_{chat_id}", style="primary"),
+            utils.styled_button("🖼️ ᴛʜᴜᴍʙ", f"player_thumb_toggle_{chat_id}", style="primary")
+        ]
+    ]
+
+
+def format_now_playing_text(song_info: dict, requester_name: str, requester_id: int, stream_type: str = "Audio") -> str:
+    """
+    Renders the rich Now Playing markdown text with Telegram blockquotes.
+    """
+    title = song_info.get("title", "Unknown Track")
+    duration = song_info.get("duration", 0)
+    mins, secs = divmod(duration, 60)
+    dur_str = f"{mins:02d}:{secs:02d}" if duration > 0 else "Live Stream"
+    
+    ub_name = song_info.get("userbot_name") or "UserBot"
+    ub_username = song_info.get("username")
+    ub_display = f"@{ub_username}" if ub_username else f"`{song_info.get('userbot_id', '')}`"
+    
+    mode_emoji = "🎬 ᴠɪᴅᴇᴏ sᴛʀᴇᴀᴍ" if stream_type.lower() == "video" else "🎙️ ᴀᴜᴅɪᴏ sᴛʀᴇᴀᴍ"
+    
+    text = (
+        f"<blockquote><b>» 🎵 ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ</b>\n\n"
+        f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{title}</b>\n"
+        f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
+        f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
+        f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{requester_name}</a>\n"
+        f"<b>🤖 sᴛʀᴇᴀᴍ sᴏᴜʀᴄᴇ :</b> <b>{ub_name}</b> ({ub_display})\n\n"
+        f"⚡ <i>ᴄᴏɴᴛʀᴏʟ sᴛʀᴇᴀᴍ ᴜsɪɴɢ ɪɴᴛᴇʀᴀᴄᴛɪᴠᴇ ʙᴜᴛᴛᴏɴs ʙᴇʟᴏᴡ.</i></blockquote>"
+    )
+    return text
+
+
+async def play_next_in_queue(chat_id: int, client=None):
+    """
+    Dequeues and plays the next scheduled track for the given chat.
+    """
+    # Cancel previous timer if still alive
+    prev_timer = _track_timer_tasks.pop(chat_id, None)
+    if prev_timer and not prev_timer.done():
+        prev_timer.cancel()
+        
+    queue = _chat_queues.get(chat_id, [])
+    if not queue:
+        # No more songs in queue
+        active_sess = _active_chat_players.pop(chat_id, None)
+        if active_sess and active_sess.get("bot"):
+            try:
+                await active_sess["bot"].stop_song(chat_id)
+                await active_sess["bot"].leave_voice_chat(chat_id)
+            except Exception:
+                pass
+        return
+        
+    next_item = queue.pop(0)
+    query = next_item.get("query", "")
+    play_type = next_item.get("play_type", "audio")
+    requester_name = next_item.get("requester_name", "User")
+    requester_id = next_item.get("requester_id", 0)
+    local_file_path = next_item.get("local_file")
+    audio_title = next_item.get("title")
+    audio_duration = next_item.get("duration", 30)
+    
+    bot_obj, err = await get_or_start_userbot_for_chat(requester_id, chat_id)
+    if not bot_obj:
+        logger.error(f"Cannot auto-advance queue: {err}")
+        return
+        
+    success, msg, song_info = await bot_obj.play_song(
+        query=query,
+        play_type=play_type,
+        chat_id=chat_id,
+        local_file=local_file_path,
+        title=audio_title,
+        duration=audio_duration
+    )
+    
+    if not success or not song_info:
+        logger.warning(f"Failed to play next queued track: {msg}, advancing...")
+        await play_next_in_queue(chat_id, client)
+        return
+        
+    thumb_enabled = database.get_thumbnail_setting(chat_id)
+    np_text = format_now_playing_text(song_info, requester_name, requester_id, stream_type=play_type)
+    buttons = build_now_playing_markup(chat_id, is_paused=False, is_muted=False)
+    thumb_file = song_info.get("thumb")
+
+    # Accept both local file paths and HTTP URLs for thumbnail
+    def _thumb_valid(tf):
+        if not tf:
+            return False
+        s = str(tf)
+        if s.startswith("http"):
+            return True
+        return os.path.exists(s) and os.path.getsize(s) > 0
+
+    # Use main bot if available, otherwise fallback
+    send_client = client or _main_bot or getattr(bot_obj, "client", None)
+    sent_msg = None
+    if send_client:
+        try:
+            if thumb_enabled and _thumb_valid(thumb_file):
+                sent_msg = await send_client.send_message(chat_id, np_text, file=thumb_file, buttons=buttons, parse_mode="html")
+            else:
+                sent_msg = await send_client.send_message(chat_id, np_text, buttons=buttons, parse_mode="html")
+        except Exception as send_err:
+            logger.warning(f"Failed to send queue now playing with thumb: {send_err}, fallback to text")
+            try:
+                sent_msg = await send_client.send_message(chat_id, np_text, buttons=buttons, parse_mode="html")
+            except Exception:
+                pass
+                
+    _active_chat_players[chat_id] = {
+        "bot": bot_obj,
+        "song_info": song_info,
+        "msg_id": sent_msg.id if sent_msg else None,
+        "is_paused": False,
+        "is_muted": False
+    }
+    
+    dur = song_info.get("duration", 30) or 30
+    async def track_auto_timer():
+        await asyncio.sleep(dur + 2)
+        await play_next_in_queue(chat_id, client)
+        
+    _track_timer_tasks[chat_id] = asyncio.create_task(track_auto_timer())
+
+
+def register_handlers(client):
+    global _main_bot
+    _main_bot = client
+    """
+    Registers all music player and voice chat handlers onto the Telethon client.
+    """
+
+    # ------------------ /play, .play, /vplay, .vplay, .playforce, /playforce commands ------------------
+    @client.on(events.NewMessage(pattern=r"(?i)^[./!?](play|vplay|cplay|stream|vstream|playforce|vplayforce|cplayforce|forceplay|vforceplay)(?:@\w+)?(?:\s+([\s\S]*))?$"))
+    async def play_command_handler(event):
+        if await utils.guard(event, client):
+            return
+            
+        cmd = event.pattern_match.group(1).lower()
+        raw_query = event.pattern_match.group(2)
+        query = raw_query.strip() if raw_query else ""
+        play_type = "video" if ("vplay" in cmd or "vstream" in cmd) else "audio"
+        is_force = any(k in cmd for k in ["force", "cplayforce"])
+        
+        chat_id = event.chat_id
+        user_id = event.sender_id
+        
+        if not utils.check_and_mark_command(chat_id, getattr(event, "raw_text", "")):
+            return
+            
+        sender = await event.get_sender()
+        requester_name = getattr(sender, "first_name", None) or "User"
+        
+        reply_msg = await event.get_reply_message() if event.is_reply else None
+        local_file_path = None
+        audio_title = None
+        audio_duration = 30
+        
+        # Check if something is already streaming in this chat
+        is_already_playing = (chat_id in _active_chat_players and _active_chat_players[chat_id].get("bot"))
+        
+        display_query = audio_title or query or "Replied Media"
+        progress_msg = await event.reply(
+            utils.format_html_message(
+                f"<blockquote><b>» 🎧 ᴘʟᴀʏɪɴɢ ɪɴǫᴜɪʀʏ...</b>\n\n"
+                f"🔍 <i>{display_query}</i>\n"
+                f"⏳ <b>sᴛᴀᴛᴜs :</b> ᴘʀᴇᴘᴀʀɪɴɢ {play_type} sᴛʀᴇᴀᴍ... 🎶</blockquote>"
+            )
+        )
+        
+        # 1. Handle replied media (Audio, Video, Voice, Document)
+        if reply_msg and (reply_msg.audio or reply_msg.video or reply_msg.voice or reply_msg.document):
+            media_obj, audio_title, audio_duration = extract_media_info(reply_msg)
+            if media_obj:
+                os.makedirs("downloads", exist_ok=True)
+                try:
+                    local_file_path = await client.download_media(
+                        reply_msg,
+                        file="downloads/",
+                        progress_callback=lambda c, t: download_progress_sync(c, t, progress_msg, "DOWNLOADING MEDIA")
+                    )
+                except Exception as dl_err:
+                    logger.error(f"Failed to download replied media: {dl_err}")
+                    await progress_msg.edit(
+                        utils.format_html_message(
+                            f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ᴍᴇᴅɪᴀ</b>\n\n"
+                            f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{dl_err}</code></blockquote>"
+                        )
+                    )
+                    return
+        elif not query:
+            await progress_msg.edit(
+                utils.format_html_message(
+                    f"<blockquote><b>» 💡 ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ᴜsᴀɢᴇ ɢᴜɪᴅᴇ</b>\n\n"
+                    f"• <code>.{cmd} &lt;song name&gt;</code> (ᴇ.ɢ. <code>.{cmd} Faded Alan Walker</code>)\n"
+                    f"• <code>/{cmd} &lt;song name&gt;</code>\n"
+                    f"• <code>.playforce &lt;song name&gt;</code> (ғᴏʀᴄᴇ ᴘʟᴀʏ ɴᴏᴡ)\n"
+                    f"• <code>.queue</code> / <code>.skip</code>\n"
+                    f"• <b>ᴛʜᴜᴍʙɴᴀɪʟ ᴍᴏᴅᴇ :</b> <code>.thumb on</code> ᴏʀ <code>.thumb off</code>\n"
+                    f"• ʀᴇᴘʟʏ ᴛᴏ ᴀɴʏ ᴀᴜᴅɪᴏ/ᴠɪᴅᴇᴏ ғɪʟᴇ ᴡɪᴛʜ <code>.{cmd}</code>\n\n"
+                    f"⚡ <i>sᴛᴀʀᴛ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ʙᴇғᴏʀᴇ sᴛʀᴇᴀᴍɪɴɢ.</i></blockquote>"
+                )
+            )
+            return
+
+        # 2. Pre-validate userbot BEFORE queue check — so accounts with no valid userbot
+        #    get an error immediately instead of being silently queued and failing at playback.
+        bot_obj, err = await get_or_start_userbot_for_chat(user_id, chat_id)
+        if not bot_obj:
+            await progress_msg.edit(err)
+            return
+
+        # 3. Queue logic: if already playing and NOT a force play, add to queue
+        if is_already_playing and not is_force:
+            if chat_id not in _chat_queues:
+                _chat_queues[chat_id] = []
+                
+            _chat_queues[chat_id].append({
+                "query": query,
+                "play_type": play_type,
+                "requester_name": requester_name,
+                "requester_id": user_id,
+                "local_file": local_file_path,
+                "title": audio_title or query,
+                "duration": audio_duration,
+                "thumb": None
+            })
+            pos = len(_chat_queues[chat_id])
+            mins, secs = divmod(audio_duration or 0, 60)
+            dur_str = f"{mins:02d}:{secs:02d}" if audio_duration else "03:00"
+            mode_emoji = "🎬 ᴠɪᴅᴇᴏ" if play_type == "video" else "🎙️ ᴀᴜᴅɪᴏ"
+            
+            await progress_msg.edit(
+                utils.format_html_message(
+                    f"<blockquote><b>» 📋 ᴀᴅᴅᴇᴅ ᴛᴏ ǫᴜᴇᴜᴇ : #{pos}</b>\n\n"
+                    f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{audio_title or query}</b>\n"
+                    f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
+                    f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
+                    f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={user_id}\">{requester_name}</a>\n\n"
+                    f"💡 <i>ᴛʀᴀᴄᴋ ᴡɪʟʟ ᴘʟᴀʏ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀғᴛᴇʀ ᴄᴜʀʀᴇɴᴛ sᴏɴɢ ғɪɴɪsʜᴇs.</i></blockquote>"
+                )
+            )
+            return
+
+        # 4. Ensure userbot has loaded group cache
+        if (event.is_group or event.is_channel) and bot_obj and bot_obj.client:
+            try:
+                await bot_obj.client.get_entity(chat_id)
+            except Exception:
+                try:
+                    await bot_obj.client.get_dialogs(limit=50)
+                except Exception:
+                    pass
+                try:
+                    from telethon.tl.functions.messages import ExportChatInviteRequest
+                    from userbot import join_channel_single
+                    invite = await client(ExportChatInviteRequest(chat_id))
+                    if hasattr(invite, "link") and invite.link:
+                        logger.info(f"Auto-inviting userbot {bot_obj.session_id} to group {chat_id} via {invite.link}")
+                        await join_channel_single(bot_obj.client, invite.link)
+                        await asyncio.sleep(1.0)
+                except Exception as exp_err:
+                    logger.debug(f"Could not auto-invite userbot to group {chat_id}: {exp_err}")
+
+        # Cancel any previous track timer
+        prev_timer = _track_timer_tasks.pop(chat_id, None)
+        if prev_timer and not prev_timer.done():
+            prev_timer.cancel()
+
+        # 5. Stream media into Voice Chat
+        success, msg, song_info = await bot_obj.play_song(
+            query=query,
+            play_type=play_type,
+            chat_id=chat_id,
+            local_file=local_file_path,
+            title=audio_title,
+            duration=audio_duration
+        )
+        
+        if not success or not song_info:
+            ub_handle = f"@{bot_obj.username}" if bot_obj.username else bot_obj.name
+            await progress_msg.edit(
+                utils.format_html_message(
+                    f"<blockquote><b>» ❌ ᴘʟᴀʏʙᴀᴄᴋ ғᴀɪʟᴇᴅ</b>\n\n"
+                    f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{msg}</code>\n\n"
+                    f"💡 <b>ᴛɪᴘ :</b> ᴍᴀᴋᴇ sᴜʀᴇ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ɪs sᴛᴀʀᴛᴇᴅ ᴀɴᴅ ᴜsᴇʀʙᴏᴛ (<b>{ub_handle}</b>) ʜᴀs ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ sᴘᴇᴀᴋ.</blockquote>"
+                )
+            )
+            return
+            
+        # 5. Render Now Playing Card
+        thumb_enabled = database.get_thumbnail_setting(chat_id)
+        np_text = format_now_playing_text(song_info, requester_name, user_id, stream_type=play_type)
+        buttons = build_now_playing_markup(chat_id, is_paused=False, is_muted=False)
+        
+        thumb_file = song_info.get("thumb")
+        sent_msg = None
+        
+        if thumb_enabled and thumb_file:
+            try:
+                sent_msg = await event.respond(np_text, file=thumb_file, buttons=buttons)
+                await progress_msg.delete()
+            except Exception as send_err:
+                logger.warning(f"Failed to send with thumb: {send_err}, editing text-only")
+                try:
+                    sent_msg = await progress_msg.edit(np_text, buttons=buttons)
+                except Exception:
+                    pass
+        else:
+            try:
+                sent_msg = await progress_msg.edit(np_text, buttons=buttons)
+            except Exception:
+                try:
+                    sent_msg = await event.respond(np_text, buttons=buttons)
+                except Exception:
+                    pass
+                
+        # Store active player session
+        _active_chat_players[chat_id] = {
+            "bot": bot_obj,
+            "song_info": song_info,
+            "msg_id": sent_msg.id if sent_msg else None,
+            "is_paused": False,
+            "is_muted": False
+        }
+        
+        # Start auto-advance queue timer
+        dur = song_info.get("duration", 30) or 30
+        async def track_auto_timer():
+            await asyncio.sleep(dur + 2)
+            await play_next_in_queue(chat_id, client)
+            
+        _track_timer_tasks[chat_id] = asyncio.create_task(track_auto_timer())
+
+    # ------------------ /skip, .skip, /next, .next commands ------------------
+    @client.on(events.NewMessage(pattern=r"(?i)^[./!?](skip|next|cskip|cnext)(?:@\w+)?$"))
+    async def skip_command_handler(event):
+        if await utils.guard(event, client):
+            return
+            
+        chat_id = event.chat_id
+        user_id = event.sender_id
+        
+        if not utils.check_and_mark_command(chat_id, getattr(event, "raw_text", "")):
+            return
+            
+        queue = _chat_queues.get(chat_id, [])
+        if not queue:
+            bot_obj, _ = await get_or_start_userbot_for_chat(user_id, chat_id)
+            if bot_obj:
+                await bot_obj.stop_song(chat_id)
+            _active_chat_players.pop(chat_id, None)
+            
+            await event.reply(
+                utils.format_html_message(
+                    "<blockquote><b>» ⏭️ ǫᴜᴇᴜᴇ ᴇᴍᴘᴛʏ</b>\n\n"
+                    "ɴᴏ ᴍᴏʀᴇ sᴏɴɢs ɪɴ ǫᴜᴇᴜᴇ. sᴛʀᴇᴀᴍ ʜᴀs ʙᴇᴇɴ sᴛᴏᴘᴘᴇᴅ.</blockquote>"
+                )
+            )
+            return
+            
+        prog = await event.reply(
+            utils.format_html_message(
+                "<blockquote><b>» ⏭️ sᴋɪᴘᴘɪɴɢ ᴛʀᴀᴄᴋ</b>\n\n"
+                "sᴋɪᴘᴘɪɴɢ ᴛᴏ ɴᴇxᴛ sᴏɴɢ ɪɴ ǫᴜᴇᴜᴇ...</blockquote>"
+            )
+        )
+        await play_next_in_queue(chat_id, client)
+        await asyncio.sleep(2)
+        try:
+            await prog.delete()
+        except Exception:
+            pass
+
+    # ------------------ /queue, .queue, /q, .q, /playlist commands ------------------
+    @client.on(events.NewMessage(pattern=r"(?i)^[./!?](queue|q|playlist|cqueue)(?:@\w+)?$"))
+    async def queue_command_handler(event):
+        if await utils.guard(event, client):
+            return
+            
+        chat_id = event.chat_id
+        active = _active_chat_players.get(chat_id)
+        queue = _chat_queues.get(chat_id, [])
+        
+        if not active and not queue:
+            await event.reply(
+                utils.format_html_message(
+                    "<blockquote><b>» 📜 ǫᴜᴇᴜᴇ ᴘʟᴀʏʟɪsᴛ</b>\n\n"
+                    "<i>ǫᴜᴇᴜᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ ᴇᴍᴘᴛʏ. ᴜsᴇ <code>.play &lt;song&gt;</code> ᴛᴏ ᴀᴅᴅ ᴛʀᴀᴄᴋs!</i></blockquote>"
+                )
+            )
+            return
+            
+        np_info = active.get("song_info", {}) if active else {}
+        np_title = np_info.get("title", "Unknown Track")
+        np_dur = np_info.get("duration", 0)
+        mins, secs = divmod(np_dur, 60)
+        np_dur_str = f"{mins:02d}:{secs:02d}" if np_dur else "Live"
+        
+        text = (
+            "<blockquote><b>» 📜 ǫᴜᴇᴜᴇ ᴘʟᴀʏʟɪsᴛ</b>\n\n"
+            f"🎵 <b>ɴᴏᴡ ᴘʟᴀʏɪɴɢ :</b>\n"
+            f"• <b>{np_title}</b> (<code>{np_dur_str}</code>)\n\n"
+        )
+        
+        if queue:
+            text += "📋 <b>ᴜᴘᴄᴏᴍɪɴɢ ǫᴜᴇᴜᴇ :</b>\n"
+            for idx, item in enumerate(queue[:10], 1):
+                item_title = item.get("title") or item.get("query") or "Unknown"
+                item_dur = item.get("duration", 0)
+                m, s = divmod(item_dur, 60)
+                d_str = f"{m:02d}:{s:02d}" if item_dur else "03:00"
+                req = item.get("requester_name", "User")
+                text += f"{idx}. <b>{item_title}</b> (<code>{d_str}</code>) | <i>{req}</i>\n"
+                
+            if len(queue) > 10:
+                text += f"\n<i>...ᴀɴᴅ {len(queue) - 10} ᴍᴏʀᴇ ᴛʀᴀᴄᴋs</i>\n"
+        else:
+            text += "📋 <b>ᴜᴘᴄᴏᴍɪɴɢ ǫᴜᴇᴜᴇ :</b>\n<i>ɴᴏ ᴛʀᴀᴄᴋs ɪɴ ǫᴜᴇᴜᴇ.</i>\n"
+            
+        text += "\n💡 <i>ᴜsᴇ <code>.skip</code> ᴏʀ <code>/skip</code> ᴛᴏ ᴘʟᴀʏ ɴᴇxᴛ ᴛʀᴀᴄᴋ.</i></blockquote>"
+        await event.reply(utils.format_html_message(text))
+
+    # ------------------ Playback Control Commands (.pause, /pause, .resume, /resume, .stop, /stop, etc.) ------------------
+    @client.on(events.NewMessage(pattern=r"(?i)^[./!?](pause|resume|stop|end|mute|unmute)(?:@\w+)?$"))
+    async def player_control_commands(event):
+        if await utils.guard(event, client):
+            return
+            
+        cmd = event.pattern_match.group(1).lower()
+        chat_id = event.chat_id
+        user_id = event.sender_id
+        
+        bot_obj, _ = await get_or_start_userbot_for_chat(user_id, chat_id)
+        if not bot_obj:
+            await event.reply(
+                utils.format_html_message(
+                    "<blockquote><b>» ⚠️ ɴᴏ ᴜsᴇʀʙᴏᴛ ғᴏᴜɴᴅ</b>\n\n"
+                    "ɴᴏ ᴀᴄᴛɪᴠᴇ ᴜsᴇʀʙᴏᴛ ғᴏᴜɴᴅ ɪɴ ᴛʜɪs ᴄʜᴀᴛ sᴇssɪᴏɴ.</blockquote>"
+                )
+            )
+            return
+
+        if cmd == "pause":
+            try:
+                pytg = await bot_obj.get_pytgcalls()
+                await pytg.pause_stream(chat_id)
+                await event.reply(
+                    utils.format_html_message(
+                        "<blockquote><b>» ⏸️ ᴘʟᴀʏʙᴀᴄᴋ ᴘᴀᴜsᴇᴅ</b>\n\n"
+                        "sᴛʀᴇᴀᴍ ɪs ᴘᴀᴜsᴇᴅ. ᴜsᴇ <code>.resume</code> ᴏʀ <code>/resume</code> ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ ᴘʟᴀʏɪɴɢ.</blockquote>"
+                    )
+                )
+            except Exception as e:
+                await event.reply(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ᴘᴀᴜsɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
+
+        elif cmd == "resume":
+            try:
+                pytg = await bot_obj.get_pytgcalls()
+                await pytg.resume_stream(chat_id)
+                await event.reply(
+                    utils.format_html_message(
+                        "<blockquote><b>» ▶️ ᴘʟᴀʏʙᴀᴄᴋ ʀᴇsᴜᴍᴇᴅ</b>\n\n"
+                        "sᴛʀᴇᴀᴍ ʀᴇsᴜᴍᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ.</blockquote>"
+                    )
+                )
+            except Exception as e:
+                await event.reply(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ʀᴇsᴜᴍɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
+
+        elif cmd in ("stop", "end"):
+            _chat_queues.pop(chat_id, None)
+            prev_timer = _track_timer_tasks.pop(chat_id, None)
+            if prev_timer and not prev_timer.done():
+                prev_timer.cancel()
+
+            prog = await event.reply(
+                utils.format_html_message(
+                    "<blockquote><b>\u00bb \u23f3 s\u1d1b\u1d0f\u1d18\u1d18\u026a\u0274\u0262 \u1d18\u029f\u1d00\u028f\u0299\u1d00\u1d04\u1d0b...</b></blockquote>"
+                )
+            )
+            success, msg = await bot_obj.stop_song(chat_id)
+            _active_chat_players.pop(chat_id, None)
+            if success:
+                try:
+                    await prog.edit(
+                        utils.format_html_message(
+                            "<blockquote><b>\u00bb \u23f9\ufe0f \u1d18\u029f\u1d00\u028f\u0299\u1d00\u1d04\u1d0b s\u1d1b\u1d0f\u1d18\u1d18\u1d07\u1d05</b>\n\n"
+                            "\u1d20\u1d0f\u026a\u1d04\u1d07 \u1d04\u029c\u1d00\u1d1b s\u1d1b\u0280\u1d07\u1d00\u1d0d s\u1d1b\u1d0f\u1d18\u1d18\u1d07\u1d05, \u1d1c\u1d04 \u029f\u1d07\u0493\u1d1b \u1d20\u1d04 \u0026 \u01eb\u1d1c\u1d07\u1d1c\u1d07 \u1d04\u029f\u1d07\u1d00\u0280\u1d07\u1d05.</blockquote>"
+                        )
+                    )
+                except Exception:
+                    pass
+                await asyncio.sleep(3)
+                try:
+                    await prog.delete()
+                except Exception:
+                    pass
+            else:
+                try:
+                    await prog.edit(
+                        utils.format_html_message(
+                            f"<blockquote><b>\u00bb \u274c \u0493\u1d00\u026a\u029f\u1d07\u1d05 \u1d1b\u1d0f s\u1d1b\u1d0f\u1d18</b>\n\n\u26a0\ufe0f <code>{msg}</code></blockquote>"
+                        )
+                    )
+                except Exception:
+                    pass
+
+        elif cmd == "mute":
+            success, msg = await bot_obj.mute_mic(chat_id)
+            await event.reply(
+                utils.format_html_message(
+                    "<blockquote><b>» 🔇 ᴍɪᴄ ᴍᴜᴛᴇᴅ</b>\n\n"
+                    "ᴜsᴇʀʙᴏᴛ ᴍɪᴄʀᴏᴘʜᴏɴᴇ ʜᴀs ʙᴇᴇɴ ᴛᴜʀɴᴇᴅ <b>ᴏғғ</b>.</blockquote>"
+                )
+            )
+
+        elif cmd == "unmute":
+            success, msg = await bot_obj.unmute_mic(chat_id)
+            await event.reply(
+                utils.format_html_message(
+                    "<blockquote><b>» 🔊 ᴍɪᴄ ᴜɴᴍᴜᴛᴇᴅ</b>\n\n"
+                    "ᴜsᴇʀʙᴏᴛ ᴍɪᴄʀᴏᴘʜᴏɴᴇ ʜᴀs ʙᴇᴇɴ ᴛᴜʀɴᴇᴅ <b>ᴏɴ</b>.</blockquote>"
+                )
+            )
+
+    # ------------------ /vc, .vc, /joinvc, .joinvc, /leavevc, .leavevc ------------------
+    @client.on(events.NewMessage(pattern=r"(?i)^[./!?](vc|joinvc|leavevc|vcleft)(?:@\w+)?$"))
+    async def vc_join_leave_commands(event):
+        if await utils.guard(event, client):
+            return
+            
+        cmd = event.pattern_match.group(1).lower()
+        chat_id = event.chat_id
+        user_id = event.sender_id
+        
+        bot_obj, err = await get_or_start_userbot_for_chat(user_id, chat_id)
+        if not bot_obj:
+            await event.reply(err)
+            return
+
+        if cmd in ("vc", "joinvc"):
+            prog = await event.reply(
+                utils.format_html_message(
+                    "<blockquote><b>» ⏳ ᴊᴏɪɴɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
+                    "ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ᴛᴏ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                )
+            )
+            success, msg = await bot_obj.join_voice_chat(str(chat_id))
+            await prog.delete()
+            if success:
+                await event.reply(
+                    utils.format_html_message(
+                        "<blockquote><b>» 🎙️ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
+                        "ᴜsᴇʀʙᴏᴛ sᴜᴄᴄᴇssғᴜʟʟʏ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ!\n\n"
+                        "💡 <i>ᴜsᴇ <code>.play &lt;song&gt;</code> ᴏʀ <code>.vplay &lt;video&gt;</code> ᴛᴏ sᴛʀᴇᴀᴍ ᴍᴇᴅɪᴀ.</i></blockquote>"
+                    )
+                )
+            else:
+                await event.reply(
+                    utils.format_html_message(
+                        f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"
+                    )
+                )
+
+        elif cmd in ("leavevc", "vcleft"):
+            prog = await event.reply(
+                utils.format_html_message(
+                    "<blockquote><b>» ⏳ ʟᴇᴀᴠɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
+                    "ᴅɪsᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ғʀᴏᴍ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                )
+            )
+            success, msg = await bot_obj.leave_voice_chat(chat_id)
+            await prog.delete()
+            if success:
+                await event.reply(
+                    utils.format_html_message(
+                        "<blockquote><b>» 👋 ʟᴇғᴛ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
+                        "ᴜsᴇʀʙᴏᴛ ʜᴀs ᴅɪsᴄᴏɴɴᴇᴄᴛᴇᴅ ғʀᴏᴍ ᴛʜᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.</blockquote>"
+                    )
+                )
+            else:
+                await event.reply(utils.format_html_message(f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴇᴀᴠᴇ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
+
+    # ------------------ /thumb, .thumb toggle command ------------------
+    @client.on(events.NewMessage(pattern=r"(?i)^[./!?](thumb|thumbnail)(?:@\w+)?(?:\s+(on|off))?$"))
+    async def thumbnail_toggle_cmd(event):
+        if await utils.guard(event, client):
+            return
+            
+        arg = event.pattern_match.group(2)
+        chat_id = event.chat_id
+        current = database.get_thumbnail_setting(chat_id)
+        
+        if arg:
+            new_state = (arg.lower() == "on")
+        else:
+            new_state = not current
+            
+        database.set_thumbnail_setting(chat_id, new_state)
+        status_text = "🟢 <b>ᴇɴᴀʙʟᴇᴅ</b>" if new_state else "🔴 <b>ᴅɪsᴀʙʟᴇᴅ</b>"
+        mode_desc = "ᴀʀᴛᴡᴏʀᴋ ᴛʜᴜᴍʙɴᴀɪʟ ʙᴀɴɴᴇʀ ᴡɪʟʟ ʙᴇ ᴅɪsᴘʟᴀʏᴇᴅ." if new_state else "ᴄʟᴇᴀɴ ᴛᴇxᴛ-ᴏɴʟʏ ᴍᴏᴅᴇ ᴀᴄᴛɪᴠᴇ (ɴᴏ ᴛʜᴜᴍʙɴᴀɪʟ)."
+        
+        await event.reply(
+            utils.format_html_message(
+                f"<blockquote><b>» 🖼️ ᴛʜᴜᴍʙɴᴀɪʟ sᴇᴛᴛɪɴɢ ᴜᴘᴅᴀᴛᴇᴅ</b>\n\n"
+                f"<b>• sᴛᴀᴛᴜs :</b> {status_text}\n"
+                f"<b>• ᴅɪsᴘʟᴀʏ ᴍᴏᴅᴇ :</b> <i>{mode_desc}</i></blockquote>"
+            )
+        )
+
+
+
+    # ------------------ Interactive Player Callback Handlers ------------------
+    @client.on(events.CallbackQuery(pattern=r"^player_(pause|resume|stop|skip|queue|mute|unmute|thumb_toggle)_(.+)$"))
+    async def player_callback_handler(event):
+        action = event.pattern_match.group(1)
+        chat_id_str = event.pattern_match.group(2)
+        try:
+            chat_id = int(chat_id_str)
+        except Exception:
+            chat_id = event.chat_id
+            
+        user_id = event.sender_id
+        bot_obj, _ = await get_or_start_userbot_for_chat(user_id, chat_id)
+        if not bot_obj:
+            await event.answer("⚠️ ɴᴏ ᴀᴄᴛɪᴠᴇ ᴜsᴇʀʙᴏᴛ ғᴏᴜɴᴅ ғᴏʀ ᴛʜɪs ᴠᴄ.", alert=True)
+            return
+
+        if action == "pause":
+            try:
+                pytg = await bot_obj.get_pytgcalls()
+                await pytg.pause_stream(chat_id)
+                await event.answer("⏸️ ᴘʟᴀʏʙᴀᴄᴋ ᴘᴀᴜsᴇᴅ.")
+                buttons = build_now_playing_markup(chat_id, is_paused=True, is_muted=bot_obj.is_muted)
+                await event.edit(buttons=buttons)
+            except Exception as e:
+                await event.answer(f"❌ Error: {e}", alert=True)
+
+        elif action == "resume":
+            try:
+                pytg = await bot_obj.get_pytgcalls()
+                await pytg.resume_stream(chat_id)
+                await event.answer("▶️ ᴘʟᴀʏʙᴀᴄᴋ ʀᴇsᴜᴍᴇᴅ.")
+                buttons = build_now_playing_markup(chat_id, is_paused=False, is_muted=bot_obj.is_muted)
+                await event.edit(buttons=buttons)
+            except Exception as e:
+                await event.answer(f"❌ Error: {e}", alert=True)
+
+        elif action == "stop":
+            _chat_queues.pop(chat_id, None)
+            prev_timer = _track_timer_tasks.pop(chat_id, None)
+            if prev_timer and not prev_timer.done():
+                prev_timer.cancel()
+                
+            success, msg = await bot_obj.stop_song(chat_id)
+            _active_chat_players.pop(chat_id, None)
+            if success:
+                await event.answer("⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ.")
+                try:
+                    await event.edit(
+                        utils.format_html_message(
+                            "<blockquote><b>» ⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ</b>\n\n"
+                            "sᴛʀᴇᴀᴍ ᴇɴᴅᴇᴅ ʙʏ ᴜsᴇʀ ᴀɴᴅ ǫᴜᴇᴜᴇ ᴄʟᴇᴀʀᴇᴅ.</blockquote>"
+                        ),
+                        buttons=None
+                    )
+                except Exception:
+                    pass
+            else:
+                await event.answer(f"❌ {msg}", alert=True)
+
+        elif action == "skip":
+            await event.answer("⏭️ Skipping to next song...")
+            await play_next_in_queue(chat_id, client)
+
+        elif action == "queue":
+            queue = _chat_queues.get(chat_id, [])
+            if not queue:
+                await event.answer("📜 Queue is currently empty.", alert=True)
+            else:
+                await event.answer(f"📜 {len(queue)} songs in upcoming queue!", alert=True)
+
+        elif action == "mute":
+            success, msg = await bot_obj.mute_mic(chat_id)
+            await event.answer(msg)
+            buttons = build_now_playing_markup(chat_id, is_paused=False, is_muted=True)
+            try:
+                await event.edit(buttons=buttons)
+            except Exception:
+                pass
+
+        elif action == "unmute":
+            success, msg = await bot_obj.unmute_mic(chat_id)
+            await event.answer(msg)
+            buttons = build_now_playing_markup(chat_id, is_paused=False, is_muted=False)
+            try:
+                await event.edit(buttons=buttons)
+            except Exception:
+                pass
+
+        elif action == "thumb_toggle":
+            curr = database.get_thumbnail_setting(chat_id)
+            new_s = not curr
+            database.set_thumbnail_setting(chat_id, new_s)
+            state_txt = "ON" if new_s else "OFF"
+            await event.answer(f"🖼️ Thumbnail display turned {state_txt} for this chat!", alert=True)

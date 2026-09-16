@@ -20,14 +20,14 @@ async def render_status_dashboard(event, user_id: int):
     total_broadcasts = sum(s.get("stats", {}).get("broadcast_count", 0) for s in sessions)
     total_welcomed = sum(len(s.get("stats", {}).get("welcomed_users", [])) for s in sessions)
     
-    # Text formatting using HTML/Markdown style blockquotes and bold
+    # Text formatting using blockquotes and bold
     text = (
-        f"📊 **System Status Dashboard**\n\n"
-        f"📱 Total Connected Bots: **{total_sessions}**\n"
-        f"👥 Managed Groups: **{total_groups}**\n"
-        f"👤 Contacts/Users: **{total_users}**\n"
-        f"✉️ Broadcast Runs Completed: **{total_broadcasts}**\n"
-        f"👋 Welcomed New Users: **{total_welcomed}**\n"
+        f"<blockquote><b>» 📊 sʏsᴛᴇᴍ sᴛᴀᴛᴜs ᴅᴀsʜʙᴏᴀʀᴅ</b>\n\n"
+        f"📱 <b>ᴄᴏɴɴᴇᴄᴛᴇᴅ ʙᴏᴛs :</b> <code>{total_sessions}</code>\n"
+        f"👥 <b>ᴍᴀɴᴀɢᴇᴅ ɢʀᴏᴜᴘs :</b> <code>{total_groups}</code>\n"
+        f"👤 <b>ᴄᴏɴᴛᴀᴄᴛs / ᴜsᴇʀs :</b> <code>{total_users}</code>\n"
+        f"✉️ <b>ʙʀᴏᴀᴅᴄᴀsᴛs ᴅᴏɴᴇ :</b> <code>{total_broadcasts}</code>\n"
+        f"👋 <b>ᴜsᴇʀs ᴡᴇʟᴄᴏᴍᴇᴅ :</b> <code>{total_welcomed}</code></blockquote>"
     )
     
     buttons = [[utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")]]

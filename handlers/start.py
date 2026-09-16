@@ -86,18 +86,14 @@ async def show_main_menu(event, user_id):
             styled_button(get_text("btn_status", lang), "menu_status", style="primary")
         ],
         [
-            styled_button("👫 Refer & Earn", "settings_referrals", style="success")
+            styled_button("👫 ʀᴇғᴇʀ & ᴇᴀʀɴ", "settings_referrals", style="success")
         ]
     ]
     
-    owner_buttons = [Button.url(config.OWNER_1_NAME, config.OWNER_1_URL)]
-    if config.OWNER_2_URL and config.OWNER_2_URL != config.OWNER_1_URL:
-        owner_buttons.append(Button.url(config.OWNER_2_NAME, config.OWNER_2_URL))
-    
-    buttons.append(owner_buttons)
+    buttons.append([Button.url(config.OWNER_NAME, config.OWNER_URL)])
     buttons.append([
-        Button.url("📢 Support Channel", support_channel),
-        Button.url("💬 Support Group", support_group)
+        Button.url("📢 sᴜᴘᴘᴏʀᴛ ᴄʜᴀɴɴᴇʟ", support_channel),
+        Button.url("💬 sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ", support_group)
     ])
     
     if is_admin:
@@ -130,12 +126,11 @@ def register_handlers(client):
                 me = await client.get_me()
                 bot_username = me.username
                 text = (
-                    f"📱 **{config.BOT_NAME} Manager**\n"
-                    "━━━━━━━━━━━━━━━━━━━━\n"
-                    "Configure your own automated userbots, group broadcasts, auto-welcome, and AI automations!\n\n"
-                    "⚠️ **Note**: Settings can only be configured in direct messages (DM)."
+                    f"<blockquote><b>» ⚡ {config.BOT_NAME.upper()} ᴍᴀɴᴀɢᴇʀ</b>\n\n"
+                    f"ᴄᴏɴғɪɢᴜʀᴇ ʏᴏᴜʀ ᴏᴡɴ ᴀᴜᴛᴏᴍᴀᴛᴇᴅ ᴜsᴇʀʙᴏᴛs, ɢʀᴏᴜᴘ ʙʀᴏᴀᴅᴄᴀsᴛs, ᴀᴜᴛᴏ-ᴡᴇʟᴄᴏᴍᴇ, ᴠᴄ sᴛʀᴇᴀᴍɪɴɢ, ᴀɴᴅ ᴀɪ ᴀᴜᴛᴏᴍᴀᴛɪᴏɴs!\n\n"
+                    f"ᴛᴀᴘ ʙᴇʟᴏᴡ ᴛᴏ ɢᴇᴛ ʜᴇʟᴘ ɪɴ ᴘᴍ ᴡɪᴛʜ ᴇᴠᴇʀʏᴛʜɪɴɢ ʏᴏᴜ ɴᴇᴇᴅ.</blockquote>"
                 )
-                buttons = [[Button.url("🚀 Start in DM", url=f"https://t.me/{bot_username}?start=true")]]
+                buttons = [[Button.url("🚀 sᴛᴀʀᴛ ɪɴ ᴘᴍ", url=f"https://t.me/{bot_username}?start=true")]]
                 await event.reply(text, buttons=buttons)
             except Exception as e:
                 logger.error(f"Failed to respond to start command in group: {e}")
@@ -183,10 +178,9 @@ def register_handlers(client):
                             
                         await client.send_message(
                             ref_id,
-                            f"🎁 **New Referral!**\n"
-                            f"━━━━━━━━━━━━━━━━━━━━\n"
-                            f"👤 **{name_str}** joined the bot using your link.\n"
-                            f"💰 Your reward **₹1.00** has been credited to your wallet balance."
+                            f"<blockquote><b>» 🎁 ɴᴇᴡ ʀᴇғᴇʀʀᴀʟ!</b>\n\n"
+                            f"👤 <b>{name_str}</b> ᴊᴏɪɴᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴜsɪɴɢ ʏᴏᴜʀ ʟɪɴᴋ.\n"
+                            f"💰 ʏᴏᴜʀ ʀᴇᴡᴀʀᴅ <b>₹1.00</b> ʜᴀs ʙᴇᴇɴ ᴄʀᴇᴅɪᴛᴇᴅ ᴛᴏ ʏᴏᴜʀ ᴡᴀʟʟᴇᴛ.</blockquote>"
                         )
                     except Exception as ref_err:
                         logger.warning(f"Could not notify referrer {ref_id}: {ref_err}")
@@ -204,6 +198,37 @@ def register_handlers(client):
         if await utils.guard(event, client):
             return
             
+        # Check if deep link is for managing a specific userbot e.g. /start bot_918518814006
+        if event.text and len(event.text.split()) > 1:
+            arg = event.text.split()[1].strip()
+            if arg.startswith("bot_"):
+                phone_target = arg.replace("bot_", "").strip()
+                global_settings = database.get_global_settings()
+                admins_list = global_settings.get("admins", [])
+                is_admin = user_id in admins_list or user_id in config.ORIGINAL_ADMIN_IDS
+                
+                if not is_admin:
+                    await event.reply("<blockquote><b>» ⚠️ ᴀᴄᴄᴇss ᴅᴇɴɪᴇᴅ</b>\n\nᴏɴʟʏ ᴛʜᴇ ʙᴏᴛ ᴏᴡɴᴇʀ ᴄᴀɴ ᴄᴏɴᴛʀᴏʟ ᴛʜɪs ᴜsᴇʀʙᴏᴛ.</blockquote>", parse_mode="html")
+                    return
+                    
+                sess = database.get_session(phone_target)
+                if not sess:
+                    await event.reply(f"<blockquote><b>» ❌ ᴜsᴇʀʙᴏᴛ sᴇssɪᴏɴ ɴᴏᴛ ғᴏᴜɴᴅ :</b> <code>{phone_target}</code></blockquote>", parse_mode="html")
+                    return
+                    
+                target_user_id = sess.get("user_id")
+                from .my_bots import set_admin_impersonation, show_bot_dashboard
+                # Set impersonation so owner can perform all actions on this user's bot
+                set_admin_impersonation(user_id, target_user_id)
+                
+                await show_bot_dashboard(
+                    event, 
+                    sess.get("phone", phone_target), 
+                    user_id, 
+                    flash_message=f"<blockquote><b>» 👑 ᴏᴡɴᴇʀ ᴀᴄᴄᴇss :</b> ᴄᴏɴᴛʀᴏʟʟɪɴɢ ᴜsᴇʀʙᴏᴛ <code>{sess.get('phone', phone_target)}</code> (ᴜsᴇʀ: <code>{target_user_id}</code>)</blockquote>"
+                )
+                return
+
         onboarded = await check_onboarding(client, event)
         if onboarded:
             await show_main_menu(event, event.sender_id)

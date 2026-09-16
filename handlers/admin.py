@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 # Structure: { user_id: str } (where value is the WAITING_FOR_... action)
 _admin_action_states = {}
 _admin_plan_temp = {}
+_admin_ub_bc_pending = {}
 
 def check_admin(user_id: int) -> bool:
     """
@@ -45,7 +46,7 @@ async def show_admin_panel(event, user_id: int):
         ],
         [
             utils.styled_button(utils.get_text("btn_set_bd", lang), "admin_set_bd", style="primary"),
-            utils.styled_button(utils.get_text("btn_set_imgs", lang), "admin_set_imgs", style="primary")
+            utils.styled_button("🖼️ Manage Images & UI", "admin_manage_images", style="primary")
         ],
         [
             utils.styled_button("🎨 Branding Settings", "admin_branding_settings", style="primary")
@@ -61,7 +62,8 @@ async def show_admin_panel(event, user_id: int):
             utils.styled_button("👤 User Manager", "admin_manage_users", style="primary")
         ],
         [
-            utils.styled_button("👑 Control All UserBots (Owner)", "admin_owner_all_bots", style="success")
+            utils.styled_button("👑 Control All UserBots (Owner)", "admin_owner_all_bots", style="success"),
+            utils.styled_button("🎮 Access UserBot by ID", "admin_usr_ctrl_start", style="success")
         ],
         [
             utils.styled_button("📊 Set Commission", "admin_set_comm", style="primary"),
@@ -70,6 +72,9 @@ async def show_admin_panel(event, user_id: int):
         ],
         [
             utils.styled_button(utils.get_text("btn_manage_admins", lang), "admin_manage_admins", style="primary"),
+            utils.styled_button("🖥️ VPS Usage", "admin_vps_usage", style="primary")
+        ],
+        [
             utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")
         ]
     ]
@@ -94,6 +99,40 @@ def register_handlers(client):
     @client.on(events.CallbackQuery(pattern="^menu_admin$"))
     async def admin_menu_callback(event):
         await show_admin_panel(event, event.sender_id)
+
+    @client.on(events.CallbackQuery(pattern="^admin_vps_usage$"))
+    async def admin_vps_usage_callback(event):
+        if not check_admin(event.sender_id):
+            return
+            
+        import psutil
+        import time
+        import datetime
+        
+        try:
+            uptime = datetime.timedelta(seconds=int(time.time() - psutil.boot_time()))
+            cpu_pct = psutil.cpu_percent(interval=0.1)
+            mem = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            text = (
+                "🖥️ **VPS System Usage**\n"
+                "━━━━━━━━━━━━━━━━━━━━\n"
+                f"⏱️ **Uptime:** `{uptime}`\n"
+                f"💻 **CPU Usage:** `{cpu_pct}%`\n"
+                f"🧠 **RAM Usage:** `{mem.percent}%` `({mem.used // (1024**2)}MB / {mem.total // (1024**2)}MB)`\n"
+                f"💽 **Disk Usage:** `{disk.percent}%` `({disk.used // (1024**3)}GB / {disk.total // (1024**3)}GB)`\n"
+            )
+            
+            buttons = [
+                [utils.styled_button("🔄 Refresh", "admin_vps_usage", style="primary")],
+                [utils.styled_button("🔙 Back to Admin Panel", "menu_admin", style="danger")]
+            ]
+            
+            await event.edit(text, buttons=buttons)
+        except Exception as e:
+            logger.error(f"VPS Usage error: {e}")
+            await event.answer(f"Failed to fetch VPS stats: {e}", alert=True)
 
     @client.on(events.CallbackQuery(pattern="^admin_sys_vc_menu$"))
     async def admin_sys_vc_menu_callback(event):
@@ -223,7 +262,8 @@ def register_handlers(client):
         user_id = event.sender_id
         if not check_admin(user_id):
             return
-        from handlers.my_bots import show_all_slots_dashboard
+        from handlers.my_bots import show_all_slots_dashboard, set_admin_impersonation
+        set_admin_impersonation(user_id, "__ALL__")
         await show_all_slots_dashboard(event, user_id, flash_message="👑 **Owner Panel**: Controlling ALL userbots in system!", fetch_all=True)
 
     @client.on(events.CallbackQuery(pattern="^cancel_admin_plan$"))
@@ -397,7 +437,115 @@ def register_handlers(client):
         await event.answer(f"🔧 Maintenance Mode is now {status_word}.", alert=True)
         await show_admin_panel(event, user_id)
 
-    @client.on(events.CallbackQuery(pattern=r"^admin_(set_(price|fj|lg|bu|bd|imgs|upi|usdt|ton|ub_joins|comm)|join_all_sessions|add_admin|rem_admin|broadcast)$"))
+    # ------------------ Images & UI Management Sub-Menu ------------------
+    @client.on(events.CallbackQuery(pattern="^admin_manage_images$"))
+    async def admin_manage_images_callback(event):
+        user_id = event.sender_id
+        if not check_admin(user_id):
+            return
+            
+        global_settings = database.get_global_settings()
+        start_img = global_settings.get("start_image") or "❌ None (Text Only)"
+        ping_img = global_settings.get("ping_image") or "❌ None (Text Only)"
+        help_img = global_settings.get("help_image") or "❌ None (Text Only)"
+        
+        text = (
+            f"<blockquote><b>» 🖼️ ʙᴏᴛ ᴜɪ & ɪᴍᴀɢᴇs ᴍᴀɴᴀɢᴇᴍᴇɴᴛ</b>\n\n"
+            f"ᴄᴏɴғɪɢᴜʀᴇ ɪᴍᴀɢᴇs ᴅɪsᴘʟᴀʏᴇᴅ ᴀᴄʀᴏss ʙᴏᴛ ᴄᴏᴍᴍᴀɴᴅs:\n\n"
+            f"• <b>sᴛᴀʀᴛ ɪᴍᴀɢᴇ :</b> <code>{start_img}</code>\n"
+            f"• <b>ᴘɪɴɢ ɪᴍᴀɢᴇ :</b> <code>{ping_img}</code>\n"
+            f"• <b>ʜᴇʟᴘ ɪᴍᴀɢᴇ :</b> <code>{help_img}</code>\n\n"
+            f"💡 <i>ᴜsᴇ ᴛʜᴇ ʙᴜᴛᴛᴏɴs ʙᴇʟᴏᴡ ᴛᴏ sᴇᴛ ᴏʀ ʀᴇᴍᴏᴠᴇ ɪᴍᴀɢᴇs.</i></blockquote>"
+        )
+        buttons = [
+            [
+                utils.styled_button("🖼️ sᴇᴛ sᴛᴀʀᴛ ɪᴍᴀɢᴇ", "admin_set_start_img", style="primary"),
+                utils.styled_button("❌ ʀᴇᴍᴏᴠᴇ sᴛᴀʀᴛ ɪᴍᴀɢᴇ", "admin_rem_start_img", style="danger")
+            ],
+            [
+                utils.styled_button("🖼️ sᴇᴛ ᴘɪɴɢ ɪᴍᴀɢᴇ", "admin_set_ping_img", style="primary"),
+                utils.styled_button("❌ ʀᴇᴍᴏᴠᴇ ᴘɪɴɢ ɪᴍᴀɢᴇ", "admin_rem_ping_img", style="danger")
+            ],
+            [
+                utils.styled_button("🖼️ sᴇᴛ ʜᴇʟᴘ ɪᴍᴀɢᴇ", "admin_set_help_img", style="primary"),
+                utils.styled_button("❌ ʀᴇᴍᴏᴠᴇ ʜᴇʟᴘ ɪᴍᴀɢᴇ", "admin_rem_help_img", style="danger")
+            ],
+            [
+                utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", style="primary")
+            ]
+        ]
+        try:
+            await event.edit(text, buttons=buttons)
+        except Exception:
+            await event.respond(text, buttons=buttons)
+
+    @client.on(events.CallbackQuery(pattern="^admin_rem_start_img$"))
+    async def admin_rem_start_img_callback(event):
+        if not check_admin(event.sender_id):
+            return
+        global_settings = database.get_global_settings()
+        global_settings["start_image"] = None
+        database.save_global_settings(global_settings)
+        await event.answer("✅ Start Image removed (Text-Only Mode active)!", alert=True)
+        await admin_manage_images_callback(event)
+
+    @client.on(events.CallbackQuery(pattern="^admin_rem_ping_img$"))
+    async def admin_rem_ping_img_callback(event):
+        if not check_admin(event.sender_id):
+            return
+        global_settings = database.get_global_settings()
+        global_settings["ping_image"] = None
+        database.save_global_settings(global_settings)
+        await event.answer("✅ Ping Image removed (Text-Only Mode active)!", alert=True)
+        await admin_manage_images_callback(event)
+
+    @client.on(events.CallbackQuery(pattern="^admin_rem_help_img$"))
+    async def admin_rem_help_img_callback(event):
+        if not check_admin(event.sender_id):
+            return
+        global_settings = database.get_global_settings()
+        global_settings["help_image"] = None
+        database.save_global_settings(global_settings)
+        await event.answer("✅ Help Image removed (Text-Only Mode active)!", alert=True)
+        await admin_manage_images_callback(event)
+
+    @client.on(events.CallbackQuery(pattern="^admin_set_start_img$"))
+    async def admin_set_start_img_callback(event):
+        if not check_admin(event.sender_id):
+            return
+        _admin_action_states[event.sender_id] = "WAITING_FOR_SET_START_IMG"
+        prompt_text = "<blockquote><b>» 🖼️ sᴇᴛ sᴛᴀʀᴛ ɪᴍᴀɢᴇ</b>\n\nsᴇɴᴅ ᴀ ᴅɪʀᴇᴄᴛ ɪᴍᴀɢᴇ ᴜʀʟ, ғɪʟᴇ ɪᴅ, ᴏʀ sᴇɴᴅ ᴀ ᴘʜᴏᴛᴏ (ᴏʀ ᴛʏᴘᴇ <code>none</code> ᴛᴏ ʀᴇᴍᴏᴠᴇ):</blockquote>"
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_manage_images", style="danger")]]
+        try:
+            await event.edit(prompt_text, buttons=buttons)
+        except Exception:
+            await event.respond(prompt_text, buttons=buttons)
+
+    @client.on(events.CallbackQuery(pattern="^admin_set_ping_img$"))
+    async def admin_set_ping_img_callback(event):
+        if not check_admin(event.sender_id):
+            return
+        _admin_action_states[event.sender_id] = "WAITING_FOR_SET_PING_IMG"
+        prompt_text = "<blockquote><b>» 🖼️ sᴇᴛ ᴘɪɴɢ ɪᴍᴀɢᴇ</b>\n\nsᴇɴᴅ ᴀ ᴅɪʀᴇᴄᴛ ɪᴍᴀɢᴇ ᴜʀʟ, ғɪʟᴇ ɪᴅ, ᴏʀ sᴇɴᴅ ᴀ ᴘʜᴏᴛᴏ (ᴏʀ ᴛʏᴘᴇ <code>none</code> ᴛᴏ ʀᴇᴍᴏᴠᴇ):</blockquote>"
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_manage_images", style="danger")]]
+        try:
+            await event.edit(prompt_text, buttons=buttons)
+        except Exception:
+            await event.respond(prompt_text, buttons=buttons)
+
+    @client.on(events.CallbackQuery(pattern="^admin_set_help_img$"))
+    async def admin_set_help_img_callback(event):
+        if not check_admin(event.sender_id):
+            return
+        _admin_action_states[event.sender_id] = "WAITING_FOR_SET_HELP_IMG"
+        prompt_text = "<blockquote><b>» 🖼️ sᴇᴛ ʜᴇʟᴘ ɪᴍᴀɢᴇ</b>\n\nsᴇɴᴅ ᴀ ᴅɪʀᴇᴄᴛ ɪᴍᴀɢᴇ ᴜʀʟ, ғɪʟᴇ ɪᴅ, ᴏʀ sᴇɴᴅ ᴀ ᴘʜᴏᴛᴏ (ᴏʀ ᴛʏᴘᴇ <code>none</code> ᴛᴏ ʀᴇᴍᴏᴠᴇ):</blockquote>"
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_manage_images", style="danger")]]
+        try:
+            await event.edit(prompt_text, buttons=buttons)
+        except Exception:
+            await event.respond(prompt_text, buttons=buttons)
+
+    @client.on(events.CallbackQuery(pattern=r"^admin_(set_(price|fj|lg|bu|bd|imgs|upi|usdt|ton|ub_joins|comm)|join_all_sessions|add_admin|rem_admin)$"))
     async def admin_setting_callback(event):
         action = event.pattern_match.group(1)
         user_id = event.sender_id
@@ -443,8 +591,6 @@ def register_handlers(client):
             prompt_text = "👥 **Join All Sessions**\n\nSend the invite link/username of the group or channel that all logged-in accounts should join:"
         elif action == "set_comm":
             prompt_text = "📊 Send the new referral commission rate (0.01 - 0.99 for 1%-99%):"
-        elif action == "broadcast":
-            prompt_text = "📢 **Global Broadcast**\n\nSend the message you want to broadcast to all users. You can send text, links, formatting, or media (photos/videos)."
         else:
             prompt_text = utils.get_text(prompt_key, lang)
             
@@ -453,6 +599,232 @@ def register_handlers(client):
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
             await event.respond(prompt_text, buttons=buttons)
+
+    # ------------------ Broadcast Handlers ------------------
+    @client.on(events.CallbackQuery(pattern="^admin_broadcast$"))
+    async def admin_broadcast_menu_callback(event):
+        if not check_admin(event.sender_id):
+            return
+        all_sessions = database.get_sessions()
+        all_users = database.get_all_users()
+        
+        text = (
+            f"<blockquote><b>» 📢 ADMIN BROADCAST CONTROL HUB</b>\n\n"
+            f"Select the type of broadcast you want to perform:\n\n"
+            f"⚡ <b>Global UserBots Broadcast:</b> Broadcast directly through all <b>{len(all_sessions)}</b> connected UserBots across their joined Groups, Supergroups, or DMs!\n\n"
+            f"🤖 <b>Main Bot Users Broadcast:</b> Broadcast directly through this Bot to all <b>{len(all_users)}</b> registered bot users.</blockquote>"
+        )
+        buttons = [
+            [
+                utils.styled_button("⚡ Global UserBots Broadcast", "admin_bc_all_ub_menu", style="success")
+            ],
+            [
+                utils.styled_button("🤖 Main Bot Users Broadcast", "admin_bc_main_bot", style="primary")
+            ],
+            [
+                utils.styled_button("🔙 Back to Admin Panel", "menu_admin", style="danger")
+            ]
+        ]
+        try:
+            await event.edit(text, buttons=buttons)
+        except Exception:
+            await event.respond(text, buttons=buttons)
+
+    @client.on(events.CallbackQuery(pattern="^admin_bc_all_ub_menu$"))
+    async def admin_bc_all_ub_menu_callback(event):
+        if not check_admin(event.sender_id):
+            return
+        all_sessions = database.get_sessions()
+        text = (
+            f"<blockquote><b>» ⚡ GLOBAL USERBOTS BROADCAST</b>\n\n"
+            f"🤖 <b>Total UserBots Available:</b> <b>{len(all_sessions)}</b>\n\n"
+            f"📌 <b>Select Target Destination:</b>\n"
+            f"Choose where the UserBots should send your broadcast message:</blockquote>"
+        )
+        buttons = [
+            [
+                utils.styled_button("👥 Only in Groups / Supergroups", "admin_ub_bc_target_groups", style="primary"),
+            ],
+            [
+                utils.styled_button("👤 Only in User DMs (Private)", "admin_ub_bc_target_dms", style="primary"),
+            ],
+            [
+                utils.styled_button("🌐 Both Groups & DMs", "admin_ub_bc_target_both", style="success"),
+            ],
+            [
+                utils.styled_button("🔙 Back", "admin_broadcast", style="danger")
+            ]
+        ]
+        try:
+            await event.edit(text, buttons=buttons)
+        except Exception:
+            await event.respond(text, buttons=buttons)
+
+    @client.on(events.CallbackQuery(pattern=r"^admin_ub_bc_target_(groups|dms|both)$"))
+    async def admin_ub_bc_target_callback(event):
+        if not check_admin(event.sender_id):
+            return
+        target = event.pattern_match.group(1)
+        target_names = {
+            "groups": "👥 Groups / Supergroups Only",
+            "dms": "👤 User DMs (Private) Only",
+            "both": "🌐 Both Groups & User DMs"
+        }
+        target_title = target_names.get(target, target)
+        _admin_action_states[event.sender_id] = f"WAITING_FOR_ADMIN_UB_BC_{target.upper()}"
+        
+        prompt_text = (
+            f"<blockquote><b>» 📝 ENTER USERBOT BROADCAST MESSAGE</b>\n\n"
+            f"🎯 <b>Target:</b> <b>{target_title}</b>\n\n"
+            f"Please send the message you want to broadcast through all UserBots.\n"
+            f"• Supports text with formatting (Bold, HTML, links)\n"
+            f"• Supports Photos, Videos, Documents with captions\n"
+            f"• Supports Forwarded messages</blockquote>"
+        )
+        buttons = [[utils.styled_button("🔙 Cancel", "admin_bc_all_ub_menu", style="danger")]]
+        try:
+            await event.edit(prompt_text, buttons=buttons)
+        except Exception:
+            await event.respond(prompt_text, buttons=buttons)
+
+    @client.on(events.CallbackQuery(pattern="^admin_bc_main_bot$"))
+    async def admin_bc_main_bot_callback(event):
+        if not check_admin(event.sender_id):
+            return
+        _admin_action_states[event.sender_id] = "WAITING_FOR_BROADCAST"
+        all_users = database.get_all_users()
+        prompt_text = (
+            f"<blockquote><b>» 🤖 MAIN BOT USERS BROADCAST</b>\n\n"
+            f"👥 <b>Total Bot Users:</b> <b>{len(all_users)}</b>\n\n"
+            f"Please send the message you want to broadcast to all registered bot users.\n"
+            f"• Supports text, links, photos, videos, and media with captions.</blockquote>"
+        )
+        buttons = [[utils.styled_button("🔙 Cancel", "admin_broadcast", style="danger")]]
+        try:
+            await event.edit(prompt_text, buttons=buttons)
+        except Exception:
+            await event.respond(prompt_text, buttons=buttons)
+
+    @client.on(events.CallbackQuery(pattern="^admin_ub_bc_confirm$"))
+    async def admin_ub_bc_confirm_callback(event):
+        user_id = event.sender_id
+        if not check_admin(user_id):
+            return
+            
+        pending = _admin_ub_bc_pending.pop(user_id, None)
+        if not pending:
+            try:
+                await event.answer("⚠️ No pending broadcast found. Please try again.", alert=True)
+            except Exception:
+                pass
+            await admin_broadcast_menu_callback(event)
+            return
+            
+        target = pending["target"]
+        broadcast_msg = pending["message"]
+        target_names = {
+            "groups": "👥 Groups / Supergroups Only",
+            "dms": "👤 User DMs (Private) Only",
+            "both": "🌐 Both Groups & User DMs"
+        }
+        target_title = target_names.get(target, target)
+        
+        all_sessions = database.get_sessions()
+        total_bots = len(all_sessions)
+        
+        if total_bots == 0:
+            await event.respond("❌ No userbot sessions found in database.")
+            return
+            
+        prog_msg = await event.respond(
+            f"<blockquote><b>» ⏳ GLOBAL USERBOT BROADCAST IN PROGRESS</b>\n\n"
+            f"🎯 <b>Target:</b> <b>{target_title}</b>\n"
+            f"🤖 <b>Processing UserBots:</b> <code>[0 / {total_bots}]</code>\n"
+            f"👥 <b>Groups Sent:</b> <code>0</code>\n"
+            f"👤 <b>DMs Sent:</b> <code>0</code>\n\n"
+            f"⚡ <i>Broadcasting in background with floodwait protection...</i></blockquote>"
+        )
+        
+        import userbot_manager
+        from telethon.errors import FloodWaitError
+        import asyncio
+        
+        total_sent_groups = 0
+        total_sent_dms = 0
+        total_failed = 0
+        bots_done = 0
+        
+        for sess in all_sessions:
+            phone_num = sess["phone"]
+            try:
+                # Ensure bot is started
+                if not userbot_manager.is_bot_running(phone_num):
+                    await userbot_manager.start_userbot(phone_num)
+                    
+                bot_obj = userbot_manager._running_bots.get(phone_num)
+                if not bot_obj or not bot_obj.client:
+                    total_failed += 1
+                    bots_done += 1
+                    continue
+                    
+                ub_client = bot_obj.client
+                if not ub_client.is_connected():
+                    await ub_client.connect()
+                    
+                # Iterate dialogs
+                async for dialog in ub_client.iter_dialogs():
+                    is_grp = dialog.is_group or (dialog.is_channel and getattr(dialog.entity, 'megagroup', False))
+                    is_dm = dialog.is_user and not getattr(dialog.entity, 'bot', False) and not getattr(dialog.entity, 'is_self', False)
+                    
+                    should_send = False
+                    if target == "groups" and is_grp:
+                        should_send = True
+                    elif target == "dms" and is_dm:
+                        should_send = True
+                    elif target == "both" and (is_grp or is_dm):
+                        should_send = True
+                        
+                    if not should_send:
+                        continue
+                        
+                    try:
+                        # Forward or send message
+                        if broadcast_msg.media:
+                            await ub_client.send_file(dialog.id, broadcast_msg.media, caption=broadcast_msg.text)
+                        else:
+                            await ub_client.send_message(dialog.id, broadcast_msg.text)
+                            
+                        if is_grp:
+                            total_sent_groups += 1
+                        else:
+                            total_sent_dms += 1
+                        await asyncio.sleep(1.0)
+                    except FloodWaitError as fwe:
+                        logger.warning(f"FloodWait on userbot {phone_num}: sleeping {fwe.seconds}s")
+                        await asyncio.sleep(min(fwe.seconds, 15))
+                    except Exception as send_err:
+                        logger.debug(f"Failed to send from {phone_num} to {dialog.id}: {send_err}")
+                        total_failed += 1
+                        
+            except Exception as bot_err:
+                logger.error(f"Error processing broadcast for bot {phone_num}: {bot_err}")
+                total_failed += 1
+                
+            bots_done += 1
+            
+        report = (
+            f"<blockquote><b>» 📊 GLOBAL USERBOT BROADCAST COMPLETED</b>\n\n"
+            f"🎯 <b>Target Destination:</b> <b>{target_title}</b>\n"
+            f"🤖 <b>UserBots Used:</b> <b>{bots_done} / {total_bots}</b>\n"
+            f"👥 <b>Groups Delivered:</b> <b>{total_sent_groups}</b>\n"
+            f"👤 <b>DMs Delivered:</b> <b>{total_sent_dms}</b>\n"
+            f"⚠️ <b>Errors / Skipped:</b> <b>{total_failed}</b>\n"
+            f"✅ <b>Status:</b> <b>Completed Successfully</b></blockquote>"
+        )
+        try:
+            await prog_msg.edit(report)
+        except Exception:
+            await event.respond(report)
 
 
     # ------------------ Admin Message Input Listener ------------------
@@ -480,7 +852,7 @@ def register_handlers(client):
             
         global_settings = database.get_global_settings()
         success = False
-        val_str = event.text.strip()
+        val_str = (event.text or event.raw_text or "").strip()
         
         try:
             # 0.1 Plan Days
@@ -623,7 +995,41 @@ def register_handlers(client):
                     global_settings["branding_bio_text"] = val_str
                 success = True
                 
-            # 6. Set Images (Start, Ping, Help)
+            # 6. Set Individual Images
+            elif action == "WAITING_FOR_SET_START_IMG":
+                if event.photo:
+                    os.makedirs("downloads", exist_ok=True)
+                    photo_file = await client.download_media(event.photo, file="downloads/")
+                    global_settings["start_image"] = photo_file
+                elif val_str.lower() in ("none", "remove", "delete", "off"):
+                    global_settings["start_image"] = None
+                elif val_str:
+                    global_settings["start_image"] = val_str
+                success = True
+
+            elif action == "WAITING_FOR_SET_PING_IMG":
+                if event.photo:
+                    os.makedirs("downloads", exist_ok=True)
+                    photo_file = await client.download_media(event.photo, file="downloads/")
+                    global_settings["ping_image"] = photo_file
+                elif val_str.lower() in ("none", "remove", "delete", "off"):
+                    global_settings["ping_image"] = None
+                elif val_str:
+                    global_settings["ping_image"] = val_str
+                success = True
+
+            elif action == "WAITING_FOR_SET_HELP_IMG":
+                if event.photo:
+                    os.makedirs("downloads", exist_ok=True)
+                    photo_file = await client.download_media(event.photo, file="downloads/")
+                    global_settings["help_image"] = photo_file
+                elif val_str.lower() in ("none", "remove", "delete", "off"):
+                    global_settings["help_image"] = None
+                elif val_str:
+                    global_settings["help_image"] = val_str
+                success = True
+
+            # 6.b Set Images (Start, Ping, Help) in bulk
             elif action == "WAITING_FOR_SET_IMGS":
                 parts = [p.strip() for p in val_str.split(",") if p.strip()]
                 if len(parts) == 3:
@@ -740,9 +1146,42 @@ def register_handlers(client):
                 else:
                     raise ValueError("Commission must be between 0.0 and 1.0")
                     
-            # 6.3.b Global Broadcast
+            # 6.3.a Global UserBots Broadcast Input
+            elif action.startswith("WAITING_FOR_ADMIN_UB_BC_"):
+                target = action.replace("WAITING_FOR_ADMIN_UB_BC_", "").lower()
+                _admin_ub_bc_pending[user_id] = {
+                    "target": target,
+                    "message": event.message
+                }
+                target_names = {
+                    "groups": "👥 Groups / Supergroups Only",
+                    "dms": "👤 User DMs (Private) Only",
+                    "both": "🌐 Both Groups & User DMs"
+                }
+                target_title = target_names.get(target, target)
+                all_sessions = database.get_sessions()
+                
+                confirm_text = (
+                    f"<blockquote><b>» 🚀 CONFIRM GLOBAL USERBOT BROADCAST</b>\n\n"
+                    f"🎯 <b>Target:</b> <b>{target_title}</b>\n"
+                    f"🤖 <b>Total UserBots:</b> <b>{len(all_sessions)}</b>\n\n"
+                    f"⚠️ <i>Broadcast will be dispatched from all connected userbots across their joined chats with smart flood protection.</i>\n\n"
+                    f"<b>Are you ready to start broadcasting?</b></blockquote>"
+                )
+                buttons = [
+                    [
+                        utils.styled_button("🚀 Start Global Broadcast", "admin_ub_bc_confirm", style="success")
+                    ],
+                    [
+                        utils.styled_button("❌ Cancel", "admin_broadcast", style="danger")
+                    ]
+                ]
+                await event.reply(confirm_text, buttons=buttons)
+                return
+
+            # 6.3.b Global Main Bot Broadcast
             elif action == "WAITING_FOR_BROADCAST":
-                await event.reply("📢 **Starting broadcast...**\nPlease wait, sending the message to all users.")
+                prog_msg = await event.reply("<blockquote><b>» 📢 MAIN BOT BROADCAST IN PROGRESS</b>\n\nSending message to all registered bot users...</blockquote>")
                 
                 all_users = database.get_all_users()
                 total_users = len(all_users)
@@ -774,13 +1213,15 @@ def register_handlers(client):
                         fail_count += 1
                         
                 report = (
-                    f"📢 **Broadcast Completion Report**\n"
-                    f"━━━━━━━━━━━━━━━━━━━━\n"
-                    f"👥 Total Target Users: **{total_users}**\n"
-                    f"✅ Successfully Sent: **{success_count}**\n"
-                    f"❌ Failed (Blocked/Deleted): **{fail_count}**"
+                    f"<blockquote><b>» 📢 MAIN BOT BROADCAST COMPLETED</b>\n\n"
+                    f"👥 <b>Total Target Users:</b> <b>{total_users}</b>\n"
+                    f"✅ <b>Successfully Sent:</b> <b>{success_count}</b>\n"
+                    f"❌ <b>Failed (Blocked/Deleted):</b> <b>{fail_count}</b></blockquote>"
                 )
-                await event.reply(report)
+                try:
+                    await prog_msg.edit(report)
+                except Exception:
+                    await event.reply(report)
                 await show_admin_panel(event, user_id)
                 return
                     
@@ -796,6 +1237,9 @@ def register_handlers(client):
                 return
             elif action == "WAITING_FOR_USR_BAL":
                 await process_admin_usr_search(event, val_str, "bal")
+                return
+            elif action == "WAITING_FOR_USR_CTRL":
+                await process_admin_usr_search(event, val_str, "ctrl")
                 return
                 
             # 6.5 User Balance Editing (+/-)
@@ -870,6 +1314,16 @@ def register_handlers(client):
             if action in ("WAITING_FOR_BRAND_NAME_TXT", "WAITING_FOR_BRAND_BIO_TXT"):
                 await show_branding_settings(event, user_id)
                 return
+            if action in ("WAITING_FOR_SET_START_IMG", "WAITING_FOR_SET_PING_IMG", "WAITING_FOR_SET_HELP_IMG", "WAITING_FOR_SET_IMGS"):
+                class MockImgEvent:
+                    def __init__(self, uid, ev):
+                        self.sender_id = uid
+                        self.respond = ev.respond
+                        self.edit = ev.respond
+                    async def answer(self, *args, **kwargs):
+                        pass
+                await admin_manage_images_callback(MockImgEvent(user_id, event))
+                return
             
         # Return to admin panel
         await show_admin_panel(event, user_id)
@@ -905,7 +1359,7 @@ def register_handlers(client):
         except Exception:
             await event.respond(text, buttons=buttons)
 
-    @client.on(events.CallbackQuery(pattern=r"^admin_usr_(stats|ban|unban|bal)_start$"))
+    @client.on(events.CallbackQuery(pattern=r"^admin_usr_(stats|ban|unban|bal|ctrl)_start$"))
     async def admin_usr_action_start(event):
         action = event.pattern_match.group(1)
         user_id = event.sender_id
@@ -1086,17 +1540,32 @@ async def process_admin_usr_search(event, search_query: str, action: str):
     
     # 1. Resolve target user
     target_user = None
+    target_id = None
     if search_query.isdigit():
-        target_user = database.get_user(int(search_query))
+        target_id = int(search_query)
+        target_user = database.get_user(target_id)
+        if not target_user:
+            target_user = {
+                "user_id": target_id,
+                "username": None,
+                "first_name": "User",
+                "last_name": "",
+                "allowed_slots": 1,
+                "wallet_balance": 0.0,
+                "tos_accepted": True
+            }
+            database.save_user(target_user)
     else:
-        target_user = database.get_user_by_username(search_query)
+        username_clean = search_query.lstrip("@")
+        target_user = database.get_user_by_username(username_clean)
+        if target_user:
+            target_id = target_user["user_id"]
         
-    if not target_user:
-        buttons = [[utils.styled_button("🔙 Back", "admin_manage_users", style="primary")]]
+    if not target_user or not target_id:
+        buttons = [[utils.styled_button("🔙 Back to User Management", "admin_manage_users", style="primary")]]
         await event.reply("❌ **User not found.** Please verify the User ID or Username.", buttons=buttons)
         return
         
-    target_id = target_user["user_id"]
     username = target_user.get("username") or "None"
     first_name = target_user.get("first_name") or ""
     last_name = target_user.get("last_name") or ""
@@ -1138,9 +1607,13 @@ async def process_admin_usr_search(event, search_query: str, action: str):
         await event.reply(stats_text, buttons=buttons)
         
     elif action == "ctrl":
-        from handlers.my_bots import show_all_slots_dashboard, set_admin_impersonation
+        from handlers.my_bots import show_bots_list, show_all_slots_dashboard, set_admin_impersonation
         set_admin_impersonation(user_id, target_id)
-        await show_all_slots_dashboard(event, target_id, flash_message=f"👑 **Admin Access**: Controlling UserBots for User `{target_id}`")
+        sessions = database.get_sessions(target_id)
+        if sessions:
+            await show_all_slots_dashboard(event, target_id, flash_message=f"👑 **Admin Access**: Controlling UserBots of User `{target_id}` (@{username})")
+        else:
+            await show_bots_list(event, target_id, flash_message=f"👑 **Admin Access**: Viewing Dashboard of User `{target_id}` (@{username})")
         
     elif action == "ban":
         if target_id in config.ORIGINAL_ADMIN_IDS:

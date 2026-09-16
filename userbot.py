@@ -91,154 +91,479 @@ try:
 except Exception as patch_err:
     logger.error(f"Failed to apply PyTgCalls monkey-patch: {patch_err}")
 
+import asyncio
+import os
+import re
+from typing import Union
+import yt_dlp
+try:
+    from pyrogram.enums import MessageEntityType
+    from pyrogram.types import Message
+except ImportError:
+    MessageEntityType = None
+    Message = None
+from py_yt import VideosSearch, Playlist
 import aiohttp
 from pytgcalls import PyTgCalls
 from pytgcalls.types import AudioPiped
+import config
 
-API_URL = "https://api.shrutibots.site"
-API_KEY = "ShrutiBotsGMiLr8wF1tPbxVV6fRgH"
+API_URL = getattr(config, "MEOW_API_URL", os.environ.get("MEOW_API_URL", "https://music.yukiapi.site"))
+API_KEY = getattr(config, "MEOW_API_KEY", os.environ.get("MEOW_API_KEY", "YOUR_API_KEY")) # 🔑 Get Key: @MeowApiRobot On Telegram
+
 DOWNLOAD_DIR = "downloads"
+
+
+def time_to_seconds(time):
+    stringt = str(time)
+    return sum(int(x) * 60 ** i for i, x in enumerate(reversed(stringt.split(":"))))
+
+
+async def download_song(link: str) -> str:
+    video_id = link.split("v=")[-1].split("&")[0] if "v=" in link else (link.split("youtu.be/")[-1].split("?")[0] if "youtu.be/" in link else link)
+    if not video_id or len(video_id) < 3:
+        return None
+
+    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+    file_path = os.path.join(DOWNLOAD_DIR, f"{video_id}.mp3")
+
+    if os.path.exists(file_path) and os.path.getsize(file_path) > 10000:
+        return file_path
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            stream_url = f"{API_URL}/stream/{video_id}?key={API_KEY}&type=audio&quality=128"
+            async with session.get(stream_url, timeout=aiohttp.ClientTimeout(total=300)) as resp:
+                if resp.status != 200:
+                    return None
+                with open(file_path, "wb") as f:
+                    async for chunk in resp.content.iter_chunked(131072):
+                        f.write(chunk)
+
+        if os.path.exists(file_path) and os.path.getsize(file_path) > 10000:
+            return file_path
+        return None
+    except Exception:
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception:
+                pass
+        return None
+
+
+async def download_video(link: str) -> str:
+    video_id = link.split("v=")[-1].split("&")[0] if "v=" in link else (link.split("youtu.be/")[-1].split("?")[0] if "youtu.be/" in link else link)
+    if not video_id or len(video_id) < 3:
+        return None
+
+    os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+    file_path = os.path.join(DOWNLOAD_DIR, f"{video_id}.mp4")
+
+    if os.path.exists(file_path) and os.path.getsize(file_path) > 10000:
+        return file_path
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            stream_url = f"{API_URL}/stream/{video_id}?key={API_KEY}&type=video&quality=480"
+            async with session.get(stream_url, timeout=aiohttp.ClientTimeout(total=600)) as resp:
+                if resp.status != 200:
+                    return None
+                with open(file_path, "wb") as f:
+                    async for chunk in resp.content.iter_chunked(131072):
+                        f.write(chunk)
+
+        if os.path.exists(file_path) and os.path.getsize(file_path) > 10000:
+            return file_path
+        return None
+    except Exception:
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception:
+                pass
+        return None
+
+
+class YouTubeAPI:
+    def __init__(self):
+        self.base = "https://www.youtube.com/watch?v="
+        self.regex = r"(?:youtube\.com|youtu\.be)"
+        self.status = "https://www.youtube.com/oembed?url="
+        self.listbase = "https://youtube.com/playlist?list="
+        self.reg = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+
+    async def exists(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        return bool(re.search(self.regex, link))
+
+    async def url(self, message_1: Message) -> Union[str, None]:
+        messages = [message_1]
+        if hasattr(message_1, "reply_to_message") and message_1.reply_to_message:
+            messages.append(message_1.reply_to_message)
+        for message in messages:
+            if not message:
+                continue
+            if getattr(message, "entities", None):
+                for entity in message.entities:
+                    if MessageEntityType and entity.type == MessageEntityType.URL:
+                        text = message.text or message.caption or ""
+                        return text[entity.offset: entity.offset + entity.length]
+            elif getattr(message, "caption_entities", None):
+                for entity in message.caption_entities:
+                    if MessageEntityType and entity.type == MessageEntityType.TEXT_LINK:
+                        return getattr(entity, "url", None)
+        return None
+
+    async def details(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        results = VideosSearch(link, limit=1)
+        res_data = await results.next()
+        title, duration_min, duration_sec, thumbnail, vidid = "YouTube Video", "0:00", 0, None, None
+        for result in res_data.get("result", []):
+            title = result["title"]
+            duration_min = result["duration"]
+            thumbnail = result["thumbnails"][0]["url"].split("?")[0]
+            vidid = result["id"]
+            duration_sec = int(time_to_seconds(duration_min)) if duration_min else 0
+            break
+        return title, duration_min, duration_sec, thumbnail, vidid
+
+    async def title(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        results = VideosSearch(link, limit=1)
+        res_data = await results.next()
+        for result in res_data.get("result", []):
+            return result["title"]
+        return None
+
+    async def duration(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        results = VideosSearch(link, limit=1)
+        res_data = await results.next()
+        for result in res_data.get("result", []):
+            return result["duration"]
+        return None
+
+    async def thumbnail(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        results = VideosSearch(link, limit=1)
+        res_data = await results.next()
+        for result in res_data.get("result", []):
+            return result["thumbnails"][0]["url"].split("?")[0]
+        return None
+
+    async def video(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        try:
+            downloaded_file = await download_video(link)
+            if downloaded_file:
+                return 1, downloaded_file
+            return 0, "Video download failed"
+        except Exception as e:
+            return 0, f"Video download error: {e}"
+
+    async def playlist(self, link, limit, user_id, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.listbase + link
+        if "&" in link:
+            link = link.split("&")[0]
+        try:
+            plist = await Playlist.get(link)
+        except Exception:
+            return []
+        videos = plist.get("videos") or []
+        ids = []
+        for data in videos[:limit]:
+            if not data:
+                continue
+            vid = data.get("id")
+            if not vid:
+                continue
+            ids.append(vid)
+        return ids
+
+    async def track(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        results = VideosSearch(link, limit=1)
+        res_data = await results.next()
+        title, yturl, vidid, duration_min, thumbnail = "YouTube Video", link, None, "0:00", None
+        for result in res_data.get("result", []):
+            title = result["title"]
+            duration_min = result["duration"]
+            vidid = result["id"]
+            yturl = result["link"]
+            thumbnail = result["thumbnails"][0]["url"].split("?")[0]
+            break
+        track_details = {
+            "title": title,
+            "link": yturl,
+            "vidid": vidid,
+            "duration_min": duration_min,
+            "thumb": thumbnail,
+        }
+        return track_details, vidid
+
+    async def formats(self, link: str, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        ytdl_opts = {"quiet": True}
+        ydl = yt_dlp.YoutubeDL(ytdl_opts)
+        with ydl:
+            formats_available = []
+            r = ydl.extract_info(link, download=False)
+            for format in r.get("formats", []):
+                try:
+                    if "dash" not in str(format.get("format", "")).lower():
+                        formats_available.append(
+                            {
+                                "format": format.get("format"),
+                                "filesize": format.get("filesize"),
+                                "format_id": format.get("format_id"),
+                                "ext": format.get("ext"),
+                                "format_note": format.get("format_note"),
+                                "yturl": link,
+                            }
+                        )
+                except Exception:
+                    continue
+        return formats_available, link
+
+    async def slider(self, link: str, query_type: int, videoid: Union[bool, str] = None):
+        if videoid:
+            link = self.base + link
+        if "&" in link:
+            link = link.split("&")[0]
+        a = VideosSearch(link, limit=10)
+        res = await a.next()
+        result = res.get("result", [])
+        if not result or query_type >= len(result):
+            return "Unknown", "0:00", None, None
+        title = result[query_type]["title"]
+        duration_min = result[query_type]["duration"]
+        vidid = result[query_type]["id"]
+        thumbnail = result[query_type]["thumbnails"][0]["url"].split("?")[0]
+        return title, duration_min, thumbnail, vidid
+
+    async def download(
+        self,
+        link: str,
+        mystic=None,
+        video: Union[bool, str] = None,
+        videoid: Union[bool, str] = None,
+        songaudio: Union[bool, str] = None,
+        songvideo: Union[bool, str] = None,
+        format_id: Union[bool, str] = None,
+        title: Union[bool, str] = None,
+    ) -> tuple:
+        if videoid:
+            link = self.base + link
+        try:
+            if video or songvideo:
+                downloaded_file = await download_video(link)
+            else:
+                downloaded_file = await download_song(link)
+            if downloaded_file:
+                return downloaded_file, True
+            return None, False
+        except Exception:
+            return None, False
+
+
+YouTube = YouTubeAPI()
+
 
 async def download_media(query: str, download_type: str = "audio") -> tuple:
     """
-    Downloads audio/video for voice call using YouTube API search.
+    Downloads audio/video for voice call using YouTube API search & Meow/Yuki API stream.
     Returns (file_path: str, title: str, duration: int, thumbnail: str)
     """
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
     try:
-        import yt_dlp
+        title = "YouTube Video"
+        vidid = None
+        duration_sec = 0
+        thumb = None
         
-        def _search_sync():
-            ydl_opts = {
-                'quiet': True,
-                'no_warnings': True,
-                'extract_flat': 'in_playlist',
-                'skip_download': True,
-            }
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                search_query = query if query.startswith("http") else f"ytsearch1:{query}"
-                try:
-                    res = ydl.extract_info(search_query, download=False)
-                    if not res:
-                        return None
-                    if 'entries' in res:
-                        entries = res['entries']
-                        if not entries or not entries[0]:
-                            return None
-                        return entries[0]
-                    return res
-                except Exception as e:
-                    logger.error(f"yt-dlp search extraction failed: {e}")
-                    return None
+        # 1. Search YouTube using py_yt
+        try:
+            track_details, vidid = await YouTube.track(query)
+            if vidid:
+                title = track_details.get("title") or title
+                thumb = track_details.get("thumb")
+                dur_min = track_details.get("duration_min")
+                duration_sec = int(time_to_seconds(dur_min)) if dur_min else 0
+        except Exception as yt_err:
+            logger.warning(f"YouTube.track extraction error: {yt_err}")
 
-        loop = asyncio.get_running_loop()
-        entry = await loop.run_in_executor(None, _search_sync)
-        if not entry:
-            return None, None, None, None
-            
-        title = entry.get("title") or "YouTube Video"
-        vidid = entry.get("id")
+        # Fallback search with yt_dlp if py_yt didn't find video id
+        if not vidid:
+            def _search_sync():
+                ydl_opts = {
+                    'quiet': True,
+                    'no_warnings': True,
+                    'extract_flat': 'in_playlist',
+                    'skip_download': True,
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    search_query = query if query.startswith("http") else f"ytsearch1:{query}"
+                    try:
+                        res = ydl.extract_info(search_query, download=False)
+                        if not res:
+                            return None
+                        if 'entries' in res:
+                            entries = res['entries']
+                            if not entries or not entries[0]:
+                                return None
+                            return entries[0]
+                        return res
+                    except Exception as e:
+                        logger.error(f"yt-dlp search extraction failed: {e}")
+                        return None
+
+            loop = asyncio.get_running_loop()
+            entry = await loop.run_in_executor(None, _search_sync)
+            if entry:
+                title = entry.get("title") or title
+                vidid = entry.get("id")
+                duration_sec = int(entry.get("duration") or 0)
+                thumb = entry.get("thumbnail") or f"https://img.youtube.com/vi/{vidid}/0.jpg"
+
         if not vidid:
             return None, None, None, None
-            
+
+        thumb_url = thumb or f"https://img.youtube.com/vi/{vidid}/0.jpg"
         youtube_url = f"https://www.youtube.com/watch?v={vidid}"
-        duration_sec = int(entry.get("duration") or 0)
-        thumb = entry.get("thumbnail") or f"https://img.youtube.com/vi/{vidid}/0.jpg"
 
-        # Check if file already exists in downloads (with any extension)
-        existing_file = None
-        if os.path.exists(DOWNLOAD_DIR):
-            for fname in os.listdir(DOWNLOAD_DIR):
-                if fname.startswith(vidid) and os.path.getsize(os.path.join(DOWNLOAD_DIR, fname)) > 0:
-                    existing_file = os.path.join(DOWNLOAD_DIR, fname)
-                    break
-                
-        if existing_file:
-            logger.info(f"Using cached file: {existing_file}")
-            return existing_file, title, duration_sec, thumb
-
-        # Define file path for remote API download (if used)
-        ext = "mp3" if download_type == "audio" else "mp4"
-        file_path = os.path.join(DOWNLOAD_DIR, f"{vidid}.{ext}")
-
-        use_local = False
-        
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{API_URL}/download",
-                    params={
-                        "url": youtube_url,
-                        "type": download_type,
-                        "api_key": API_KEY
-                    },
-                    timeout=aiohttp.ClientTimeout(total=300)
-                ) as resp:
-                    if resp.status == 200:
-                        with open(file_path, "wb") as f:
-                            async for chunk in resp.content.iter_chunked(1024 * 128):
-                                f.write(chunk)
-                        logger.info(f"Downloaded {download_type} via remote API for: {title}")
-                        return file_path, title, duration_sec, thumb
-                    else:
-                        logger.warning(f"Remote download API failed with status {resp.status}, falling back to local yt-dlp.")
-                        use_local = True
-        except Exception as api_err:
-            logger.warning(f"Remote API download exception: {api_err}, falling back to local yt-dlp.")
-            use_local = True
-                
-        if use_local:
-            import yt_dlp
-            logger.info(f"Downloading {download_type} locally using yt-dlp for: {title}...")
-            
-            def _dl_sync():
+        # Ensure thumbnail is downloaded locally
+        local_thumb_path = os.path.join(DOWNLOAD_DIR, f"{vidid}_thumb.jpg")
+        if not os.path.exists(local_thumb_path) or os.path.getsize(local_thumb_path) < 1000:
+            thumb_candidates = [
+                thumb_url,
+                f"https://img.youtube.com/vi/{vidid}/hqdefault.jpg",
+                f"https://img.youtube.com/vi/{vidid}/0.jpg"
+            ]
+            for t_url in thumb_candidates:
+                if not t_url:
+                    continue
                 try:
-                    if download_type == "audio":
-                        ydl_opts = {
-                            'format': 'bestaudio/best',
-                            'outtmpl': os.path.join(DOWNLOAD_DIR, f"{vidid}.%(ext)s"),
-                            'postprocessors': [{
-                                'key': 'FFmpegExtractAudio',
-                                'preferredcodec': 'mp3',
-                                'preferredquality': '192',
-                            }],
-                            'quiet': True,
-                            'no_warnings': True,
-                        }
-                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                            ydl.download([youtube_url])
-                    else:
-                        ydl_opts = {
-                            'format': 'best[height<=720][ext=mp4]/best[ext=mp4]/best',
-                            'outtmpl': os.path.join(DOWNLOAD_DIR, f"{vidid}.%(ext)s"),
-                            'quiet': True,
-                            'no_warnings': True,
-                        }
-                        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                            ydl.download([youtube_url])
-                            
-                    # Scan directory to find the downloaded file name
+                    import urllib.request
+                    urllib.request.urlretrieve(t_url, local_thumb_path)
+                    if os.path.exists(local_thumb_path) and os.path.getsize(local_thumb_path) > 1000:
+                        break
+                except Exception:
+                    pass
+        
+        final_thumb = local_thumb_path if (os.path.exists(local_thumb_path) and os.path.getsize(local_thumb_path) > 1000) else thumb_url
+
+        # Try to generate a styled thumbnail using gen_thumb (if PIL/aiofiles are available)
+        if vidid:
+            try:
+                from thumb_gen import gen_thumb
+                styled = await gen_thumb(vidid)
+                if styled and (str(styled).startswith("http") or (os.path.exists(str(styled)) and os.path.getsize(str(styled)) > 1000)):
+                    final_thumb = styled
+            except Exception as gt_err:
+                logger.debug(f"gen_thumb skipped: {gt_err}")
+
+        # 2. Check if file already exists in downloads
+        prefix = "audio" if download_type == "audio" else "video"
+        ext = "mp3" if download_type == "audio" else "mp4"
+        cached_file = os.path.join(DOWNLOAD_DIR, f"{vidid}_{prefix}.{ext}")
+        if os.path.exists(cached_file) and os.path.getsize(cached_file) > 10000:
+            logger.info(f"Using cached file: {cached_file}")
+            return cached_file, title, duration_sec, final_thumb
+
+        # 3. Fast direct download via yt-dlp with android / web player clients
+        logger.info(f"Downloading {download_type} locally using fast yt-dlp engine for: {title}...")
+        def _dl_sync():
+            try:
+                if download_type == "audio":
+                    ydl_opts = {
+                        'format': 'bestaudio/best',
+                        'outtmpl': os.path.join(DOWNLOAD_DIR, f"{vidid}_audio.%(ext)s"),
+                        'quiet': True,
+                        'no_warnings': True,
+                        'nocheckcertificate': True,
+                        'geo_bypass': True,
+                        'extractor_args': {'youtube': {'player_client': ['android', 'web', 'ios']}},
+                    }
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([youtube_url])
+                else:
+                    ydl_opts = {
+                        'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]/best',
+                        'outtmpl': os.path.join(DOWNLOAD_DIR, f"{vidid}_video.%(ext)s"),
+                        'merge_output_format': 'mp4',
+                        'quiet': True,
+                        'no_warnings': True,
+                        'nocheckcertificate': True,
+                        'geo_bypass': True,
+                        'extractor_args': {'youtube': {'player_client': ['android', 'web', 'ios']}},
+                    }
+                    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([youtube_url])
+                        
+                for fname in os.listdir(DOWNLOAD_DIR):
+                    if fname.startswith(f"{vidid}_{prefix}"):
+                        full_p = os.path.join(DOWNLOAD_DIR, fname)
+                        if os.path.getsize(full_p) > 5000:
+                            return full_p
+                return None
+            except Exception as dl_ex:
+                logger.error(f"yt-dlp sync download exception: {dl_ex}")
+                # Fallback without extractor_args if client was restricted
+                try:
+                    fallback_opts = {
+                        'format': 'bestaudio/best' if download_type == "audio" else 'bestvideo[height<=720]+bestaudio/best',
+                        'outtmpl': os.path.join(DOWNLOAD_DIR, f"{vidid}_{prefix}.%(ext)s"),
+                        'quiet': True,
+                        'no_warnings': True,
+                    }
+                    with yt_dlp.YoutubeDL(fallback_opts) as ydl:
+                        ydl.download([youtube_url])
                     for fname in os.listdir(DOWNLOAD_DIR):
-                        if fname.startswith(vidid):
+                        if fname.startswith(f"{vidid}_{prefix}"):
                             full_p = os.path.join(DOWNLOAD_DIR, fname)
-                            if os.path.getsize(full_p) > 0:
+                            if os.path.getsize(full_p) > 5000:
                                 return full_p
-                    return None
-                except Exception as dl_ex:
-                    logger.error(f"yt-dlp sync download exception: {dl_ex}")
-                    return None
-                    
-            loop = asyncio.get_running_loop()
-            downloaded_file = await loop.run_in_executor(None, _dl_sync)
-            if downloaded_file and os.path.exists(downloaded_file):
-                logger.info(f"Successfully downloaded {download_type} locally: {downloaded_file}")
-                return downloaded_file, title, duration_sec, thumb
-            else:
-                logger.error(f"Local yt-dlp download failed.")
-                return None, None, None, None
+                except Exception as fb_err:
+                    logger.error(f"yt-dlp fallback download exception: {fb_err}")
+                return None
+
+        loop = asyncio.get_running_loop()
+        downloaded_file = await loop.run_in_executor(None, _dl_sync)
+        if downloaded_file and os.path.exists(downloaded_file):
+            logger.info(f"Successfully downloaded {download_type} locally via fast yt-dlp: {downloaded_file}")
+            return downloaded_file, title, duration_sec, thumb
+        else:
+            logger.error("All download methods failed.")
+            return None, None, None, None
     except Exception as e:
         logger.error(f"Download media error: {e}")
         return None, None, None, None
+
 
 async def call_gpt_api(api_key: str, user_message: str) -> str:
     """
@@ -473,7 +798,43 @@ async def generate_silence() -> str:
     return file_path
 
 
+def extract_media_info(msg):
+    """
+    Extracts file path, title, and duration from a message containing audio/voice/video.
+    """
+    media = getattr(msg, "audio", None) or getattr(msg, "voice", None) or getattr(msg, "video", None) or getattr(msg, "gif", None)
+    if not media and getattr(msg, "document", None):
+        mime = getattr(msg.document, "mime_type", "")
+        if mime.startswith("audio/") or mime.startswith("video/"):
+            media = msg.document
+            
+    if not media:
+        return None, None, 30
+        
+    title = "Uploaded Media"
+    duration = 30
+    
+    # Extract title
+    if getattr(msg, "audio", None):
+        title = getattr(msg.audio, "title", None) or getattr(msg.audio, "file_name", None) or "Audio File"
+    elif getattr(msg, "voice", None):
+        title = "Voice Note"
+    elif getattr(msg, "video", None):
+        title = getattr(msg.video, "file_name", None) or "Video File"
+    elif getattr(msg, "document", None):
+        title = getattr(msg.document, "file_name", None) or "Document Media"
+        
+    # Extract duration
+    for attr in getattr(media, "attributes", []):
+        if hasattr(attr, "duration"):
+            duration = attr.duration
+            break
+            
+    return media, title, duration
+
+
 async def get_group_call_info(client: TelegramClient, link_or_id: str):
+
     """
     Resolves link/ID/username to the Telegram entity and its active call details.
     """
@@ -503,40 +864,69 @@ async def get_group_call_info(client: TelegramClient, link_or_id: str):
 async def join_channel_single(client: TelegramClient, ch: str) -> bool:
     """
     Attempts to join a single channel or group by invite link or username.
-    Returns True if successfully joined or already in it, False otherwise.
+    Returns True if successfully joined, already in it, or join request was sent.
     """
     from telethon.tl.functions.channels import JoinChannelRequest
     from telethon.tl.functions.messages import ImportChatInviteRequest
     import re
     
-    ch = ch.strip()
     if not ch:
         return False
+        
+    # Strip HTML tags, quotes, angles and leading/trailing whitespace
+    ch_clean = re.sub(r'<[^>]+>', '', str(ch)).strip()
+    ch_clean = ch_clean.strip('\'"`()[]{}<> \t\n\r')
+    if not ch_clean:
+        return False
+        
     try:
         # Match joinchat or + hash links for t.me, telegram.me, telegram.dog, telegram.org
-        join_hash_match = re.search(r'(?:t\.me|telegram\.(?:me|dog|org))/(?:joinchat/|\+)([^?/\s]+)', ch, re.IGNORECASE)
+        join_hash_match = re.search(r'(?:t\.me|telegram\.(?:me|dog|org))/(?:joinchat/|\+)([a-zA-Z0-9_-]+)', ch_clean, re.IGNORECASE)
         
         if join_hash_match:
-            hash_val = join_hash_match.group(1)
-            await client(ImportChatInviteRequest(hash_val))
+            hash_val = join_hash_match.group(1).strip()
+            try:
+                await client(ImportChatInviteRequest(hash_val))
+            except Exception as e_invite:
+                err_inv = str(e_invite).lower()
+                if "already" in err_inv or "user_already_participant" in err_inv:
+                    logger.info(f"Already participant of invite hash: {hash_val}")
+                    return True
+                if "request" in err_inv or "invite_request_sent" in err_inv or "inviterequestsent" in err_inv:
+                    logger.info(f"Join request sent successfully for hash: {hash_val}")
+                    return True
+                raise e_invite
         else:
             # Extract username from public invite link if present
-            username_match = re.search(r'(?:t\.me|telegram\.(?:me|dog|org))/([^?/\s]+)', ch, re.IGNORECASE)
+            username_match = re.search(r'(?:t\.me|telegram\.(?:me|dog|org))/([a-zA-Z0-9_]+)', ch_clean, re.IGNORECASE)
             if username_match:
-                username = username_match.group(1)
+                username = username_match.group(1).strip()
             else:
-                username = ch.replace('@', '').strip()
+                username = ch_clean.replace('@', '').strip()
                 
-            await client(JoinChannelRequest(username))
+            try:
+                await client(JoinChannelRequest(username))
+            except Exception as e_join:
+                err_j = str(e_join).lower()
+                if "already" in err_j or "user_already_participant" in err_j:
+                    logger.info(f"Already participant of channel: {username}")
+                    return True
+                if "request" in err_j or "invite_request_sent" in err_j or "inviterequestsent" in err_j:
+                    logger.info(f"Join request sent successfully for: {username}")
+                    return True
+                raise e_join
             
-        logger.info(f"Successfully joined channel/group: {ch}")
+        logger.info(f"Successfully joined channel/group: {ch_clean}")
         return True
     except Exception as e:
         err_msg = str(e).lower()
         if "already" in err_msg or "already participant" in err_msg or "user_already_participant" in err_msg:
-            logger.debug(f"Already participant of: {ch}")
+            logger.debug(f"Already participant of: {ch_clean}")
             return True
-        logger.warning(f"Failed to join channel {ch}: {e}")
+        if "request" in err_msg or "invite_request_sent" in err_msg or "inviterequestsent" in err_msg:
+            logger.info(f"Join request sent for: {ch_clean}")
+            return True
+        logger.warning(f"Failed to join channel {ch_clean}: {e}")
         return False
 
 
@@ -546,11 +936,14 @@ async def leave_chat_single(client: TelegramClient, ch: str) -> bool:
     """
     from telethon.tl.functions.channels import LeaveChannelRequest
     from telethon.tl.functions.messages import DeleteChatUserRequest
-    ch = ch.strip()
+    import re
     if not ch:
         return False
+    ch_clean = re.sub(r'<[^>]+>', '', str(ch)).strip().strip('\'"`()[]{}<> \t\n\r')
+    if not ch_clean:
+        return False
     try:
-        entity = await get_peer_from_link(client, ch)
+        entity = await get_peer_from_link(client, ch_clean)
         if not entity:
             return False
             
@@ -562,10 +955,10 @@ async def leave_chat_single(client: TelegramClient, ch: str) -> bool:
                 chat_id=entity.id,
                 user_id=await client.get_input_entity('me')
             ))
-        logger.info(f"Successfully left channel/group: {ch}")
+        logger.info(f"Successfully left channel/group: {ch_clean}")
         return True
     except Exception as e:
-        logger.warning(f"Failed to leave channel/group {ch}: {e}")
+        logger.warning(f"Failed to leave channel/group {ch_clean}: {e}")
         return False
 
 
@@ -635,7 +1028,8 @@ async def apply_branding(client: TelegramClient, branding_username: str, session
         user_me = full_user.users[0]
         full_profile = full_user.full_user
         
-        orig_first_name = user_me.first_name or ""
+        custom_name = session_data.get("name")
+        orig_first_name = custom_name if custom_name else (user_me.first_name or "")
         orig_bio = full_profile.about or ""
         
         if not session_data.get("original_name"):
@@ -689,6 +1083,8 @@ class UserBot:
         self.session_id = session_id
         self.client: Optional[TelegramClient] = None
         self.me_id: Optional[int] = None
+        self._name = ""
+        self._username = ""
         self.is_running = False
         self.broadcast_task: Optional[asyncio.Task] = None
         self.joined_vcs: Set[int] = set()
@@ -704,6 +1100,34 @@ class UserBot:
         self.settings = {}
         self.groups_cache = None
         self.groups_cache_time = 0.0
+
+    @property
+    def name(self) -> str:
+        if self._name:
+            return self._name
+        sess = database.get_session(self.session_id)
+        if sess and sess.get("name"):
+            self._name = sess.get("name")
+            return self._name
+        return "UserBot"
+
+    @name.setter
+    def name(self, val: str):
+        self._name = val
+
+    @property
+    def username(self) -> str:
+        if self._username:
+            return self._username
+        sess = database.get_session(self.session_id)
+        if sess and sess.get("username"):
+            self._username = sess.get("username")
+            return self._username
+        return ""
+
+    @username.setter
+    def username(self, val: str):
+        self._username = val
 
     def reload_settings(self):
         """
@@ -771,36 +1195,37 @@ class UserBot:
         except Exception as manager_err:
             logger.warning(f"Could not remove bot {self.session_id} from manager registry: {manager_err}")
 
-    async def join_voice_chat(self, link_or_id: str) -> tuple:
+    async def join_voice_chat(self, link_or_id: Union[str, int]) -> tuple:
         """
         Attempts to join the active voice call of a group/channel using PyTgCalls.
+        Supports group link, username, or direct Chat ID.
         """
         if not self.is_running or not self.client:
             return False, "Userbot is not running."
             
         try:
-            entity, group_call = await get_group_call_info(self.client, link_or_id)
-            if not entity:
-                return False, "Could not resolve the group link, username, or Chat ID."
-                
-            if not group_call:
-                return False, f"No active voice chat (VC) found in {getattr(entity, 'title', 'Group')}. Please start the VC first."
-                
-            # If already in a voice chat, leave first to prevent conflicts
-            if self.current_vc_chat_id:
-                try:
-                    await self.leave_voice_chat()
-                    await asyncio.sleep(1.0)
-                except Exception:
-                    pass
-                
-            chat_id = entity.id
+            import telethon.utils as tu
+            link_str = str(link_or_id).strip()
+            entity = None
             
-            # Join VC via Telethon protocol first (with muted=True) to establish connection and mute the mic!
+            # Direct integer chat ID resolution
             try:
-                await join_vc(self.client, chat_id)
-            except Exception as jvc_err:
-                logger.warning(f"Protocol join_vc failed: {jvc_err}, continuing to PyTgCalls...")
+                chat_int = int(link_str)
+                entity = await self.client.get_entity(chat_int)
+            except Exception:
+                pass
+                
+            if not entity:
+                entity = await get_peer_from_link(self.client, link_str)
+                
+            if not entity:
+                try:
+                    chat_int = int(link_str)
+                    full_chat_id = chat_int
+                except Exception:
+                    return False, "Could not resolve the group link, username, or Chat ID. Please ensure UserBot is in the group."
+            else:
+                full_chat_id = tu.get_peer_id(entity)
 
             pytg = await self.get_pytgcalls()
             
@@ -809,59 +1234,97 @@ class UserBot:
             if not silence_file or not os.path.exists(silence_file):
                 return False, "Failed to generate silence.mp3. Make sure FFmpeg is installed."
                 
-            logger.info(f"Joining VC of {chat_id} using PyTgCalls with silence.mp3...")
+            logger.info(f"Joining VC of {full_chat_id} using PyTgCalls...")
             
-            await pytg.join_group_call(
-                chat_id,
-                AudioPiped(silence_file)
-            )
-            
-            self.current_vc_chat_id = chat_id
-            self.current_vc_link = link_or_id
-            
-            # Immediately mute the mic (mic off) on join!
             try:
-                await pytg.mute_stream(chat_id)
+                await pytg.join_group_call(
+                    full_chat_id,
+                    AudioPiped(silence_file)
+                )
+            except Exception as join_err:
+                err_str = str(join_err).lower()
+                if "already_joined" in err_str or "already in" in err_str or "node" in err_str:
+                    try:
+                        await pytg.change_stream(full_chat_id, AudioPiped(silence_file))
+                    except Exception:
+                        pass
+                else:
+                    logger.warning(f"join_group_call attempt error: {join_err}")
+                    try:
+                        await pytg.change_stream(full_chat_id, AudioPiped(silence_file))
+                    except Exception as ch_err:
+                        return False, f"Failed to join VC: {join_err}", None
+            
+            self.current_vc_chat_id = full_chat_id
+            self.current_vc_link = link_str
+            self.joined_vcs.add(full_chat_id)
+            
+            # Immediately mute the mic (mic off) on join
+            try:
+                await pytg.mute_stream(full_chat_id)
                 self.is_muted = True
-                logger.info(f"Muted stream for userbot {self.session_id} in chat {chat_id}")
-            except Exception as mute_err:
-                logger.warning(f"Failed to auto-mute stream on join: {mute_err}")
+            except Exception:
+                pass
                 
             # Save VC status in MongoDB
             sess_data = database.get_session(self.session_id)
             if sess_data:
-                sess_data["vc_chat_id"] = chat_id
-                sess_data["vc_link"] = link_or_id
+                sess_data["vc_chat_id"] = full_chat_id
+                sess_data["vc_link"] = link_str
                 database.save_session(sess_data)
             
-            chat_title = getattr(entity, 'title', 'Group')
+            chat_title = getattr(entity, 'title', 'Group') if entity else f"Chat {full_chat_id}"
             return True, f"Successfully joined Voice Chat of {chat_title}!"
         except Exception as e:
             logger.exception("Error joining VC using PyTgCalls")
             return False, f"Failed to join VC: {e}"
 
-    async def leave_voice_chat(self) -> tuple:
+    async def join_all_active_group_vcs(self) -> tuple:
+        """
+        Scans all groups of this userbot, finds groups with active voice chats, and joins them.
+        Returns (joined_count: int, total_active_vcs: int)
+        """
+        if not self.is_running or not self.client:
+            return 0, 0
+            
+        groups = await self.get_groups(force_refresh=True)
+        joined = 0
+        total_vcs = 0
+        
+        for g in groups:
+            chat_id = getattr(g, "id", None) or (g.get("id") if isinstance(g, dict) else g)
+            try:
+                success, _ = await self.join_voice_chat(str(chat_id))
+                if success:
+                    joined += 1
+                    total_vcs += 1
+            except Exception:
+                continue
+                
+        return joined, total_vcs
+
+    async def leave_voice_chat(self, chat_id: Optional[int] = None) -> tuple:
         """
         Leaves any active group call/VC the userbot is in.
         """
         if not self.is_running or not self.client:
             return False, "Userbot is not running."
             
+        target_chat = chat_id or self.current_vc_chat_id
         try:
-            if self.pytgcalls_client:
+            if self.pytgcalls_client and target_chat:
                 try:
-                    if self.current_vc_chat_id:
-                        await self.pytgcalls_client.leave_group_call(self.current_vc_chat_id)
+                    await self.pytgcalls_client.leave_group_call(target_chat)
                 except Exception as e:
                     logger.warning(f"Error leaving via pytgcalls: {e}")
                 try:
-                    await self.pytgcalls_client.stop()
+                    self.joined_vcs.discard(target_chat)
                 except Exception:
                     pass
-                self.pytgcalls_client = None
-                
-            self.current_vc_chat_id = None
-            self.current_vc_link = None
+                    
+            if target_chat == self.current_vc_chat_id:
+                self.current_vc_chat_id = None
+                self.current_vc_link = None
             
             # Clear VC status in MongoDB
             sess_data = database.get_session(self.session_id)
@@ -882,70 +1345,94 @@ class UserBot:
             await self.pytgcalls_client.start()
         return self.pytgcalls_client
 
-    async def mute_mic(self) -> tuple:
-        if not self.is_running or not self.current_vc_chat_id:
+    async def mute_mic(self, chat_id: Optional[int] = None) -> tuple:
+        target_chat = chat_id or self.current_vc_chat_id
+        if not self.is_running or not target_chat:
             return False, "Bot is not in any VC."
         try:
             pytg = await self.get_pytgcalls()
-            await pytg.mute_stream(self.current_vc_chat_id)
+            await pytg.mute_stream(target_chat)
             self.is_muted = True
             return True, "Mic turned OFF (Muted)."
         except Exception as e:
             logger.error(f"Failed to mute: {e}")
             return False, f"Failed to mute: {e}"
 
-    async def unmute_mic(self) -> tuple:
-        if not self.is_running or not self.current_vc_chat_id:
+    async def unmute_mic(self, chat_id: Optional[int] = None) -> tuple:
+        target_chat = chat_id or self.current_vc_chat_id
+        if not self.is_running or not target_chat:
             return False, "Bot is not in any VC."
         try:
             pytg = await self.get_pytgcalls()
-            await pytg.unmute_stream(self.current_vc_chat_id)
+            await pytg.unmute_stream(target_chat)
             self.is_muted = False
             return True, "Mic turned ON (Unmuted)."
         except Exception as e:
             logger.error(f"Failed to unmute: {e}")
             return False, f"Failed to unmute: {e}"
 
-    async def stop_song(self) -> tuple:
-        if not self.is_running or not self.current_vc_chat_id:
+    async def stop_song(self, chat_id: Optional[int] = None) -> tuple:
+        target_chat = chat_id or self.current_vc_chat_id
+        if not self.is_running or not target_chat:
             return False, "Not in a Voice Chat."
         try:
-            silence_file = await generate_silence()
             pytg = await self.get_pytgcalls()
-            await pytg.change_stream(
-                self.current_vc_chat_id,
-                AudioPiped(silence_file)
-            )
-            
-            # Automatically mute the stream back when playback stops
             try:
-                await pytg.mute_stream(self.current_vc_chat_id)
-                self.is_muted = True
-                logger.info(f"Automatically muted userbot {self.session_id} back to silence.")
-            except Exception as mute_err:
-                logger.warning(f"Could not auto-mute stream on stop: {mute_err}")
-                
-            # Clear in MongoDB and memory
+                await pytg.leave_group_call(target_chat)
+                logger.info(f"Userbot {self.session_id} left VC {target_chat} after stop.")
+            except Exception as leave_err:
+                err_str = str(leave_err).lower()
+                if "not in a group call" in err_str or "not_in" in err_str or "no active" in err_str:
+                    # Already not in VC — treat as success
+                    logger.info(f"Userbot {self.session_id} was already not in VC {target_chat}.")
+                else:
+                    logger.warning(f"leave_group_call error: {leave_err} — falling back to silence+mute")
+                    try:
+                        silence_file = await generate_silence()
+                        await pytg.change_stream(target_chat, AudioPiped(silence_file))
+                        await pytg.mute_stream(target_chat)
+                        self.is_muted = True
+                    except Exception:
+                        pass
+
+            # Update in-memory VC state
+            self.joined_vcs.discard(target_chat)
+            if target_chat == self.current_vc_chat_id:
+                self.current_vc_chat_id = None
+                self.current_vc_link = None
+            self.is_muted = False
+
+            # Clear MongoDB status
             sess_data = database.get_session(self.session_id)
             if sess_data:
                 sess_data["current_song"] = None
+                sess_data["vc_chat_id"] = None
                 database.save_session(sess_data)
-            return True, "Playback stopped."
+            return True, "Playback stopped and left voice chat."
         except Exception as e:
             logger.error(f"Failed to stop playback: {e}")
             return False, f"Failed to stop: {e}"
 
-    async def play_song(self, query: str, play_type: str = "audio", local_file: str = None, title: str = None, duration: int = 30) -> tuple:
+    async def play_song(self, query: str, play_type: str = "audio", chat_id: Optional[Union[int, str]] = None, local_file: str = None, title: str = None, duration: int = 30) -> tuple:
         """
-        Plays a song (audio or video) in the current active Voice Chat of this userbot.
+        Plays a song (audio or video) in the specified or active Voice Chat of this userbot.
+        Automatically joins the Voice Chat if not already connected.
         Returns (success: bool, message: str, song_info: dict)
         """
         if not self.is_running or not self.client:
             return False, "Userbot is not running.", None
             
-        if not getattr(self, "current_vc_chat_id", None):
-            return False, "Userbot is not currently in any Voice Chat (VC). Please make it join a VC first.", None
+        target_chat_id = chat_id or self.current_vc_chat_id
+        if not target_chat_id:
+            return False, "No target Voice Chat specified.", None
             
+        # If passed as string/int, normalize
+        try:
+            target_chat_id = int(str(target_chat_id).strip())
+        except Exception:
+            pass
+
+        actual_chat = target_chat_id
         file_path = None
         thumb = None
         
@@ -953,7 +1440,7 @@ class UserBot:
             if not os.path.exists(local_file):
                 return False, f"Local file not found: {local_file}", None
             file_path = local_file
-            title = title or "Uploaded Audio"
+            title = title or "Uploaded Media"
             
             # Extract accurate duration using ffprobe for local files
             try:
@@ -963,7 +1450,7 @@ class UserBot:
                 stdout, _ = await proc.communicate()
                 if proc.returncode == 0 and stdout:
                     duration = int(float(stdout.decode().strip()))
-            except Exception as e:
+            except Exception:
                 pass
                 
             duration = duration or 30
@@ -975,67 +1462,90 @@ class UserBot:
             except Exception as dl_err:
                 return False, f"YouTube download failed: {dl_err}", None
                 
-            if not file_path:
+            if not file_path or not os.path.exists(file_path):
                 return False, "Failed to download or parse media from YouTube. The link might be broken or region-restricted.", None
             
         try:
             pytg = await self.get_pytgcalls()
             
             if play_type == "video":
-                from pytgcalls.types import AudioVideoPiped
-                from pytgcalls.types import VideoParameters
-                
+                from pytgcalls.types import AudioVideoPiped, VideoParameters
                 w, h = 640, 360 # Default fallback
+                has_video_track = False
                 try:
-                    cmd = ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=s=x:p=0", file_path]
+                    cmd = ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_type,width,height", "-of", "csv=s=x:p=0", file_path]
                     proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
                     stdout, stderr = await proc.communicate()
-                    if proc.returncode == 0:
+                    if proc.returncode == 0 and stdout:
                         res = stdout.decode().strip()
-                        if 'x' in res:
-                            parsed_w, parsed_h = map(int, res.split('x'))
-                            # Ensure dimensions are even numbers (often required by FFmpeg/PyTgCalls H264 encoder)
-                            w = parsed_w if parsed_w % 2 == 0 else parsed_w - 1
-                            h = parsed_h if parsed_h % 2 == 0 else parsed_h - 1
-                            logger.info(f"Detected original video resolution: {w}x{h}")
+                        if 'video' in res or 'x' in res:
+                            has_video_track = True
+                            nums = [int(p) for p in re.findall(r'\d+', res)]
+                            if len(nums) >= 2:
+                                parsed_w, parsed_h = nums[0], nums[1]
+                                w = parsed_w if parsed_w % 2 == 0 else parsed_w - 1
+                                h = parsed_h if parsed_h % 2 == 0 else parsed_h - 1
+                                logger.info(f"Detected original video resolution: {w}x{h}")
                 except Exception as e:
-                    logger.warning(f"Could not extract resolution, using default: {e}")
+                    logger.warning(f"Could not extract resolution: {e}")
                     
-                video_params = VideoParameters(width=w, height=h)
-                stream_obj = AudioVideoPiped(file_path, video_parameters=video_params)
-                logger.info(f"Streaming video (AudioVideoPiped): {file_path} at {w}x{h}")
+                if has_video_track:
+                    video_params = VideoParameters(width=w, height=h)
+                    stream_obj = AudioVideoPiped(file_path, video_parameters=video_params)
+                    logger.info(f"Streaming video (AudioVideoPiped): {file_path} at {w}x{h}")
+                else:
+                    logger.info(f"No video track in {file_path}, falling back to AudioPiped seamlessly")
+                    stream_obj = AudioPiped(file_path)
             else:
                 stream_obj = AudioPiped(file_path)
                 
             try:
-                # We are already in the call (with silence), so we change the stream!
-                await pytg.change_stream(
-                    self.current_vc_chat_id,
-                    stream_obj
-                )
-            except Exception as change_err:
-                logger.warning(f"change_stream failed, trying join_group_call: {change_err}")
-                try:
-                    await pytg.join_group_call(
-                        self.current_vc_chat_id,
-                        stream_obj
-                    )
-                except Exception as join_err:
-                    logger.error(f"PyTgCalls play failed: {join_err}")
-                    return False, f"Could not stream media: {join_err}", None
+                if actual_chat in self.joined_vcs or self.current_vc_chat_id == actual_chat:
+                    await pytg.change_stream(actual_chat, stream_obj)
+                else:
+                    await pytg.join_group_call(actual_chat, stream_obj)
+                    self.joined_vcs.add(actual_chat)
+                    self.current_vc_chat_id = actual_chat
+            except Exception as first_try_err:
+                err_str = str(first_try_err).lower()
+                logger.warning(f"Initial stream attempt error: {first_try_err}")
+                
+                # If video failed with video source error, fallback to AudioPiped
+                if play_type == "video" and ("video source" in err_str or "video" in err_str):
+                    logger.info("Falling back to AudioPiped stream...")
+                    stream_obj = AudioPiped(file_path)
+                    
+                if "already_joined" in err_str or "already in" in err_str or "node" in err_str:
+                    try:
+                        await pytg.change_stream(actual_chat, stream_obj)
+                        self.joined_vcs.add(actual_chat)
+                        self.current_vc_chat_id = actual_chat
+                    except Exception as ch_err:
+                        return False, f"Could not switch stream: {ch_err}", None
+                else:
+                    try:
+                        await pytg.join_group_call(actual_chat, stream_obj)
+                        self.joined_vcs.add(actual_chat)
+                        self.current_vc_chat_id = actual_chat
+                    except Exception as join_err:
+                        return False, f"Could not stream media: {join_err}", None
                     
             song_info = {
                 "title": title,
                 "duration": duration,
                 "thumb": thumb,
-                "file_path": file_path
+                "file_path": file_path,
+                "play_type": play_type,
+                "userbot_name": self.name,
+                "userbot_id": self.session_id,
+                "username": self.username
             }
             
             # Automatically unmute the stream for music playback
             try:
-                await pytg.unmute_stream(self.current_vc_chat_id)
+                await pytg.unmute_stream(actual_chat)
                 self.is_muted = False
-                logger.info(f"Automatically unmuted userbot {self.session_id} for song playing.")
+                logger.info(f"Automatically unmuted userbot {self.session_id} for song playing in {actual_chat}.")
             except Exception as unmute_err:
                 logger.warning(f"Could not auto-unmute stream on play: {unmute_err}")
             
@@ -1046,7 +1556,8 @@ class UserBot:
                     "title": title,
                     "duration": duration,
                     "play_type": play_type,
-                    "query": query or title
+                    "query": query or title,
+                    "chat_id": actual_chat
                 }
                 database.save_session(sess_data)
                 
@@ -1115,14 +1626,16 @@ class UserBot:
             
         # Spoof a deterministic device profile to avoid detection
         device_prof = utils.get_device_profile(self.session_id)
+        api_id, api_hash = config.get_random_api_id_hash()
         self.client = TelegramClient(
             session_file, 
-            config.API_ID, 
-            config.API_HASH,
+            api_id, 
+            api_hash,
             device_model=device_prof["device_model"],
             system_version=device_prof["system_version"],
             app_version=device_prof["app_version"]
         )
+        self.client.parse_mode = "html"
         
         # Optimize Telethon SQLite session speed and prevent database locks
         try:
@@ -1210,7 +1723,11 @@ class UserBot:
             try:
                 me = await self.client.get_me()
                 self.me_id = me.id
-                sess_data["name"] = f"{me.first_name or ''} {me.last_name or ''}".strip()
+                full_n = f"{me.first_name or ''} {me.last_name or ''}".strip()
+                if not sess_data.get("name"):
+                    sess_data["name"] = full_n or "UserBot"
+                self.name = sess_data.get("name") or full_n or "UserBot"
+                self.username = me.username or ""
                 sess_data["username"] = me.username or ""
             except Exception:
                 pass
@@ -1332,13 +1849,515 @@ class UserBot:
         logger.info(f"Userbot {self.session_id} stopped.")
 
     def _register_handlers(self):
-        @self.client.on(events.NewMessage(incoming=True))
+        @self.client.on(events.NewMessage())
         async def message_handler(event):
             if not self.is_running:
                 return
                 
-            # Group message handling (Auto-Add Contact & Tag Auto-Reply)
-            if not event.is_private:
+            # Group message handling (now allowed everywhere)
+            if True:
+                raw_text = (event.raw_text or "").strip()
+                # Check for music/player commands (.play, /play, .vplay, .playforce, .skip, .queue, .song, etc.)
+                match = re.match(r"(?i)^[./!?](play|vplay|cplay|stream|vstream|playforce|vplayforce|cplayforce|forceplay|vforceplay|skip|next|cskip|cnext|queue|q|playlist|cqueue|pause|resume|stop|end|mute|unmute|vc|joinvc|leavevc|vcleft|song|music|thumb|thumbnail)(?:@\w+)?(?:\s+([\s\S]*))?$", raw_text)
+                if match:
+                    sender_id = event.sender_id
+                    sess = database.get_session(self.session_id)
+                    owner_uid = sess.get("user_id") if sess else None
+                    
+                    me_id = getattr(self, "me_id", None)
+                    if not me_id and self.client:
+                        try:
+                            me = await self.client.get_me()
+                            me_id = getattr(me, "id", None)
+                            self.me_id = me_id
+                        except Exception:
+                            pass
+                            
+                    global_settings = database.get_global_settings()
+                    admins_list = global_settings.get("admins", [])
+                    
+                    is_authorized = (
+                        bool(getattr(event, "out", False)) or 
+                        (sender_id and owner_uid and str(sender_id) == str(owner_uid)) or 
+                        (sender_id and me_id and sender_id == me_id) or 
+                        (sender_id in config.ORIGINAL_ADMIN_IDS) or 
+                        (sender_id in admins_list)
+                    )
+                    
+                    cmd_str = match.group(1).lower()
+                    
+                    if not is_authorized and cmd_str not in ("song", "music"):
+                        # Silently ignore commands from unauthorized users!
+                        return
+
+                    cmd = cmd_str
+                    query = (match.group(2) or "").strip()
+                    chat_id = event.chat_id
+                    is_outgoing = bool(getattr(event, "out", False))
+                    
+                    # Deduplicate in case main bot also saw it
+                    if utils.check_and_mark_command(chat_id, raw_text):
+                        if cmd in ("play", "vplay", "cplay", "stream", "vstream", "playforce", "vplayforce", "cplayforce", "forceplay", "vforceplay"):
+                            play_type = "video" if ("vplay" in cmd or "vstream" in cmd) else "audio"
+                            is_force = any(k in cmd for k in ["force", "cplayforce"])
+                            reply_msg = await event.get_reply_message() if event.is_reply else None
+                            local_file_path = None
+                            audio_title = None
+                            audio_duration = 30
+                            
+                            from handlers.player import _active_chat_players, _chat_queues, _track_timer_tasks, play_next_in_queue
+                            is_already_playing = (chat_id in _active_chat_players and _active_chat_players[chat_id].get("bot"))
+                            
+                            inquiry_text = utils.format_html_message(
+                                f"<blockquote><b>» 🎧 ᴘʟᴀʏɪɴɢ ɪɴǫᴜɪʀʏ...</b>\n\n"
+                                f"🔍 <i>{query or 'replied media'}</i>\n"
+                                f"⏳ <b>sᴛᴀᴛᴜs :</b> ᴘʀᴇᴘᴀʀɪɴɢ {play_type} sᴛʀᴇᴀᴍ... 🎶</blockquote>"
+                            )
+                            if is_outgoing:
+                                try:
+                                    await event.edit(inquiry_text)
+                                    prog = event
+                                except Exception:
+                                    prog = await event.reply(inquiry_text)
+                            else:
+                                prog = await event.reply(inquiry_text)
+                            
+                            if reply_msg and (reply_msg.audio or reply_msg.video or reply_msg.voice or reply_msg.document):
+                                media = reply_msg.audio or reply_msg.video or reply_msg.voice or reply_msg.document
+                                if media:
+                                    os.makedirs("downloads", exist_ok=True)
+                                    try:
+                                        local_file_path = await self.client.download_media(reply_msg, file="downloads/")
+                                    except Exception as dl_err:
+                                        await prog.edit(
+                                            utils.format_html_message(
+                                                f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ᴍᴇᴅɪᴀ</b>\n\n"
+                                                f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{dl_err}</code></blockquote>"
+                                            )
+                                        )
+                                        return
+                            elif not query:
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        f"<blockquote><b>» 💡 ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ᴜsᴀɢᴇ ɢᴜɪᴅᴇ</b>\n\n"
+                                        f"• <code>.{cmd} &lt;song name&gt;</code> (ᴇ.ɢ. <code>.{cmd} Faded Alan Walker</code>)\n"
+                                        f"• <code>/{cmd} &lt;song name&gt;</code>\n"
+                                        f"• <code>.playforce &lt;song name&gt;</code> (ғᴏʀᴄᴇ ᴘʟᴀʏ ɴᴏᴡ)\n"
+                                        f"• <code>.queue</code> / <code>.skip</code>\n"
+                                        f"• <b>ᴛʜᴜᴍʙɴᴀɪʟ ᴍᴏᴅᴇ :</b> <code>.thumb on</code> ᴏʀ <code>.thumb off</code>\n"
+                                        f"• ʀᴇᴘʟʏ ᴛᴏ ᴀɴʏ ᴀᴜᴅɪᴏ/ᴠɪᴅᴇᴏ ғɪʟᴇ ᴡɪᴛʜ <code>.{cmd}</code>\n\n"
+                                        f"⚡ <i>sᴛᴀʀᴛ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ʙᴇғᴏʀᴇ sᴛʀᴇᴀᴍɪɴɢ.</i></blockquote>"
+                                    )
+                                )
+                                return
+                                
+                            sender = await event.get_sender()
+                            sender_name = getattr(sender, "first_name", "User") or "User"
+                            requester_id = getattr(sender, "id", 0) or 0
+
+                            # If already playing and not force play -> Add to Queue
+                            if is_already_playing and not is_force:
+                                if chat_id not in _chat_queues:
+                                    _chat_queues[chat_id] = []
+                                _chat_queues[chat_id].append({
+                                    "query": query,
+                                    "play_type": play_type,
+                                    "requester_name": sender_name,
+                                    "requester_id": requester_id,
+                                    "local_file": local_file_path,
+                                    "title": audio_title or query,
+                                    "duration": audio_duration,
+                                    "thumb": None
+                                })
+                                pos = len(_chat_queues[chat_id])
+                                mins, secs = divmod(audio_duration or 0, 60)
+                                dur_str = f"{mins:02d}:{secs:02d}" if audio_duration else "03:00"
+                                mode_emoji = "🎬 ᴠɪᴅᴇᴏ" if play_type == "video" else "🎙️ ᴀᴜᴅɪᴏ"
+                                
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        f"<blockquote><b>» 📋 ᴀᴅᴅᴇᴅ ᴛᴏ ǫᴜᴇᴜᴇ : #{pos}</b>\n\n"
+                                        f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{audio_title or query}</b>\n"
+                                        f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
+                                        f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
+                                        f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{sender_name}</a>\n\n"
+                                        f"💡 <i>ᴛʀᴀᴄᴋ ᴡɪʟʟ ᴘʟᴀʏ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀғᴛᴇʀ ᴄᴜʀʀᴇɴᴛ sᴏɴɢ ғɪɴɪsʜᴇs.</i></blockquote>"
+                                    )
+                                )
+                                return
+
+                            await prog.edit(
+                                utils.format_html_message(
+                                    f"<blockquote><b>» ⏳ ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
+                                    f"🎙️ <i>ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ & sᴛᴀʀᴛɪɴɢ sᴛʀᴇᴀᴍ ᴘɪᴘᴇʟɪɴᴇ...</i></blockquote>"
+                                )
+                            )
+                            
+                            # Cancel previous timer
+                            prev_timer = _track_timer_tasks.pop(chat_id, None)
+                            if prev_timer and not prev_timer.done():
+                                prev_timer.cancel()
+                                
+                            success, msg, song_info = await self.play_song(
+                                query=query,
+                                play_type=play_type,
+                                chat_id=chat_id,
+                                local_file=local_file_path,
+                                title=audio_title,
+                                duration=audio_duration
+                            )
+                            
+                            if not success or not song_info:
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        f"<blockquote><b>» ❌ ᴘʟᴀʏʙᴀᴄᴋ ғᴀɪʟᴇᴅ</b>\n\n"
+                                        f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{msg}</code>\n\n"
+                                        f"💡 <b>ᴛɪᴘ :</b> ᴍᴀᴋᴇ sᴜʀᴇ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ɪs sᴛᴀʀᴛᴇᴅ!</blockquote>"
+                                    )
+                                )
+                                return
+                                
+                            title = song_info.get("title", "Unknown Track")
+                            duration = song_info.get("duration", 0)
+                            mins, secs = divmod(duration, 60)
+                            dur_str = f"{mins:02d}:{secs:02d}" if duration > 0 else "Live Stream"
+                            mode_emoji = "🎬 ᴠɪᴅᴇᴏ sᴛʀᴇᴀᴍ" if play_type == "video" else "🎙️ ᴀᴜᴅɪᴏ sᴛʀᴇᴀᴍ"
+                            
+                            np_text = utils.format_html_message(
+                                f"<blockquote><b>» 🎵 ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ</b>\n\n"
+                                f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{title}</b>\n"
+                                f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
+                                f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
+                                f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{sender_name}</a>\n"
+                                f"<b>🤖 sᴛʀᴇᴀᴍ sᴏᴜʀᴄᴇ :</b> <b>{self.name}</b>\n\n"
+                                f"⚡ <i>ᴄᴏɴᴛʀᴏʟs : .pause, .resume, .skip, .queue, .stop, .vc</i></blockquote>"
+                            )
+                            
+                            _active_chat_players[chat_id] = {
+                                "bot": self,
+                                "song_info": song_info,
+                                "msg_id": None,
+                                "is_paused": False,
+                                "is_muted": False
+                            }
+                            
+                            dur_track = song_info.get("duration", 30) or 30
+                            async def ub_track_auto_timer():
+                                await asyncio.sleep(dur_track + 2)
+                                await play_next_in_queue(chat_id)
+                            _track_timer_tasks[chat_id] = asyncio.create_task(ub_track_auto_timer())
+                            
+                            thumb_enabled = database.get_thumbnail_setting(chat_id)
+                            thumb_file = song_info.get("thumb") if thumb_enabled else None
+                            _tf_valid = bool(thumb_file) and (str(thumb_file).startswith("http") or (os.path.exists(str(thumb_file)) and os.path.getsize(str(thumb_file)) > 0))
+                            
+                            from handlers.player import _main_bot, build_now_playing_markup
+                            buttons = build_now_playing_markup(chat_id, is_paused=False, is_muted=False)
+                            
+                            if _main_bot:
+                                try:
+                                    await prog.delete()
+                                except Exception:
+                                    pass
+                                try:
+                                    if thumb_enabled and _tf_valid:
+                                        await _main_bot.send_message(chat_id, np_text, file=thumb_file, buttons=buttons)
+                                    else:
+                                        await _main_bot.send_message(chat_id, np_text, buttons=buttons)
+                                except Exception as e:
+                                    if thumb_enabled and _tf_valid:
+                                        await event.respond(np_text, file=thumb_file)
+                                    else:
+                                        await event.respond(np_text)
+                            else:
+                                if thumb_enabled and _tf_valid:
+                                    try:
+                                        await prog.delete()
+                                    except Exception:
+                                        pass
+                                    await event.respond(np_text, file=thumb_file)
+                                else:
+                                    try:
+                                        await prog.edit(np_text)
+                                    except Exception:
+                                        await event.respond(np_text)
+                            return
+
+                        elif cmd in ("skip", "next", "cskip", "cnext"):
+                            from handlers.player import _chat_queues, _active_chat_players, play_next_in_queue
+                            queue = _chat_queues.get(chat_id, [])
+                            if not queue:
+                                await self.stop_song(chat_id)
+                                _active_chat_players.pop(chat_id, None)
+                                prog = await event.reply(
+                                    utils.format_html_message(
+                                        "<blockquote><b>» ⏭️ ǫᴜᴇᴜᴇ ᴇᴍᴘᴛʏ</b>\n\n"
+                                        "ɴᴏ ᴍᴏʀᴇ sᴏɴɢs ɪɴ ǫᴜᴇᴜᴇ. sᴛʀᴇᴀᴍ ʜᴀs ʙᴇᴇɴ sᴛᴏᴘᴘᴇᴅ.</blockquote>"
+                                    )
+                                )
+                                return
+                            prog = await event.reply(
+                                utils.format_html_message(
+                                    "<blockquote><b>» ⏭️ sᴋɪᴘᴘɪɴɢ ᴛʀᴀᴄᴋ</b>\n\n"
+                                    "sᴋɪᴘᴘɪɴɢ ᴛᴏ ɴᴇxᴛ sᴏɴɢ ɪɴ ǫᴜᴇᴜᴇ...</blockquote>"
+                                )
+                            )
+                            await play_next_in_queue(chat_id)
+                            return
+
+                        elif cmd in ("queue", "q", "playlist", "cqueue"):
+                            from handlers.player import _active_chat_players, _chat_queues
+                            active = _active_chat_players.get(chat_id)
+                            queue = _chat_queues.get(chat_id, [])
+                            
+                            if not active and not queue:
+                                prog = await event.reply(
+                                    utils.format_html_message(
+                                        "<blockquote><b>» 📜 ǫᴜᴇᴜᴇ ᴘʟᴀʏʟɪsᴛ</b>\n\n"
+                                        "<i>ǫᴜᴇᴜᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ ᴇᴍᴘᴛʏ. ᴜsᴇ <code>.play &lt;song&gt;</code> ᴛᴏ ᴀᴅᴅ ᴛʀᴀᴄᴋs!</i></blockquote>"
+                                    )
+                                )
+                                return
+                                
+                            np_info = active.get("song_info", {}) if active else {}
+                            np_title = np_info.get("title", "Unknown Track")
+                            np_dur = np_info.get("duration", 0)
+                            mins, secs = divmod(np_dur, 60)
+                            np_dur_str = f"{mins:02d}:{secs:02d}" if np_dur else "Live"
+                            
+                            text = (
+                                "<blockquote><b>» 📜 ǫᴜᴇᴜᴇ ᴘʟᴀʏʟɪsᴛ</b>\n\n"
+                                f"🎵 <b>ɴᴏᴡ ᴘʟᴀʏɪɴɢ :</b>\n"
+                                f"• <b>{np_title}</b> (<code>{np_dur_str}</code>)\n\n"
+                            )
+                            
+                            if queue:
+                                text += "📋 <b>ᴜᴘᴄᴏᴍɪɴɢ ǫᴜᴇᴜᴇ :</b>\n"
+                                for idx, item in enumerate(queue[:10], 1):
+                                    item_title = item.get("title") or item.get("query") or "Unknown"
+                                    item_dur = item.get("duration", 0)
+                                    m, s = divmod(item_dur, 60)
+                                    d_str = f"{m:02d}:{s:02d}" if item_dur else "03:00"
+                                    req = item.get("requester_name", "User")
+                                    text += f"{idx}. <b>{item_title}</b> (<code>{d_str}</code>) | <i>{req}</i>\n"
+                                    
+                                if len(queue) > 10:
+                                    text += f"\n<i>...ᴀɴᴅ {len(queue) - 10} ᴍᴏʀᴇ ᴛʀᴀᴄᴋs</i>\n"
+                            else:
+                                text += "📋 <b>ᴜᴘᴄᴏᴍɪɴɢ ǫᴜᴇᴜᴇ :</b>\n<i>ɴᴏ ᴛʀᴀᴄᴋs ɪɴ ǫᴜᴇᴜᴇ.</i>\n"
+                                
+                            text += "\n💡 <i>ᴜsᴇ <code>.skip</code> ᴛᴏ ᴘʟᴀʏ ɴᴇxᴛ ᴛʀᴀᴄᴋ.</i></blockquote>"
+                            prog = await event.reply(utils.format_html_message(text))
+                            return
+
+                        elif cmd in ("song", "music"):
+                            if not query:
+                                prog = await event.reply(
+                                    utils.format_html_message(
+                                        f"<blockquote><b>» 💡 sᴏɴɢ ᴅᴏᴡɴʟᴏᴀᴅ ᴜsᴀɢᴇ</b>\n\n"
+                                        f"• <code>.{cmd} &lt;song name or youtube link&gt;</code></blockquote>"
+                                    )
+                                )
+                                return
+                                
+                            prog = await event.reply(
+                                utils.format_html_message(
+                                    f"<blockquote><b>» 📥 ᴅᴏᴡɴʟᴏᴀᴅɪɴɢ sᴏɴɢ</b>\n\n"
+                                    f"⏳ <i>sᴇᴀʀᴄʜɪɴɢ ᴀɴᴅ ᴅᴏᴡɴʟᴏᴀᴅɪɴɢ <code>{query}</code> ғʀᴏᴍ ʏᴏᴜᴛᴜʙᴇ...</i></blockquote>"
+                                )
+                            )
+                            file_path, title, duration, thumb = await download_media(query, download_type="audio")
+                            if not file_path or not os.path.exists(file_path):
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        f"<blockquote><b>» ❌ ᴅᴏᴡɴʟᴏᴀᴅ ғᴀɪʟᴇᴅ</b>\n\n"
+                                        f"⚠️ ғᴀɪʟᴇᴅ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ᴀᴜᴅɪᴏ ғʀᴏᴍ ʏᴏᴜᴛᴜʙᴇ.</blockquote>"
+                                    )
+                                )
+                                return
+                                
+                            mins, secs = divmod(duration or 0, 60)
+                            dur_str = f"{mins:02d}:{secs:02d}" if duration else "03:00"
+                            caption = utils.format_html_message(
+                                f"<blockquote><b>» 🎵 ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ ᴛʀᴀᴄᴋ</b>\n\n"
+                                f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{title or query}</b>\n"
+                                f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
+                                f"<b>🤖 ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ ʙʏ :</b> <b>{self.name}</b></blockquote>"
+                            )
+                            try:
+                                dur_int = int(duration or 0)
+                                audio_attr = types.DocumentAttributeAudio(
+                                    duration=dur_int,
+                                    title=str(title or query),
+                                    performer="Villain Music"
+                                ) if hasattr(types, "DocumentAttributeAudio") else None
+                                
+                                await self.client.send_file(
+                                    chat_id,
+                                    file_path,
+                                    caption=caption,
+                                    thumb=thumb if (thumb and os.path.exists(thumb)) else None,
+                                    attributes=[audio_attr] if audio_attr else None
+                                )
+                                await prog.delete()
+                            except Exception as up_err:
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        f"<blockquote><b>» ❌ ᴜᴘʟᴏᴀᴅ ғᴀɪʟᴇᴅ</b>\n\n"
+                                        f"⚠️ <code>{up_err}</code></blockquote>"
+                                    )
+                                )
+                            return
+                            
+                        elif cmd == "pause":
+                            prog = await event.reply(
+                                utils.format_html_message(
+                                    "<blockquote><b>» ⏳ ᴘᴀᴜsɪɴɢ sᴛʀᴇᴀᴍ</b>\n\nᴘᴀᴜsɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ...</blockquote>"
+                                )
+                            )
+                            try:
+                                pytg = await self.get_pytgcalls()
+                                await pytg.pause_stream(chat_id)
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        "<blockquote><b>» ⏸️ ᴘʟᴀʏʙᴀᴄᴋ ᴘᴀᴜsᴇᴅ</b>\n\n"
+                                        "sᴛʀᴇᴀᴍ ɪs ᴘᴀᴜsᴇᴅ. ᴜsᴇ <code>.resume</code> ᴏʀ <code>/resume</code> ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ ᴘʟᴀʏɪɴɢ.</blockquote>"
+                                    )
+                                )
+                            except Exception as e:
+                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ᴘᴀᴜsɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
+                            return
+                            
+                        elif cmd == "resume":
+                            prog = await event.reply(
+                                utils.format_html_message(
+                                    "<blockquote><b>» ⏳ ʀᴇsᴜᴍɪɴɢ sᴛʀᴇᴀᴍ</b>\n\nʀᴇsᴜᴍɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ...</blockquote>"
+                                )
+                            )
+                            try:
+                                pytg = await self.get_pytgcalls()
+                                await pytg.resume_stream(chat_id)
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        "<blockquote><b>» ▶️ ᴘʟᴀʏʙᴀᴄᴋ ʀᴇsᴜᴍᴇᴅ</b>\n\nsᴛʀᴇᴀᴍ ʀᴇsᴜᴍᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ.</blockquote>"
+                                    )
+                                )
+                            except Exception as e:
+                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ʀᴇsᴜᴍɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
+                            return
+                            
+                        elif cmd in ("stop", "end"):
+                            prog = await event.reply(
+                                utils.format_html_message(
+                                    "<blockquote><b>» ⏳ sᴛᴏᴘᴘɪɴɢ sᴛʀᴇᴀᴍ</b>\n\nsᴛᴏᴘᴘɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ...</blockquote>"
+                                )
+                            )
+                            success, msg = await self.stop_song(chat_id)
+                            if success:
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        "<blockquote><b>» ⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ</b>\n\nᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ ʜᴀs ʙᴇᴇɴ sᴛᴏᴘᴘᴇᴅ.</blockquote>"
+                                    )
+                                )
+                            else:
+                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ sᴛᴏᴘ</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
+                            return
+                            
+                        elif cmd == "mute":
+                            prog = await event.reply(
+                                utils.format_html_message(
+                                    "<blockquote><b>» ⏳ ᴍᴜᴛɪɴɢ ᴍɪᴄ</b>\n\nᴍᴜᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ɪɴ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                                )
+                            )
+                            success, msg = await self.mute_mic(chat_id)
+                            await prog.edit(
+                                utils.format_html_message(
+                                    "<blockquote><b>» 🔇 ᴍɪᴄ ᴍᴜᴛᴇᴅ</b>\n\nᴜsᴇʀʙᴏᴛ ᴍɪᴄʀᴏᴘʜᴏɴᴇ ʜᴀs ʙᴇᴇɴ ᴛᴜʀɴᴇᴅ <b>ᴏғғ</b>.</blockquote>"
+                                )
+                            )
+                            return
+                            
+                        elif cmd == "unmute":
+                            prog = await event.reply(
+                                utils.format_html_message(
+                                    "<blockquote><b>» ⏳ ᴜɴᴍᴜᴛɪɴɢ ᴍɪᴄ</b>\n\nᴜɴᴍᴜᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ɪɴ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                                )
+                            )
+                            success, msg = await self.unmute_mic(chat_id)
+                            await prog.edit(
+                                utils.format_html_message(
+                                    "<blockquote><b>» 🔊 ᴍɪᴄ ᴜɴᴍᴜᴛᴇᴅ</b>\n\nᴜsᴇʀʙᴏᴛ ᴍɪᴄʀᴏᴘʜᴏɴᴇ ʜᴀs ʙᴇᴇɴ ᴛᴜʀɴᴇᴅ <b>ᴏɴ</b>.</blockquote>"
+                                )
+                            )
+                            return
+                            
+                        elif cmd in ("vc", "joinvc"):
+                            prog = await event.reply(
+                                utils.format_html_message(
+                                    "<blockquote><b>» ⏳ ᴊᴏɪɴɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\nᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ᴛᴏ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                                )
+                            )
+                            success, msg = await self.join_voice_chat(str(chat_id))
+                            if success:
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        "<blockquote><b>» 🎙️ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
+                                        "ᴜsᴇʀʙᴏᴛ sᴜᴄᴄᴇssғᴜʟʟʏ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ!\n\n"
+                                        "💡 <i>ᴜsᴇ <code>.play &lt;song&gt;</code> ᴏʀ <code>.vplay &lt;video&gt;</code> ᴛᴏ sᴛʀᴇᴀᴍ ᴍᴇᴅɪᴀ.</i></blockquote>"
+                                    )
+                                )
+                            else:
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"
+                                    )
+                                )
+                            return
+                            
+                        elif cmd in ("leavevc", "vcleft"):
+                            prog = await event.reply(
+                                utils.format_html_message(
+                                    "<blockquote><b>» ⏳ ʟᴇᴀᴠɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\nᴅɪsᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ғʀᴏᴍ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                                )
+                            )
+                            success, msg = await self.leave_voice_chat(chat_id)
+                            if success:
+                                await prog.edit(
+                                    utils.format_html_message(
+                                        "<blockquote><b>» 👋 ʟᴇғᴛ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\nᴜsᴇʀʙᴏᴛ ʜᴀs ᴅɪsᴄᴏɴɴᴇᴄᴛᴇᴅ ғʀᴏᴍ ᴛʜᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.</blockquote>"
+                                    )
+                                )
+                            else:
+                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴇᴀᴠᴇ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
+                            return
+                            
+                        elif cmd in ("thumb", "thumbnail"):
+                            prog = await event.reply(
+                                utils.format_html_message(
+                                    "<blockquote><b>» ⏳ ᴜᴘᴅᴀᴛɪɴɢ sᴇᴛᴛɪɴɢs</b>\n\nᴜᴘᴅᴀᴛɪɴɢ ᴛʜᴜᴍʙɴᴀɪʟ ᴄᴏɴғɪɢᴜʀᴀᴛɪᴏɴ...</blockquote>"
+                                )
+                            )
+                            current = database.get_thumbnail_setting(chat_id)
+                            if query and query.lower() in ("on", "enable", "true"):
+                                new_state = True
+                            elif query and query.lower() in ("off", "disable", "false"):
+                                new_state = False
+                            else:
+                                new_state = not current
+                                
+                            database.set_thumbnail_setting(chat_id, new_state)
+                            status_text = "🟢 <b>ᴇɴᴀʙʟᴇᴅ</b>" if new_state else "🔴 <b>ᴅɪsᴀʙʟᴇᴅ</b>"
+                            mode_desc = "ᴀʀᴛᴡᴏʀᴋ ᴛʜᴜᴍʙɴᴀɪʟ ʙᴀɴɴᴇʀ ᴡɪʟʟ ʙᴇ ᴅɪsᴘʟᴀʏᴇᴅ." if new_state else "ᴄʟᴇᴀɴ ᴛᴇxᴛ-ᴏɴʟʏ ᴍᴏᴅᴇ ᴀᴄᴛɪᴠᴇ (ɴᴏ ᴛʜᴜᴍʙɴᴀɪʟ)."
+                            
+                            await prog.edit(
+                                utils.format_html_message(
+                                    f"<blockquote><b>» 🖼️ ᴛʜᴜᴍʙɴᴀɪʟ sᴇᴛᴛɪɴɢ</b>\n\n"
+                                    f"<b>• sᴛᴀᴛᴜs :</b> {status_text}\n"
+                                    f"<b>• ᴅɪsᴘʟᴀʏ ᴍᴏᴅᴇ :</b> <i>{mode_desc}</i></blockquote>"
+                                )
+                            )
+                            return
+
                 is_reply_to_us = False
                 if event.is_reply:
                     try:
