@@ -225,7 +225,11 @@ async def play_next_in_queue(chat_id: int, client=None):
             try:
                 sent_msg = await send_client.send_message(chat_id, np_text, buttons=buttons, parse_mode="html")
             except Exception:
-                pass
+                # If even text with buttons fails (e.g. self-bot without bot permissions), send pure text
+                try:
+                    sent_msg = await send_client.send_message(chat_id, np_text, parse_mode="html")
+                except Exception:
+                    pass
                 
     _active_chat_players[chat_id] = {
         "bot": bot_obj,
@@ -255,6 +259,11 @@ def register_handlers(client):
     async def play_command_handler(event):
         if await utils.guard(event, client):
             return
+            
+        try:
+            await event.delete()
+        except Exception:
+            pass
             
         cmd = event.pattern_match.group(1).lower()
         raw_query = event.pattern_match.group(2)
@@ -463,6 +472,11 @@ def register_handlers(client):
         if await utils.guard(event, client):
             return
             
+        try:
+            await event.delete()
+        except Exception:
+            pass
+            
         chat_id = event.chat_id
         user_id = event.sender_id
         
@@ -551,6 +565,11 @@ def register_handlers(client):
     async def player_control_commands(event):
         if await utils.guard(event, client):
             return
+            
+        try:
+            await event.delete()
+        except Exception:
+            pass
             
         cmd = event.pattern_match.group(1).lower()
         chat_id = event.chat_id
