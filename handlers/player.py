@@ -123,23 +123,25 @@ def format_now_playing_text(song_info: dict, requester_name: str, requester_id: 
     """
     Renders the rich Now Playing markdown text with Telegram blockquotes.
     """
-    title = song_info.get("title", "Unknown Track")
+    import html
+    title_safe = html.escape(song_info.get("title", "Unknown Track"))
     duration = song_info.get("duration", 0)
     mins, secs = divmod(duration, 60)
     dur_str = f"{mins:02d}:{secs:02d}" if duration > 0 else "Live Stream"
     
-    ub_name = song_info.get("userbot_name") or "UserBot"
+    ub_name = html.escape(song_info.get("userbot_name") or "UserBot")
     ub_username = song_info.get("username")
     ub_display = f"@{ub_username}" if ub_username else f"`{song_info.get('userbot_id', '')}`"
     
     mode_emoji = "🎬 ᴠɪᴅᴇᴏ sᴛʀᴇᴀᴍ" if stream_type.lower() == "video" else "🎙️ ᴀᴜᴅɪᴏ sᴛʀᴇᴀᴍ"
     
+    req_name_safe = html.escape(requester_name)
     text = (
         f"<blockquote><b>» 🎵 ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ</b>\n\n"
-        f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{title}</b>\n"
+        f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{title_safe}</b>\n"
         f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
         f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
-        f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{requester_name}</a>\n"
+        f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{req_name_safe}</a>\n"
         f"<b>🤖 sᴛʀᴇᴀᴍ sᴏᴜʀᴄᴇ :</b> <b>{ub_name}</b> ({ub_display})\n\n"
         f"⚡ <i>ᴄᴏɴᴛʀᴏʟ sᴛʀᴇᴀᴍ ᴜsɪɴɢ ɪɴᴛᴇʀᴀᴄᴛɪᴠᴇ ʙᴜᴛᴛᴏɴs ʙᴇʟᴏᴡ.</i></blockquote>"
     )
@@ -275,7 +277,12 @@ def register_handlers(client):
         audio_duration = 30
         
         # Check if something is already streaming in this chat
-        is_already_playing = (chat_id in _active_chat_players and _active_chat_players[chat_id].get("bot"))
+        is_already_playing = False
+        active_sess = _active_chat_players.get(chat_id)
+        if active_sess:
+            bot_instance = active_sess.get("bot")
+            if bot_instance and getattr(bot_instance, "is_running", False) and getattr(bot_instance, "current_vc_chat_id", None) == chat_id:
+                is_already_playing = True
         
         display_query = audio_title or query or "Replied Media"
         progress_msg = await event.reply(
