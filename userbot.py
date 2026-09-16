@@ -768,8 +768,21 @@ async def get_peer_from_link(client: TelegramClient, link: str):
                 updates = await client(ImportChatInviteRequest(hash_val))
                 if updates and hasattr(updates, 'chats') and updates.chats:
                     return updates.chats[0]
+                
+                # If joined successfully but no chats returned, check invite again to get the ChatInviteAlready object
+                invite_check = await client(CheckChatInviteRequest(hash_val))
+                if isinstance(invite_check, ChatInviteAlready):
+                    return invite_check.chat
         except Exception as e:
             logger.warning(f"Error checking/joining invite link {link}: {e}")
+            # If we hit UserAlreadyParticipantError but CheckChatInviteRequest failed to say so, try checking again
+            if "UserAlreadyParticipant" in str(e) or "already" in str(e).lower():
+                try:
+                    invite_check = await client(CheckChatInviteRequest(hash_val))
+                    if isinstance(invite_check, ChatInviteAlready):
+                        return invite_check.chat
+                except Exception:
+                    pass
             # Try to get entity directly as a fallback
             try:
                 return await client.get_entity(link)
