@@ -5,7 +5,7 @@ import traceback
 import random
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageEnhance
-from py_yt import VideosSearch
+from youtubesearchpython import VideosSearch
 import config
 
 BOT_NAME = config.BOT_NAME

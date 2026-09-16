@@ -102,7 +102,7 @@ try:
 except ImportError:
     MessageEntityType = None
     Message = None
-from py_yt import VideosSearch, Playlist
+from youtubesearchpython import VideosSearch, Playlist
 import aiohttp
 from pytgcalls import PyTgCalls
 from pytgcalls.types import AudioPiped
