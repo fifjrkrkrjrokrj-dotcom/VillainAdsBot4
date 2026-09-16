@@ -468,7 +468,7 @@ async def show_all_slots_dashboard(event, user_id: int, flash_message: Optional[
         
     if not sessions:
         text = "⚠️ <b>All Slots Dashboard</b>\n\nNo connected UserBots found in system." if is_sys_all else "⚠️ <b>All Slots Dashboard</b>\n\nNo connected UserBots found."
-        back_btn = [utils.styled_button("🚪 Exit Admin Access", "admin_exit_impersonation", style="danger")] if (sender_id in _admin_impersonation or is_sys_all) else [utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")]
+        back_btn = [utils.styled_button("🚪 ᴇxɪᴛ ᴀᴅᴍɪɴ ᴀᴄᴄᴇss", "admin_exit_impersonation", style="danger")] if (sender_id in _admin_impersonation or is_sys_all) else [utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")]
         buttons = [back_btn]
         try:
             if hasattr(event, "edit"):
@@ -978,7 +978,7 @@ def register_handlers(client):
             "> Send the <b>Group invite link</b>, <b>Username</b>, or <b>Chat ID</b> of the group you want the userbot to leave.\n\n"
             "✍️ <b>Send the link or ID below:</b>"
         )
-        buttons = [[utils.styled_button("🔙 Cancel", f"vc_menu_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"vc_menu_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1146,7 +1146,7 @@ def register_handlers(client):
             "> Send the <b>Group invite link</b>, <b>Username</b>, or <b>Chat ID</b> of the group you want ALL running userbots to leave.\n\n"
             "✍️ <b>Send the link or ID below:</b>"
         )
-        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_vc_menu", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_vc_menu", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1281,7 +1281,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("help_dashboard_text", lang)
-        buttons = [[utils.styled_button("🔙 Back", "menu_all_slots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_all_slots", style="primary")]]
         global_settings = database.get_global_settings()
         help_image = global_settings.get("help_image")
         try:
@@ -1298,7 +1298,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("how_to_use_text", lang)
-        buttons = [[utils.styled_button("🔙 Back", "menu_all_slots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_all_slots", style="primary")]]
         try:
             await event.edit(text, buttons=buttons)
         except Exception:
@@ -1356,8 +1356,8 @@ def register_handlers(client):
             "This will delete all Telegram sessions from disk and database. This action cannot be undone!"
         )
         buttons = [
-            [utils.styled_button("🗑️ Yes, Delete All", "all_slots_delete_confirm", style="danger")],
-            [utils.styled_button("❌ Cancel", "menu_all_slots", style="primary")]
+            [utils.styled_button("🗑️ ʏᴇs, ᴅᴇʟᴇᴛᴇ ᴀʟʟ", "all_slots_delete_confirm", style="danger")],
+            [utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "menu_all_slots", style="primary")]
         ]
         try:
             await event.edit(text, buttons=buttons)
@@ -1460,7 +1460,7 @@ def register_handlers(client):
         }
         
         prompt_text = utils.get_text("prompt_all_vc_link", lang)
-        buttons = [[utils.styled_button("🔙 Cancel", "menu_all_slots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "menu_all_slots", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1785,7 +1785,7 @@ def register_handlers(client):
             "• <code>30m</code> (ғᴏʀ 𝟹𝟶 ᴍɪɴᴜᴛᴇs)\n"
             "• <code>0</code> (ᴛᴏ ᴅɪsᴀʙʟᴇ ᴛɪᴍᴇʀ)</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 Cancel", f"select_bot_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"select_bot_{phone}", style="primary")]]
         
         try:
             await event.edit(prompt_text, buttons=buttons)
@@ -1808,7 +1808,7 @@ def register_handlers(client):
             "• <code>30m</code> (ғᴏʀ 𝟹𝟶 ᴍɪɴᴜᴛᴇs)\n"
             "• <code>0</code> (ᴛᴏ ᴅɪsᴀʙʟᴇ ᴛɪᴍᴇʀ)</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 Cancel", "menu_all_slots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "menu_all_slots", style="primary")]]
         
         try:
             await event.edit(prompt_text, buttons=buttons)
@@ -1832,7 +1832,7 @@ def register_handlers(client):
         }
         
         prompt_text = utils.get_text("prompt_vc_link", lang)
-        buttons = [[utils.styled_button("🔙 Cancel", f"vc_menu_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"vc_menu_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1966,7 +1966,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("help_dashboard_text", lang)
-        buttons = [[utils.styled_button("🔙 Back", f"select_bot_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", f"select_bot_{phone}", style="primary")]]
         
         global_settings = database.get_global_settings()
         help_image = global_settings.get("help_image")
@@ -1985,7 +1985,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("how_to_use_text", lang)
-        buttons = [[utils.styled_button("🔙 Back", f"select_bot_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", f"select_bot_{phone}", style="primary")]]
         try:
             await event.edit(text, buttons=buttons)
         except Exception:
@@ -1997,7 +1997,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("help_dashboard_text", lang)
-        buttons = [[utils.styled_button("🔙 Back", "menu_my_bots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_my_bots", style="primary")]]
         
         global_settings = database.get_global_settings()
         help_image = global_settings.get("help_image")
@@ -2015,7 +2015,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("how_to_use_text", lang)
-        buttons = [[utils.styled_button("🔙 Back", "menu_my_bots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_my_bots", style="primary")]]
         try:
             await event.edit(text, buttons=buttons)
         except Exception:
@@ -2598,7 +2598,7 @@ def register_handlers(client):
             "• ʀᴇᴘʟʏ ᴛᴏ ᴀɴʏ ᴀᴜᴅɪᴏ/ᴠɪᴅᴇᴏ ғɪʟᴇ ᴡɪᴛʜ <code>/play</code> ᴏʀ <code>/vplay</code>.\n\n"
             "✍️ <b>ᴛʏᴘᴇ ʏᴏᴜʀ sᴏɴɢ ɴᴀᴍᴇ ᴏʀ ʏᴏᴜᴛᴜʙᴇ ʟɪɴᴋ ʙᴇʟᴏᴡ:</b></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 Cancel", f"vc_menu_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"vc_menu_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2623,7 +2623,7 @@ def register_handlers(client):
             "• ᴀʟʟ ᴜsᴇʀʙᴏᴛs ᴡɪʟʟ ᴀᴜᴛᴏ-sᴛᴀʀᴛ ᴀɴᴅ sᴛʀᴇᴀᴍ sɪᴍᴜʟᴛᴀɴᴇᴏᴜsʟʏ!\n\n"
             "✍️ <b>ᴛʏᴘᴇ ʏᴏᴜʀ sᴏɴɢ ɴᴀᴍᴇ ᴏʀ ʏᴏᴜᴛᴜʙᴇ ʟɪɴᴋ ʙᴇʟᴏᴡ:</b></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_vc_menu", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_vc_menu", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:

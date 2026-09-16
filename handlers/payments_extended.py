@@ -73,7 +73,7 @@ def register_handlers(client):
             "<blockquote><b>» 🎟️ ʀᴇᴅᴇᴇᴍ ᴄᴏᴜᴘᴏɴ</b>\n\n"
             "⚡ <i>ᴇɴᴛᴇʀ ʏᴏᴜʀ ᴄᴏᴜᴘᴏɴ ᴄᴏᴅᴇ ʙᴇʟᴏᴡ ᴛᴏ ᴄʀᴇᴅɪᴛ ʏᴏᴜʀ ᴡᴀʟʟᴇᴛ :</i></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 Cancel", "menu_settings", style="danger")]]
+        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "menu_settings", style="danger")]]
         await event.respond(text, buttons=buttons, parse_mode="html")
         try:
             await event.delete()
@@ -167,7 +167,7 @@ def register_handlers(client):
         
         kb = [
             [Button.url("🔗 Share Referral Link", url=f"https://t.me/share/url?url={ref_link}&text=Manage%20your%20Telegram%20UserBots%20easily!")],
-            [utils.styled_button("🔙 Back", "menu_settings", style="primary")]
+            [utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_settings", style="primary")]
         ]
         
         await event.respond(text, buttons=kb)
@@ -225,9 +225,9 @@ def register_handlers(client):
         buttons = []
         for qty in range(1, 6):
             buttons.append([
-                utils.styled_button(f"Request {qty} Account Slot(s)", f"buy_plan_qty_{plan_id}_{qty}", style="primary")
+                utils.styled_button(f"ʀᴇǫᴜᴇsᴛ {qty} ᴀᴄᴄᴏᴜɴᴛ sʟᴏᴛ(s)", f"buy_plan_qty_{plan_id}_{qty}", style="primary")
             ])
-        buttons.append([utils.styled_button("🔙 Back", "settings_buy_slots", style="primary")])
+        buttons.append([utils.styled_button("🔙 ʙᴀᴄᴋ", "settings_buy_slots", style="primary")])
         
         await event.respond(text, buttons=buttons)
         try:
@@ -307,20 +307,20 @@ def register_handlers(client):
         buttons = []
         
         if global_settings.get("payment_upi_enabled", True):
-            buttons.append([utils.styled_button("💳 UPI Payment", f"pay_method_upi_{qty}_{payment_id}", style="primary")])
+            buttons.append([utils.styled_button("💳 ᴜᴘɪ ᴘᴀʏᴍᴇɴᴛ", f"pay_method_upi_{qty}_{payment_id}", style="primary")])
         if global_settings.get("payment_usdt_enabled", True):
-            buttons.append([utils.styled_button("🪙 USDT (BEP20)", f"pay_method_usdt_{qty}_{payment_id}", style="primary")])
+            buttons.append([utils.styled_button("🪙 ᴜsᴅᴛ (ʙᴇᴘ20)", f"pay_method_usdt_{qty}_{payment_id}", style="primary")])
         if global_settings.get("payment_ton_enabled", True):
-            buttons.append([utils.styled_button("💎 TON (Toncoin)", f"pay_method_ton_{qty}_{payment_id}", style="primary")])
+            buttons.append([utils.styled_button("💎 ᴛᴏɴ (ᴛᴏɴᴄᴏɪɴ)", f"pay_method_ton_{qty}_{payment_id}", style="primary")])
         
         # Allow paying using wallet if balance covers it
         if wallet_bal >= cost_inr:
-            buttons.append([utils.styled_button("👛 Pay via Wallet Balance", f"pay_method_wallet_{qty}_{payment_id}", style="success")])
+            buttons.append([utils.styled_button("👛 ᴘᴀʏ ᴠɪᴀ ᴡᴀʟʟᴇᴛ ʙᴀʟᴀɴᴄᴇ", f"pay_method_wallet_{qty}_{payment_id}", style="success")])
             
         if not buttons:
-            buttons = [[utils.styled_button("⚠️ No Payment Methods Available", "menu_settings", style="danger")]]
+            buttons = [[utils.styled_button("⚠️ ɴᴏ ᴘᴀʏᴍᴇɴᴛ ᴍᴇᴛʜᴏᴅs ᴀᴠᴀɪʟᴀʙʟᴇ", "menu_settings", style="danger")]]
         
-        buttons.append([utils.styled_button("🔙 Cancel", "menu_settings", style="danger")])
+        buttons.append([utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "menu_settings", style="danger")])
         await event.respond(text, buttons=buttons, parse_mode="html")
         try:
             await event.delete()
@@ -462,7 +462,7 @@ def register_handlers(client):
             f"📸 Send your payment confirmation <b>screenshot (as a photo or image link)</b>:"
         )
         
-        buttons = [[utils.styled_button("❌ Cancel", "menu_settings", style="danger")]]
+        buttons = [[utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "menu_settings", style="danger")]]
         if qr_url:
             import urllib.request
             import tempfile
@@ -530,7 +530,7 @@ def register_handlers(client):
             state["photo_file_id"] = file_to_save
             state["action"] = "WAITING_FOR_UTR"
             
-            buttons = [[utils.styled_button("❌ Cancel", "menu_settings", style="danger")]]
+            buttons = [[utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "menu_settings", style="danger")]]
             await event.reply(
                 "📸 <b>Screenshot received!</b>\n\n"
                 "🔢 <b>Now enter your UTR / Transaction Hash:</b>\n"
@@ -586,8 +586,8 @@ def register_handlers(client):
                     
                     buttons = [
                         [
-                            utils.styled_button("✅ Approve", f"approve_payment_{payment_id}", style="success"),
-                            utils.styled_button("❌ Reject", f"reject_payment_{payment_id}", style="danger")
+                            utils.styled_button("✅ ᴀᴘᴘʀᴏᴠᴇ", f"approve_payment_{payment_id}", style="success"),
+                            utils.styled_button("❌ ʀᴇᴊᴇᴄᴛ", f"reject_payment_{payment_id}", style="danger")
                         ]
                     ]
                     

@@ -29,14 +29,19 @@ async def show_settings_menu(event, user_id: int):
             utils.styled_button(utils.get_text("btn_buy_slots", lang), "settings_buy_slots", style="primary")
         ],
         [
-            utils.styled_button("🎟️ Redeem Coupon", "settings_redeem_coupon", style="primary"),
-            utils.styled_button("👥 Referrals", "settings_referrals", style="primary")
+            utils.styled_button("🎟️ ʀᴇᴅᴇᴇᴍ ᴄᴏᴜᴘᴏɴ", "settings_redeem_coupon", style="primary"),
+            utils.styled_button("👥 ʀᴇғᴇʀʀᴀʟs", "settings_referrals", style="primary")
         ],
         [utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")]
     ]
     
     try:
-        await event.edit(text, buttons=buttons, parse_mode="html")
+        msg = event.message if hasattr(event, 'message') else event
+        if getattr(msg, 'media', None):
+            await msg.delete()
+            await event.respond(text, buttons=buttons, parse_mode="html")
+        else:
+            await event.edit(text, buttons=buttons, parse_mode="html")
     except Exception:
         await event.respond(text, buttons=buttons, parse_mode="html")
 
@@ -53,7 +58,7 @@ async def show_purchase_menu(event, user_id: int):
     plans = global_settings.get("subscription_plans", [])
     
     if not plans:
-        buttons = [[utils.styled_button("🔙 Back", "menu_settings", style="primary")]]
+        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_settings", style="primary")]]
         text = (
             f"> ❌ <b>NO PLANS AVAILABLE</b>\n"
             f"> ━━━━━━━━━━━━━━━━━━━━\n"
@@ -61,7 +66,12 @@ async def show_purchase_menu(event, user_id: int):
             f"> ━━━━━━━━━━━━━━━━━━━━"
         )
         try:
-            await event.edit(text, buttons=buttons)
+            msg = event.message if hasattr(event, 'message') else event
+            if getattr(msg, 'media', None):
+                await msg.delete()
+                await event.respond(text, buttons=buttons)
+            else:
+                await event.edit(text, buttons=buttons)
         except Exception:
             await event.respond(text, buttons=buttons)
         return
@@ -91,7 +101,12 @@ async def show_purchase_menu(event, user_id: int):
         
     buttons.append([utils.styled_button(utils.get_text("btn_back_to_bots", lang), "menu_settings", style="primary")])
     try:
-        await event.edit(text, buttons=buttons)
+        msg = event.message if hasattr(event, 'message') else event
+        if getattr(msg, 'media', None):
+            await msg.delete()
+            await event.respond(text, buttons=buttons)
+        else:
+            await event.edit(text, buttons=buttons)
     except Exception:
         await event.respond(text, buttons=buttons)
 
@@ -110,18 +125,18 @@ def register_handlers(client):
         
         buttons = [
             [
-                utils.styled_button("English 🇬🇧", "set_lang_en", style="primary"),
-                utils.styled_button("Hindi 🇮🇳", "set_lang_hi", style="primary"),
-                utils.styled_button("Russian 🇷🇺", "set_lang_ru", style="primary")
+                utils.styled_button("ᴇɴɢʟɪsʜ 🇬🇧", "set_lang_en", style="primary"),
+                utils.styled_button("ʜɪɴᴅɪ 🇮🇳", "set_lang_hi", style="primary"),
+                utils.styled_button("ʀᴜssɪᴀɴ 🇷🇺", "set_lang_ru", style="primary")
             ],
             [
-                utils.styled_button("Japanese 🇯🇵", "set_lang_ja", style="primary"),
-                utils.styled_button("French 🇫🇷", "set_lang_fr", style="primary"),
-                utils.styled_button("German 🇩🇪", "set_lang_de", style="primary")
+                utils.styled_button("ᴊᴀᴘᴀɴᴇsᴇ 🇯🇵", "set_lang_ja", style="primary"),
+                utils.styled_button("ғʀᴇɴᴄʜ 🇫🇷", "set_lang_fr", style="primary"),
+                utils.styled_button("ɢᴇʀᴍᴀɴ 🇩🇪", "set_lang_de", style="primary")
             ],
             [
-                utils.styled_button("Chinese 🇨🇳", "set_lang_zh", style="primary"),
-                utils.styled_button("Arabic 🇸🇦", "set_lang_ar", style="primary")
+                utils.styled_button("ᴄʜɪɴᴇsᴇ 🇨🇳", "set_lang_zh", style="primary"),
+                utils.styled_button("ᴀʀᴀʙɪᴄ 🇸🇦", "set_lang_ar", style="primary")
             ],
             [utils.styled_button(utils.get_text("back_to_menu", lang), "menu_settings", style="primary")]
         ]

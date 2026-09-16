@@ -125,7 +125,7 @@ def register_handlers(client):
         )
         buttons = [
             [utils.styled_button("📱 ᴘʜᴏɴᴇ + ᴏᴛᴘ ʟᴏɢɪɴ", "menu_add_bot_phone", style="success")],
-            [utils.styled_button("📁 ᴜᴘʟᴏᴀᴅ .session / .zip", "menu_add_bot_session", style="primary")],
+            [utils.styled_button("📁 ᴜᴘʟᴏᴀᴅ .sᴇssɪᴏɴ / .ᴢɪᴘ", "menu_add_bot_session", style="primary")],
             [utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")],
         ]
         try:
