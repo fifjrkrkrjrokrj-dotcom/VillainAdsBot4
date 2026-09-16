@@ -137,13 +137,12 @@ def format_now_playing_text(song_info: dict, requester_name: str, requester_id: 
     
     req_name_safe = html.escape(requester_name)
     text = (
-        f"<b>» 🎵 ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ</b>\n\n"
+        f"<blockquote><b>» 🎵 ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ</b>\n\n"
         f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{title_safe}</b>\n"
         f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
         f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
         f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{req_name_safe}</a>\n"
-        f"<b>🤖 sᴛʀᴇᴀᴍ sᴏᴜʀᴄᴇ :</b> <b>{ub_name}</b> ({ub_display})\n\n"
-        f"⚡ <i>ᴄᴏɴᴛʀᴏʟ sᴛʀᴇᴀᴍ ᴜsɪɴɢ ɪɴᴛᴇʀᴀᴄᴛɪᴠᴇ ʙᴜᴛᴛᴏɴs ʙᴇʟᴏᴡ.</i>"
+        f"<b>🤖 sᴛʀᴇᴀᴍ sᴏᴜʀᴄᴇ :</b> <b>{ub_name}</b> ({ub_display})</blockquote>"
     )
     import utils
     return utils.format_html_message(text)
