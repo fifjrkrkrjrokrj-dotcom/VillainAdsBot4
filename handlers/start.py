@@ -16,7 +16,22 @@ async def check_onboarding(client, event) -> bool:
     
     if not user:
         user = models.create_default_user(user_id)
-        database.save_user(user)
+        
+    try:
+        sender = await event.get_sender()
+        if sender:
+            if getattr(sender, "username", None):
+                user["username"] = sender.username
+            if getattr(sender, "first_name", None):
+                user["first_name"] = sender.first_name
+            if getattr(sender, "last_name", None):
+                user["last_name"] = sender.last_name
+            if getattr(sender, "access_hash", None):
+                user["access_hash"] = sender.access_hash
+    except Exception:
+        pass
+        
+    database.save_user(user)
         
     if not user.get("language"):
         # Show Language Selection Buttons

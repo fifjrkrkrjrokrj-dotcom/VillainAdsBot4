@@ -1602,48 +1602,92 @@ def register_handlers(client):
 
             # 6.3.b Global Main Bot Broadcast
             elif action == "WAITING_FOR_BROADCAST":
+                _admin_action_states.pop(user_id, None)
                 prog_msg = await event.reply("<blockquote><b>» 📢 MAIN BOT BROADCAST IN PROGRESS</b>\n\nSending message to all registered bot users...</blockquote>")
                 
+                broadcast_message = event.message
                 all_users = database.get_all_users()
-                total_users = len(all_users)
-                success_count = 0
-                fail_count = 0
                 
-                import asyncio
-                from telethon.errors import FloodWaitError
-                
-                for u in all_users:
-                    uid = u.get("user_id")
-                    if not uid:
-                        continue
-                    try:
-                        await client.send_message(uid, event.message)
-                        success_count += 1
-                        await asyncio.sleep(0.05)  # Short delay to prevent flooding
-                    except FloodWaitError as fwe:
-                        logger.warning(f"Flood wait during broadcast: sleeping for {fwe.seconds}s")
-                        await asyncio.sleep(fwe.seconds)
+                async def _run_bot_broadcast():
+                    total_users = len(all_users)
+                    success_count = 0
+                    fail_count = 0
+                    last_edit_time = time.time()
+                    
+                    for idx, u in enumerate(all_users, 1):
+                        uid = u.get("user_id")
+                        if not uid:
+                            continue
+                            
+                        target_peer = None
+                        # 1. Try resolving by cached input entity
                         try:
-                            await client.send_message(uid, event.message)
-                            success_count += 1
-                        except Exception as retry_err:
-                            logger.error(f"Failed retry to {uid}: {retry_err}")
+                            target_peer = await client.get_input_entity(int(uid))
+                        except Exception:
+                            # 2. Try resolving by username if available
+                            if u.get("username"):
+                                try:
+                                    target_peer = await client.get_input_entity(u["username"])
+                                except Exception:
+                                    pass
+                            # 3. Try stored access_hash if available
+                            if not target_peer and u.get("access_hash"):
+                                try:
+                                    from telethon.tl.types import InputPeerUser
+                                    target_peer = InputPeerUser(int(uid), int(u["access_hash"]))
+                                except Exception:
+                                    pass
+                                    
+                        if not target_peer:
+                            logger.warning(f"Could not resolve entity for user {uid} (@{u.get('username')})")
                             fail_count += 1
-                    except Exception as err:
-                        logger.warning(f"Failed to send broadcast to {uid}: {err}")
-                        fail_count += 1
+                            continue
+
+                        try:
+                            await client.send_message(target_peer, broadcast_message)
+                            success_count += 1
+                        except FloodWaitError as fwe:
+                            logger.warning(f"Flood wait during broadcast: sleeping for {fwe.seconds}s")
+                            await asyncio.sleep(min(fwe.seconds, 15))
+                            try:
+                                await client.send_message(target_peer, broadcast_message)
+                                success_count += 1
+                            except Exception as retry_err:
+                                logger.error(f"Failed retry to {uid}: {retry_err}")
+                                fail_count += 1
+                        except Exception as err:
+                            logger.warning(f"Failed to send broadcast to {uid}: {err}")
+                            fail_count += 1
+
+                        await asyncio.sleep(0.08)
                         
-                report = (
-                    f"<blockquote><b>» 📢 MAIN BOT BROADCAST COMPLETED</b>\n\n"
-                    f"👥 <b>Total Target Users:</b> <b>{total_users}</b>\n"
-                    f"✅ <b>Successfully Sent:</b> <b>{success_count}</b>\n"
-                    f"❌ <b>Failed (Blocked/Deleted):</b> <b>{fail_count}</b></blockquote>"
-                )
-                try:
-                    await prog_msg.edit(report)
-                except Exception:
-                    await event.reply(report)
-                await show_admin_panel(event, user_id)
+                        # Live progress updates every 3 seconds
+                        now = time.time()
+                        if now - last_edit_time >= 3.0:
+                            last_edit_time = now
+                            try:
+                                await prog_msg.edit(
+                                    f"<blockquote><b>» 📢 MAIN BOT BROADCAST IN PROGRESS</b>\n\n"
+                                    f"👥 <b>Processed:</b> <code>[{idx} / {total_users}]</code>\n"
+                                    f"✅ <b>Delivered:</b> <code>{success_count}</code>\n"
+                                    f"❌ <b>Failed / Skipped:</b> <code>{fail_count}</code></blockquote>"
+                                )
+                            except Exception:
+                                pass
+
+                    report = (
+                        f"<blockquote><b>» 📢 MAIN BOT BROADCAST COMPLETED</b>\n\n"
+                        f"👥 <b>Total Target Users:</b> <b>{total_users}</b>\n"
+                        f"✅ <b>Successfully Sent:</b> <b>{success_count}</b>\n"
+                        f"❌ <b>Failed (Blocked/Deleted/Unresolved):</b> <b>{fail_count}</b></blockquote>"
+                    )
+                    try:
+                        await prog_msg.edit(report)
+                    except Exception:
+                        await event.reply(report)
+                        
+                import asyncio
+                asyncio.create_task(_run_bot_broadcast())
                 return
                     
             # 6.4 User Management Search / Actions

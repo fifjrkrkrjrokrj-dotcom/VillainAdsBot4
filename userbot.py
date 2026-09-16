@@ -2572,116 +2572,121 @@ class UserBot:
                             )
                             return
 
-                is_reply_to_us = False
-                if event.is_reply:
-                    try:
-                        reply_msg = await event.get_reply_message()
-                        if reply_msg and reply_msg.sender_id == self.me_id:
-                            is_reply_to_us = True
-                    except Exception:
-                        pass
-                
-                is_tagged = event.mentioned or is_reply_to_us
-                
-                # 1. Auto-Add Contact on Mention/Reply
-                if is_tagged and self.settings.get("auto_add_contact"):
-                    sender = await event.get_sender()
-                    if sender and not sender.bot:
+                # 2. Group / Channel message handling (Auto-Contact, Tag Auto-Reply)
+                if event.is_group or event.is_channel:
+                    is_reply_to_us = False
+                    if event.is_reply:
                         try:
-                            from telethon.tl.functions.contacts import AddContactRequest
-                            fname = sender.first_name or "Contact"
-                            lname = sender.last_name or ""
-                            await self.client(AddContactRequest(
-                                id=sender.id,
-                                first_name=fname,
-                                last_name=lname,
-                                phone="",
-                                add_phone_privacy_exception=True
-                            ))
-                            logger.info(f"Auto-added contact: {sender.id} ({fname} {lname}) on mention/reply in chat {event.chat_id}")
-                        except Exception as add_err:
-                            logger.warning(f"Failed to auto-add contact {sender.id}: {add_err}")
-
-                # 2. Tag Auto-Reply on Group Mention/Reply
-                if is_tagged and self.settings.get("auto_reply"):
-                    now = time.time()
-                    last_reply_time = self.tag_cooldown.get(event.chat_id, 0)
+                            reply_msg = await event.get_reply_message()
+                            if reply_msg and reply_msg.sender_id == self.me_id:
+                                is_reply_to_us = True
+                        except Exception:
+                            pass
                     
-                    # 20-second per-chat cooldown to prevent spambot limits
-                    if now - last_reply_time >= 20.0:
-                        ar_mode = self.settings.get("auto_reply_mode", "single")
-                        if ar_mode == "multiple":
-                            auto_reply_msgs = self.settings.get("auto_reply_messages", [])
-                            if not auto_reply_msgs:
-                                auto_reply_msgs = [self.settings.get("auto_reply_msg")]
-                        else:
-                            auto_reply_msgs = [self.settings.get("auto_reply_msg")]
-                            if not auto_reply_msgs[0]:
-                                auto_reply_msgs = self.settings.get("auto_reply_messages", [])
-                                
-                        auto_reply_msgs = [m for m in auto_reply_msgs if m]
-                        if auto_reply_msgs:
-                            selected_reply = random.choice(auto_reply_msgs)
-                            processed_reply = utils.parse_spintax(selected_reply)
-                            processed_reply = utils.normalize_text(processed_reply)
-                            processed_reply = utils.make_message_unique(processed_reply)
-                            
+                    is_tagged = event.mentioned or is_reply_to_us
+                    
+                    # 1. Auto-Add Contact on Mention/Reply
+                    if is_tagged and self.settings.get("auto_add_contact"):
+                        sender = await event.get_sender()
+                        if sender and not sender.bot:
                             try:
-                                # Add 1-2 sec human delay before group reply
-                                await asyncio.sleep(random.uniform(1.0, 2.5))
-                                await event.reply(processed_reply)
-                                self.tag_cooldown[event.chat_id] = now
-                                logger.info(f"Auto-replied to tag in chat {event.chat_id} for userbot {self.session_id}")
-                            except Exception as reply_err:
-                                logger.warning(f"Could not send auto-reply in chat {event.chat_id}: {reply_err}")
-                return
+                                from telethon.tl.functions.contacts import AddContactRequest
+                                fname = sender.first_name or "Contact"
+                                lname = sender.last_name or ""
+                                await self.client(AddContactRequest(
+                                    id=sender.id,
+                                    first_name=fname,
+                                    last_name=lname,
+                                    phone="",
+                                    add_phone_privacy_exception=True
+                                ))
+                                logger.info(f"Auto-added contact: {sender.id} ({fname} {lname}) on mention/reply in chat {event.chat_id}")
+                            except Exception as add_err:
+                                logger.warning(f"Failed to auto-add contact {sender.id}: {add_err}")
+
+                    # 2. Tag Auto-Reply on Group Mention/Reply
+                    if is_tagged and self.settings.get("auto_reply"):
+                        now = time.time()
+                        last_reply_time = self.tag_cooldown.get(event.chat_id, 0)
+                        
+                        # 20-second per-chat cooldown to prevent spambot limits
+                        if now - last_reply_time >= 20.0:
+                            ar_mode = self.settings.get("auto_reply_mode", "single")
+                            if ar_mode == "multiple":
+                                auto_reply_msgs = self.settings.get("auto_reply_messages", [])
+                                if not auto_reply_msgs:
+                                    auto_reply_msgs = [self.settings.get("auto_reply_msg")]
+                            else:
+                                auto_reply_msgs = [self.settings.get("auto_reply_msg")]
+                                if not auto_reply_msgs[0]:
+                                    auto_reply_msgs = self.settings.get("auto_reply_messages", [])
+                                    
+                            auto_reply_msgs = [m for m in auto_reply_msgs if m]
+                            if auto_reply_msgs:
+                                selected_reply = random.choice(auto_reply_msgs)
+                                processed_reply = utils.parse_spintax(selected_reply)
+                                processed_reply = utils.normalize_text(processed_reply)
+                                processed_reply = utils.make_message_unique(processed_reply)
+                                
+                                try:
+                                    # Add 1-2 sec human delay before group reply
+                                    await asyncio.sleep(random.uniform(1.0, 2.5))
+                                    await event.reply(processed_reply)
+                                    self.tag_cooldown[event.chat_id] = now
+                                    logger.info(f"Auto-replied to tag in chat {event.chat_id} for userbot {self.session_id}")
+                                except Exception as reply_err:
+                                    logger.warning(f"Could not send auto-reply in chat {event.chat_id}: {reply_err}")
+                    return
+
+            # 3. Private message handling (Auto-Welcome)
+            if event.is_private:
+                sess_data = database.get_session(self.session_id)
+                settings = sess_data.get("settings", {}) if sess_data else self.settings
                 
-            # Private message handling (Auto-Welcome)
-            if not self.settings.get("auto_welcome"):
-                return
-                
-            sender = await event.get_sender()
-            if not sender or sender.bot:
-                return
-                
-            # Fetch session only if conditions are met to append welcomed users
-            sess_data = database.get_session(self.session_id)
-            if not sess_data:
-                return
-                
-            settings = sess_data.get("settings", {})
-            
-            # Auto-Welcome
-            welcomed_users = sess_data.get("stats", {}).get("welcomed_users", [])
-            if sender.id not in welcomed_users:
-                w_mode = settings.get("welcome_mode", "single")
-                if w_mode == "multiple":
-                    welcome_messages = settings.get("welcome_messages", [])
-                    if not welcome_messages:
-                        welcome_messages = [settings.get("welcome_msg")]
-                else:
-                    welcome_messages = [settings.get("welcome_msg")]
-                    if not welcome_messages[0]:
-                        welcome_messages = settings.get("welcome_messages", [])
+                if not settings.get("auto_welcome"):
+                    return
                     
-                welcome_messages = [m for m in welcome_messages if m]
-                if welcome_messages:
-                    for welcome_msg in welcome_messages:
-                        # Apply anti-spam processing
-                        processed_welcome = utils.parse_spintax(welcome_msg)
-                        processed_welcome = utils.normalize_text(processed_welcome)
-                        processed_welcome = utils.make_message_unique(processed_welcome)
-                        try:
-                            # Humanized DM typing delay (1.0 - 2.0 seconds) between multiple welcomes
-                            await asyncio.sleep(random.uniform(1.0, 2.0))
-                            await event.reply(processed_welcome, parse_mode='html')
-                        except Exception as e:
-                            logger.warning(f"Could not send welcome message to {sender.id}: {e}")
-                            
-                    if sender.id not in welcomed_users:
-                        welcomed_users.append(sender.id)
-                        sess_data["stats"]["welcomed_users"] = welcomed_users
-                        database.save_session(sess_data)
+                sender = await event.get_sender()
+                if not sender or sender.bot or getattr(sender, "is_self", False):
+                    return
+                    
+                welcomed_users = sess_data.get("stats", {}).get("welcomed_users", []) if sess_data else []
+                if sender.id not in welcomed_users:
+                    w_mode = settings.get("welcome_mode", "single")
+                    messages_to_send = []
+                    
+                    if w_mode == "multiple":
+                        welcome_messages = settings.get("welcome_messages", [])
+                        if not welcome_messages and settings.get("welcome_msg"):
+                            welcome_messages = [settings.get("welcome_msg")]
+                        welcome_messages = [m for m in welcome_messages if m]
+                        if welcome_messages:
+                            # Rotational selection
+                            messages_to_send = [random.choice(welcome_messages)]
+                    else:
+                        single_msg = settings.get("welcome_msg")
+                        if not single_msg:
+                            multi = settings.get("welcome_messages", [])
+                            single_msg = multi[0] if multi else None
+                        if single_msg:
+                            messages_to_send = [single_msg]
+                        
+                    if messages_to_send:
+                        for welcome_msg in messages_to_send:
+                            processed_welcome = utils.parse_spintax(welcome_msg)
+                            processed_welcome = utils.normalize_text(processed_welcome)
+                            processed_welcome = utils.make_message_unique(processed_welcome)
+                            try:
+                                await asyncio.sleep(random.uniform(1.0, 2.0))
+                                await event.reply(processed_welcome, parse_mode='html')
+                                logger.info(f"Sent welcome message to {sender.id} from userbot {self.session_id}")
+                            except Exception as e:
+                                logger.warning(f"Could not send welcome message to {sender.id}: {e}")
+                                
+                        if sess_data and sender.id not in welcomed_users:
+                            welcomed_users.append(sender.id)
+                            sess_data.setdefault("stats", {})["welcomed_users"] = welcomed_users
+                            database.save_session(sess_data)
 
     async def broadcast_loop(self):
         """
