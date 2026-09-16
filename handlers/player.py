@@ -21,6 +21,13 @@ _active_chat_players = {}
 _chat_queues = {}
 _track_timer_tasks = {}
 _main_bot = None
+_preparing_chats = set()
+_chat_locks = {}
+
+def get_chat_lock(chat_id: int) -> asyncio.Lock:
+    if chat_id not in _chat_locks:
+        _chat_locks[chat_id] = asyncio.Lock()
+    return _chat_locks[chat_id]
 
 # Rate limit for download progress edits
 _last_progress_updates = {}
@@ -281,7 +288,7 @@ def register_handlers(client):
         chat_id = event.chat_id
         user_id = event.sender_id
         
-        if not utils.check_and_mark_command(chat_id, getattr(event, "raw_text", "")):
+        if not utils.check_and_mark_command(chat_id, getattr(event, "raw_text", ""), msg_id=getattr(event, "id", 0)):
             return
             
         sender = await event.get_sender()
@@ -290,15 +297,7 @@ def register_handlers(client):
         reply_msg = await event.get_reply_message() if event.is_reply else None
         local_file_path = None
         audio_title = None
-        audio_duration = 30
-        
-        # Check if something is already streaming in this chat
-        is_already_playing = False
-        active_sess = _active_chat_players.get(chat_id)
-        if active_sess:
-            bot_instance = active_sess.get("bot")
-            if bot_instance and getattr(bot_instance, "is_running", False) and getattr(bot_instance, "current_vc_chat_id", None) == chat_id:
-                is_already_playing = True
+        audio_duration = 0
         
         display_query = audio_title or query or "Replied Media"
         progress_msg = await event.reply(
@@ -344,6 +343,17 @@ def register_handlers(client):
             )
             return
 
+        # Fetch metadata if it's a query and not a local file
+        if query and not local_file_path:
+            try:
+                t, m, s, thumb, vid = await YouTube.details(query)
+                if t:
+                    audio_title = t
+                if s:
+                    audio_duration = s
+            except Exception as yt_err:
+                logger.warning(f"Error fetching YouTube details in player: {yt_err}")
+
         # 2. Pre-validate userbot BEFORE queue check — so accounts with no valid userbot
         #    get an error immediately instead of being silently queued and failing at playback.
         bot_obj, err = await get_or_start_userbot_for_chat(user_id, chat_id)
@@ -351,83 +361,94 @@ def register_handlers(client):
             await progress_msg.edit(err)
             return
 
-        # 3. Queue logic: if already playing and NOT a force play, add to queue
-        if is_already_playing and not is_force:
-            if chat_id not in _chat_queues:
-                _chat_queues[chat_id] = []
+        # 3. Queue logic: if already playing or currently preparing, or queue has tracks, and NOT a force play -> add to queue
+        async with get_chat_lock(chat_id):
+            is_busy = (
+                (chat_id in _active_chat_players and _active_chat_players[chat_id].get("bot")) or
+                (chat_id in _preparing_chats) or
+                (len(_chat_queues.get(chat_id, [])) > 0)
+            )
+            if is_busy and not is_force:
+                if chat_id not in _chat_queues:
+                    _chat_queues[chat_id] = []
+                    
+                _chat_queues[chat_id].append({
+                    "query": query,
+                    "play_type": play_type,
+                    "requester_name": requester_name,
+                    "requester_id": user_id,
+                    "local_file": local_file_path,
+                    "title": audio_title or query,
+                    "duration": audio_duration,
+                    "thumb": None
+                })
+                pos = len(_chat_queues[chat_id])
+                mins, secs = divmod(audio_duration or 0, 60)
+                dur_str = f"{mins:02d}:{secs:02d}" if audio_duration else "03:00"
+                mode_emoji = "🎬 ᴠɪᴅᴇᴏ" if play_type == "video" else "🎙️ ᴀᴜᴅɪᴏ"
                 
-            _chat_queues[chat_id].append({
-                "query": query,
-                "play_type": play_type,
-                "requester_name": requester_name,
-                "requester_id": user_id,
-                "local_file": local_file_path,
-                "title": audio_title or query,
-                "duration": audio_duration,
-                "thumb": None
-            })
-            pos = len(_chat_queues[chat_id])
-            mins, secs = divmod(audio_duration or 0, 60)
-            dur_str = f"{mins:02d}:{secs:02d}" if audio_duration else "03:00"
-            mode_emoji = "🎬 ᴠɪᴅᴇᴏ" if play_type == "video" else "🎙️ ᴀᴜᴅɪᴏ"
-            
-            await progress_msg.edit(
-                utils.format_html_message(
-                    f"<blockquote><b>» 📋 ᴀᴅᴅᴇᴅ ᴛᴏ ǫᴜᴇᴜᴇ : #{pos}</b>\n\n"
-                    f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{audio_title or query}</b>\n"
-                    f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
-                    f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
-                    f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={user_id}\">{requester_name}</a>\n\n"
-                    f"💡 <i>ᴛʀᴀᴄᴋ ᴡɪʟʟ ᴘʟᴀʏ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀғᴛᴇʀ ᴄᴜʀʀᴇɴᴛ sᴏɴɢ ғɪɴɪsʜᴇs.</i></blockquote>"
+                await progress_msg.edit(
+                    utils.format_html_message(
+                        f"<blockquote><b>» 📋 ᴀᴅᴅᴇᴅ ᴛᴏ ǫᴜᴇᴜᴇ : #{pos}</b>\n\n"
+                        f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{audio_title or query}</b>\n"
+                        f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
+                        f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
+                        f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={user_id}\">{requester_name}</a>\n\n"
+                        f"💡 <i>ᴛʀᴀᴄᴋ ᴡɪʟʟ ᴘʟᴀʏ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀғᴛᴇʀ ᴄᴜʀʀᴇɴᴛ sᴏɴɢ ғɪɴɪsʜᴇs.</i></blockquote>"
+                    )
                 )
-            )
-            return
+                return
+            else:
+                _preparing_chats.add(chat_id)
 
-        # 4. Ensure userbot has loaded group cache
-        if (event.is_group or event.is_channel) and bot_obj and bot_obj.client:
-            try:
-                await bot_obj.client.get_entity(chat_id)
-            except Exception:
+        try:
+            # 4. Ensure userbot has loaded group cache
+            if (event.is_group or event.is_channel) and bot_obj and bot_obj.client:
                 try:
-                    await bot_obj.client.get_dialogs(limit=50)
+                    await bot_obj.client.get_entity(chat_id)
                 except Exception:
-                    pass
-                try:
-                    from telethon.tl.functions.messages import ExportChatInviteRequest
-                    from userbot import join_channel_single
-                    invite = await client(ExportChatInviteRequest(chat_id))
-                    if hasattr(invite, "link") and invite.link:
-                        logger.info(f"Auto-inviting userbot {bot_obj.session_id} to group {chat_id} via {invite.link}")
-                        await join_channel_single(bot_obj.client, invite.link)
-                        await asyncio.sleep(1.0)
-                except Exception as exp_err:
-                    logger.debug(f"Could not auto-invite userbot to group {chat_id}: {exp_err}")
+                    try:
+                        await bot_obj.client.get_dialogs(limit=50)
+                    except Exception:
+                        pass
+                    try:
+                        from telethon.tl.functions.messages import ExportChatInviteRequest
+                        from userbot import join_channel_single
+                        invite = await client(ExportChatInviteRequest(chat_id))
+                        if hasattr(invite, "link") and invite.link:
+                            logger.info(f"Auto-inviting userbot {bot_obj.session_id} to group {chat_id} via {invite.link}")
+                            await join_channel_single(bot_obj.client, invite.link)
+                            await asyncio.sleep(1.0)
+                    except Exception as exp_err:
+                        logger.debug(f"Could not auto-invite userbot to group {chat_id}: {exp_err}")
 
-        # Cancel any previous track timer
-        prev_timer = _track_timer_tasks.pop(chat_id, None)
-        if prev_timer and not prev_timer.done() and prev_timer != asyncio.current_task():
-            prev_timer.cancel()
+            # Cancel any previous track timer
+            prev_timer = _track_timer_tasks.pop(chat_id, None)
+            if prev_timer and not prev_timer.done() and prev_timer != asyncio.current_task():
+                prev_timer.cancel()
 
-        # 5. Stream media into Voice Chat
-        success, msg, song_info = await bot_obj.play_song(
-            query=query,
-            play_type=play_type,
-            chat_id=chat_id,
-            local_file=local_file_path,
-            title=audio_title,
-            duration=audio_duration
-        )
-        
-        if not success or not song_info:
-            ub_handle = f"@{bot_obj.username}" if bot_obj.username else bot_obj.name
-            await progress_msg.edit(
-                utils.format_html_message(
-                    f"<blockquote><b>» ❌ ᴘʟᴀʏʙᴀᴄᴋ ғᴀɪʟᴇᴅ</b>\n\n"
-                    f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{msg}</code>\n\n"
-                    f"💡 <b>ᴛɪᴘ :</b> ᴍᴀᴋᴇ sᴜʀᴇ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ɪs sᴛᴀʀᴛᴇᴅ ᴀɴᴅ ᴜsᴇʀʙᴏᴛ (<b>{ub_handle}</b>) ʜᴀs ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ sᴘᴇᴀᴋ.</blockquote>"
-                )
+            # 5. Stream media into Voice Chat
+            success, msg, song_info = await bot_obj.play_song(
+                query=query,
+                play_type=play_type,
+                chat_id=chat_id,
+                local_file=local_file_path,
+                title=audio_title,
+                duration=audio_duration
             )
-            return
+            
+            if not success or not song_info:
+                ub_handle = f"@{bot_obj.username}" if bot_obj.username else bot_obj.name
+                await progress_msg.edit(
+                    utils.format_html_message(
+                        f"<blockquote><b>» ❌ ᴘʟᴀʏʙᴀᴄᴋ ғᴀɪʟᴇᴅ</b>\n\n"
+                        f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{msg}</code>\n\n"
+                        f"💡 <b>ᴛɪᴘ :</b> ᴍᴀᴋᴇ sᴜʀᴇ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ɪs sᴛᴀʀᴛᴇᴅ ᴀɴᴅ ᴜsᴇʀʙᴏᴛ (<b>{ub_handle}</b>) ʜᴀs ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ sᴘᴇᴀᴋ.</blockquote>"
+                    )
+                )
+                return
+        finally:
+            _preparing_chats.discard(chat_id)
             
         # 5. Render Now Playing Card
         thumb_enabled = database.get_thumbnail_setting(chat_id)

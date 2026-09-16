@@ -536,9 +536,11 @@ def get_device_profile(session_id: str) -> dict:
 
 _handled_commands = {}
 
-def check_and_mark_command(chat_id: int, text: str, ttl: float = 3.0) -> bool:
+def check_and_mark_command(chat_id: int, text: str, msg_id: int = 0, ttl: float = 1.0) -> bool:
     """
     Checks if a command in a given chat was already handled in the last ttl seconds.
+    If msg_id is provided, keys by (chat_id, msg_id) to prevent duplicate processing
+    of the exact same message across bot and userbot, while allowing rapid sequential commands.
     Returns True if this is a new command (and marks it), False if duplicate.
     """
     import time
@@ -548,7 +550,11 @@ def check_and_mark_command(chat_id: int, text: str, ttl: float = 3.0) -> bool:
         if now - _handled_commands[k] > 10.0:
             _handled_commands.pop(k, None)
             
-    key = (chat_id, (text or "").strip().lower())
+    if msg_id:
+        key = (chat_id, msg_id)
+    else:
+        key = (chat_id, (text or "").strip().lower())
+        
     last_t = _handled_commands.get(key, 0.0)
     if now - last_t < ttl:
         return False

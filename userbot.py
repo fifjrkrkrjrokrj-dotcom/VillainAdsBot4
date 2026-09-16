@@ -217,55 +217,74 @@ class YouTubeAPI:
                         return getattr(entity, "url", None)
         return None
 
+    @staticmethod
+    def _sync_search(link: str, limit: int = 1):
+        try:
+            s = VideosSearch(link, limit=limit)
+            return s.result()
+        except Exception as e:
+            logger.error(f"VideosSearch error: {e}")
+            return {}
+
+    @staticmethod
+    def _sync_details_fallback(query_str: str):
+        try:
+            ydl_opts = {
+                'quiet': True,
+                'no_warnings': True,
+                'extract_flat': True,
+                'skip_download': True,
+                'geo_bypass': True,
+                'nocheckcertificate': True,
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                q = query_str if query_str.startswith("http") else f"ytsearch1:{query_str}"
+                info = ydl.extract_info(q, download=False)
+                if info:
+                    entry = info.get('entries', [info])[0] if 'entries' in info else info
+                    if entry:
+                        title = entry.get('title')
+                        duration = entry.get('duration')
+                        dur_sec = int(duration) if duration else 0
+                        mins, secs = divmod(dur_sec, 60)
+                        dur_min = f"{mins}:{secs:02d}"
+                        thumb = entry.get('thumbnail')
+                        vid = entry.get('id')
+                        return title, dur_min, dur_sec, thumb, vid
+        except Exception as e:
+            logger.error(f"yt-dlp details fallback failed: {e}")
+        return None, "0:00", 0, None, None
+
     async def details(self, link: str, videoid: Union[bool, str] = None):
         if videoid:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        results = VideosSearch(link, limit=1)
-        res_data = await results.next()
-        title, duration_min, duration_sec, thumbnail, vidid = "YouTube Video", "0:00", 0, None, None
-        for result in res_data.get("result", []):
-            title = result["title"]
-            duration_min = result["duration"]
-            thumbnail = result["thumbnails"][0]["url"].split("?")[0]
-            vidid = result["id"]
+        res_data = await asyncio.to_thread(self._sync_search, link, 1)
+        results = res_data.get("result", [])
+        if results:
+            result = results[0]
+            title = result.get("title") or "YouTube Video"
+            duration_min = result.get("duration") or "0:00"
+            thumbs = result.get("thumbnails", [])
+            thumbnail = thumbs[0]["url"].split("?")[0] if thumbs else None
+            vidid = result.get("id")
             duration_sec = int(time_to_seconds(duration_min)) if duration_min else 0
-            break
-        return title, duration_min, duration_sec, thumbnail, vidid
+            return title, duration_min, duration_sec, thumbnail, vidid
+            
+        return await asyncio.to_thread(self._sync_details_fallback, link)
 
     async def title(self, link: str, videoid: Union[bool, str] = None):
-        if videoid:
-            link = self.base + link
-        if "&" in link:
-            link = link.split("&")[0]
-        results = VideosSearch(link, limit=1)
-        res_data = await results.next()
-        for result in res_data.get("result", []):
-            return result["title"]
-        return None
+        t, m, s, thumb, vid = await self.details(link, videoid=videoid)
+        return t
 
     async def duration(self, link: str, videoid: Union[bool, str] = None):
-        if videoid:
-            link = self.base + link
-        if "&" in link:
-            link = link.split("&")[0]
-        results = VideosSearch(link, limit=1)
-        res_data = await results.next()
-        for result in res_data.get("result", []):
-            return result["duration"]
-        return None
+        t, m, s, thumb, vid = await self.details(link, videoid=videoid)
+        return m
 
     async def thumbnail(self, link: str, videoid: Union[bool, str] = None):
-        if videoid:
-            link = self.base + link
-        if "&" in link:
-            link = link.split("&")[0]
-        results = VideosSearch(link, limit=1)
-        res_data = await results.next()
-        for result in res_data.get("result", []):
-            return result["thumbnails"][0]["url"].split("?")[0]
-        return None
+        t, m, s, thumb, vid = await self.details(link, videoid=videoid)
+        return thumb
 
     async def video(self, link: str, videoid: Union[bool, str] = None):
         if videoid:
@@ -301,28 +320,16 @@ class YouTubeAPI:
         return ids
 
     async def track(self, link: str, videoid: Union[bool, str] = None):
-        if videoid:
-            link = self.base + link
-        if "&" in link:
-            link = link.split("&")[0]
-        results = VideosSearch(link, limit=1)
-        res_data = await results.next()
-        title, yturl, vidid, duration_min, thumbnail = "YouTube Video", link, None, "0:00", None
-        for result in res_data.get("result", []):
-            title = result["title"]
-            duration_min = result["duration"]
-            vidid = result["id"]
-            yturl = result["link"]
-            thumbnail = result["thumbnails"][0]["url"].split("?")[0]
-            break
+        t, m, s, thumb, vid = await self.details(link, videoid=videoid)
         track_details = {
-            "title": title,
-            "link": yturl,
-            "vidid": vidid,
-            "duration_min": duration_min,
-            "thumb": thumbnail,
+            "title": t,
+            "link": f"https://www.youtube.com/watch?v={vid}" if vid else link,
+            "vidid": vid,
+            "duration_min": m,
+            "duration_sec": s,
+            "thumb": thumb,
         }
-        return track_details, vidid
+        return track_details, vid
 
     async def formats(self, link: str, videoid: Union[bool, str] = None):
         if videoid:
@@ -356,9 +363,8 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        a = VideosSearch(link, limit=10)
-        res = await a.next()
-        result = res.get("result", [])
+        res_data = await asyncio.to_thread(self._sync_search, link, 10)
+        result = res_data.get("result", [])
         if not result or query_type >= len(result):
             return "Unknown", "0:00", None, None
         title = result[query_type]["title"]
@@ -366,6 +372,7 @@ class YouTubeAPI:
         vidid = result[query_type]["id"]
         thumbnail = result[query_type]["thumbnails"][0]["url"].split("?")[0]
         return title, duration_min, thumbnail, vidid
+
 
     async def download(
         self,
@@ -1997,17 +2004,16 @@ class UserBot:
                     is_outgoing = bool(getattr(event, "out", False))
                     
                     # Deduplicate in case main bot also saw it
-                    if utils.check_and_mark_command(chat_id, raw_text):
+                    if utils.check_and_mark_command(chat_id, raw_text, msg_id=getattr(event, "id", 0)):
                         if cmd in ("play", "vplay", "cplay", "stream", "vstream", "playforce", "vplayforce", "cplayforce", "forceplay", "vforceplay"):
                             play_type = "video" if ("vplay" in cmd or "vstream" in cmd) else "audio"
                             is_force = any(k in cmd for k in ["force", "cplayforce"])
                             reply_msg = await event.get_reply_message() if event.is_reply else None
                             local_file_path = None
                             audio_title = None
-                            audio_duration = 30
+                            audio_duration = 0
                             
-                            from handlers.player import _active_chat_players, _chat_queues, _track_timer_tasks, play_next_in_queue
-                            is_already_playing = (chat_id in _active_chat_players and _active_chat_players[chat_id].get("bot"))
+                            from handlers.player import _active_chat_players, _chat_queues, _track_timer_tasks, _preparing_chats, get_chat_lock, play_next_in_queue
                             
                             inquiry_text = utils.format_html_message(
                                 f"<blockquote><b>» 🎧 ᴘʟᴀʏɪɴɢ ɪɴǫᴜɪʀʏ...</b>\n\n"
@@ -2059,74 +2065,86 @@ class UserBot:
                             # Fetch metadata if it's a query and not a local file
                             if query and not local_file_path:
                                 try:
-                                    yt = YouTube()
-                                    t, m, s, thumb, vid = await yt.details(query)
-                                    audio_title = t or audio_title
-                                    audio_duration = s or audio_duration
-                                except Exception:
-                                    pass
+                                    t, m, s, thumb, vid = await YouTube.details(query)
+                                    if t:
+                                        audio_title = t
+                                    if s:
+                                        audio_duration = s
+                                except Exception as yt_err:
+                                    logger.warning(f"Error fetching YouTube details in userbot: {yt_err}")
                                     
-                            # If already playing and not force play -> Add to Queue
-                            if is_already_playing and not is_force:
-                                if chat_id not in _chat_queues:
-                                    _chat_queues[chat_id] = []
-                                _chat_queues[chat_id].append({
-                                    "query": query,
-                                    "play_type": play_type,
-                                    "requester_name": sender_name,
-                                    "requester_id": requester_id,
-                                    "local_file": local_file_path,
-                                    "title": audio_title or query,
-                                    "duration": audio_duration,
-                                    "thumb": None
-                                })
-                                pos = len(_chat_queues[chat_id])
-                                mins, secs = divmod(audio_duration or 0, 60)
-                                dur_str = f"{mins:02d}:{secs:02d}" if audio_duration else "03:00"
-                                mode_emoji = "🎬 ᴠɪᴅᴇᴏ" if play_type == "video" else "🎙️ ᴀᴜᴅɪᴏ"
-                                
-                                await prog.edit(
-                                    utils.format_html_message(
-                                        f"<blockquote><b>» 📋 ᴀᴅᴅᴇᴅ ᴛᴏ ǫᴜᴇᴜᴇ : #{pos}</b>\n\n"
-                                        f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{audio_title or query}</b>\n"
-                                        f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
-                                        f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
-                                        f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{sender_name}</a>\n\n"
-                                        f"💡 <i>ᴛʀᴀᴄᴋ ᴡɪʟʟ ᴘʟᴀʏ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀғᴛᴇʀ ᴄᴜʀʀᴇɴᴛ sᴏɴɢ ғɪɴɪsʜᴇs.</i></blockquote>"
-                                    )
+                            # If already playing, preparing, or queue has songs, and not force play -> Add to Queue
+                            async with get_chat_lock(chat_id):
+                                is_busy = (
+                                    (chat_id in _active_chat_players and _active_chat_players[chat_id].get("bot")) or
+                                    (chat_id in _preparing_chats) or
+                                    (len(_chat_queues.get(chat_id, [])) > 0)
                                 )
-                                return
+                                if is_busy and not is_force:
+                                    if chat_id not in _chat_queues:
+                                        _chat_queues[chat_id] = []
+                                    _chat_queues[chat_id].append({
+                                        "query": query,
+                                        "play_type": play_type,
+                                        "requester_name": sender_name,
+                                        "requester_id": requester_id,
+                                        "local_file": local_file_path,
+                                        "title": audio_title or query,
+                                        "duration": audio_duration,
+                                        "thumb": None
+                                    })
+                                    pos = len(_chat_queues[chat_id])
+                                    mins, secs = divmod(audio_duration or 0, 60)
+                                    dur_str = f"{mins:02d}:{secs:02d}" if audio_duration else "03:00"
+                                    mode_emoji = "🎬 ᴠɪᴅᴇᴏ" if play_type == "video" else "🎙️ ᴀᴜᴅɪᴏ"
+                                    
+                                    await prog.edit(
+                                        utils.format_html_message(
+                                            f"<blockquote><b>» 📋 ᴀᴅᴅᴇᴅ ᴛᴏ ǫᴜᴇᴜᴇ : #{pos}</b>\n\n"
+                                            f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{audio_title or query}</b>\n"
+                                            f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
+                                            f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
+                                            f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{sender_name}</a>\n\n"
+                                            f"💡 <i>ᴛʀᴀᴄᴋ ᴡɪʟʟ ᴘʟᴀʏ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀғᴛᴇʀ ᴄᴜʀʀᴇɴᴛ sᴏɴɢ ғɪɴɪsʜᴇs.</i></blockquote>"
+                                        )
+                                    )
+                                    return
+                                else:
+                                    _preparing_chats.add(chat_id)
 
-                            await prog.edit(
-                                utils.format_html_message(
-                                    f"<blockquote><b>» ⏳ ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
-                                    f"🎙️ <i>ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ & sᴛᴀʀᴛɪɴɢ sᴛʀᴇᴀᴍ ᴘɪᴘᴇʟɪɴᴇ...</i></blockquote>"
-                                )
-                            )
-                            
-                            # Cancel previous timer
-                            prev_timer = _track_timer_tasks.pop(chat_id, None)
-                            if prev_timer and not prev_timer.done():
-                                prev_timer.cancel()
-                                
-                            success, msg, song_info = await self.play_song(
-                                query=query,
-                                play_type=play_type,
-                                chat_id=chat_id,
-                                local_file=local_file_path,
-                                title=audio_title,
-                                duration=audio_duration
-                            )
-                            
-                            if not success or not song_info:
+                            try:
                                 await prog.edit(
                                     utils.format_html_message(
-                                        f"<blockquote><b>» ❌ ᴘʟᴀʏʙᴀᴄᴋ ғᴀɪʟᴇᴅ</b>\n\n"
-                                        f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{msg}</code>\n\n"
-                                        f"💡 <b>ᴛɪᴘ :</b> ᴍᴀᴋᴇ sᴜʀᴇ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ɪs sᴛᴀʀᴛᴇᴅ!</blockquote>"
+                                        f"<blockquote><b>» ⏳ ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
+                                        f"🎙️ <i>ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ & sᴛᴀʀᴛɪɴɢ sᴛʀᴇᴀᴍ ᴘɪᴘᴇʟɪɴᴇ...</i></blockquote>"
                                     )
                                 )
-                                return
+                                
+                                # Cancel previous timer
+                                prev_timer = _track_timer_tasks.pop(chat_id, None)
+                                if prev_timer and not prev_timer.done():
+                                    prev_timer.cancel()
+                                    
+                                success, msg, song_info = await self.play_song(
+                                    query=query,
+                                    play_type=play_type,
+                                    chat_id=chat_id,
+                                    local_file=local_file_path,
+                                    title=audio_title,
+                                    duration=audio_duration
+                                )
+                                
+                                if not success or not song_info:
+                                    await prog.edit(
+                                        utils.format_html_message(
+                                            f"<blockquote><b>» ❌ ᴘʟᴀʏʙᴀᴄᴋ ғᴀɪʟᴇᴅ</b>\n\n"
+                                            f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{msg}</code>\n\n"
+                                            f"💡 <b>ᴛɪᴘ :</b> ᴍᴀᴋᴇ sᴜʀᴇ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ɪs sᴛᴀʀᴛᴇᴅ!</blockquote>"
+                                        )
+                                    )
+                                    return
+                            finally:
+                                _preparing_chats.discard(chat_id)
                                 
                             title = song_info.get("title", "Unknown Track")
                             duration = song_info.get("duration", 0)
