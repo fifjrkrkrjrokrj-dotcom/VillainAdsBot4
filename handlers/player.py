@@ -225,9 +225,12 @@ async def play_next_in_queue(chat_id: int, client=None):
             try:
                 sent_msg = await send_client.send_message(chat_id, np_text, buttons=buttons, parse_mode="html")
             except Exception:
-                # If even text with buttons fails (e.g. self-bot without bot permissions), send pure text
+                # If even text with buttons fails (e.g. self-bot without bot permissions), send pure text but WITH thumbnail if available
                 try:
-                    sent_msg = await send_client.send_message(chat_id, np_text, parse_mode="html")
+                    if thumb_enabled and _thumb_valid(thumb_file):
+                        sent_msg = await send_client.send_message(chat_id, np_text, file=thumb_file, parse_mode="html")
+                    else:
+                        sent_msg = await send_client.send_message(chat_id, np_text, parse_mode="html")
                 except Exception:
                     pass
                 
