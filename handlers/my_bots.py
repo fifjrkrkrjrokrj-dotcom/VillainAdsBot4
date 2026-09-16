@@ -3061,7 +3061,7 @@ def register_handlers(client):
             return
 
         elif action == "WAITING_FOR_ALL_MULTI_WELCOME":
-            msgs = [x.strip() for x in event.text.split(",") if x.strip()]
+            msgs = [x.strip() for x in event.text.split("|") if x.strip()]
             if not msgs:
                 await event.reply("<blockquote><b>» ❌ ɪɴᴘᴜᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
                 return
@@ -3520,7 +3520,7 @@ def register_handlers(client):
             
         # 2.b Multiple Welcome Messages
         elif action == "WAITING_FOR_MULTI_WELCOME":
-            msgs = [x.strip() for x in event.text.split(",") if x.strip()]
+            msgs = [x.strip() for x in event.text.split("|") if x.strip()]
             if not msgs:
                 await event.reply("<blockquote><b>» ❌ ɪɴᴘᴜᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
                 return

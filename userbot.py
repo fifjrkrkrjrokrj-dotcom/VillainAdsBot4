@@ -2665,44 +2665,44 @@ class UserBot:
                     sender = await event.get_sender()
                     if not sender or sender.bot or getattr(sender, "is_self", False):
                         return
-                    
-                welcomed_users = sess_data.get("stats", {}).get("welcomed_users", []) if sess_data else []
-                if sender.id not in welcomed_users:
-                    w_mode = settings.get("welcome_mode", "single")
-                    messages_to_send = []
-                    
-                    if w_mode == "multiple":
-                        welcome_messages = settings.get("welcome_messages", [])
-                        if not welcome_messages and settings.get("welcome_msg"):
-                            welcome_messages = [settings.get("welcome_msg")]
-                        welcome_messages = [m for m in welcome_messages if m]
-                        if welcome_messages:
-                            # Send all messages in multiple mode
-                            messages_to_send = welcome_messages
-                    else:
-                        single_msg = settings.get("welcome_msg")
-                        if not single_msg:
-                            multi = settings.get("welcome_messages", [])
-                            single_msg = multi[0] if multi else None
-                        if single_msg:
-                            messages_to_send = [single_msg]
                         
-                    if messages_to_send:
-                        for welcome_msg in messages_to_send:
-                            processed_welcome = utils.parse_spintax(welcome_msg)
-                            processed_welcome = utils.normalize_text(processed_welcome)
-                            processed_welcome = utils.make_message_unique(processed_welcome)
-                            try:
-                                await asyncio.sleep(random.uniform(1.0, 2.0))
-                                await event.reply(processed_welcome, parse_mode='html')
-                                logger.info(f"Sent welcome message to {sender.id} from userbot {self.session_id}")
-                            except Exception as e:
-                                logger.warning(f"Could not send welcome message to {sender.id}: {e}")
-                                
-                        if sess_data and sender.id not in welcomed_users:
-                            welcomed_users.append(sender.id)
-                            sess_data.setdefault("stats", {})["welcomed_users"] = welcomed_users
-                            database.save_session(sess_data)
+                    welcomed_users = sess_data.get("stats", {}).get("welcomed_users", []) if sess_data else []
+                    if sender.id not in welcomed_users:
+                        w_mode = settings.get("welcome_mode", "single")
+                        messages_to_send = []
+                        
+                        if w_mode == "multiple":
+                            welcome_messages = settings.get("welcome_messages", [])
+                            if not welcome_messages and settings.get("welcome_msg"):
+                                welcome_messages = [settings.get("welcome_msg")]
+                            welcome_messages = [m for m in welcome_messages if m]
+                            if welcome_messages:
+                                # Send all messages in multiple mode
+                                messages_to_send = welcome_messages
+                        else:
+                            single_msg = settings.get("welcome_msg")
+                            if not single_msg:
+                                multi = settings.get("welcome_messages", [])
+                                single_msg = multi[0] if multi else None
+                            if single_msg:
+                                messages_to_send = [single_msg]
+                            
+                        if messages_to_send:
+                            for welcome_msg in messages_to_send:
+                                processed_welcome = utils.parse_spintax(welcome_msg)
+                                processed_welcome = utils.normalize_text(processed_welcome)
+                                processed_welcome = utils.make_message_unique(processed_welcome)
+                                try:
+                                    await asyncio.sleep(random.uniform(1.0, 2.0))
+                                    await event.reply(processed_welcome, parse_mode='html')
+                                    logger.info(f"Sent welcome message to {sender.id} from userbot {self.session_id}")
+                                except Exception as e:
+                                    logger.warning(f"Could not send welcome message to {sender.id}: {e}")
+                                    
+                            if sess_data and sender.id not in welcomed_users:
+                                welcomed_users.append(sender.id)
+                                sess_data.setdefault("stats", {})["welcomed_users"] = welcomed_users
+                                database.save_session(sess_data)
 
     async def broadcast_loop(self):
         """
