@@ -914,12 +914,13 @@ def register_handlers(client):
         if not check_admin(event.sender_id):
             return
         all_sessions = database.get_sessions()
+        active_sessions = [s for s in all_sessions if s.get("status") not in ("unauthorized", "dead", "revoked", "deleted", "banned")]
         all_users = database.get_all_users()
         
         text = (
             f"<blockquote><b>» 📢 ADMIN BROADCAST CONTROL HUB</b>\n\n"
             f"Select the type of broadcast you want to perform:\n\n"
-            f"⚡ <b>Global UserBots Broadcast:</b> Broadcast directly through all <b>{len(all_sessions)}</b> connected UserBots across their joined Groups, Supergroups, or DMs!\n\n"
+            f"⚡ <b>Global UserBots Broadcast:</b> Broadcast directly through all <b>{len(active_sessions)}</b> active UserBots across their joined Groups, Supergroups, or DMs!\n\n"
             f"🤖 <b>Main Bot Users Broadcast:</b> Broadcast directly through this Bot to all <b>{len(all_users)}</b> registered bot users.</blockquote>"
         )
         buttons = [
@@ -943,9 +944,10 @@ def register_handlers(client):
         if not check_admin(event.sender_id):
             return
         all_sessions = database.get_sessions()
+        active_sessions = [s for s in all_sessions if s.get("status") not in ("unauthorized", "dead", "revoked", "deleted", "banned")]
         text = (
             f"<blockquote><b>» ⚡ GLOBAL USERBOTS BROADCAST</b>\n\n"
-            f"🤖 <b>Total UserBots Available:</b> <b>{len(all_sessions)}</b>\n\n"
+            f"🤖 <b>Active UserBots Available:</b> <b>{len(active_sessions)}</b>\n\n"
             f"📌 <b>Select Target Destination:</b>\n"
             f"Choose where the UserBots should send your broadcast message:</blockquote>"
         )
@@ -1013,6 +1015,159 @@ def register_handlers(client):
         except Exception:
             await event.respond(prompt_text, buttons=buttons)
 
+    async def _execute_global_ub_broadcast(client, prog_msg, target, target_title, broadcast_msg, active_sessions):
+        import userbot_manager
+        from telethon.errors import (
+            FloodWaitError, ChatWriteForbiddenError, UserBannedInChannelError,
+            ChatAdminRequiredError, ChannelPrivateError, InputPeerInvalidError,
+            SlowModeWaitError
+        )
+        import asyncio
+        import time
+        import os
+
+        total_bots = len(active_sessions)
+        total_sent_groups = 0
+        total_sent_dms = 0
+        total_failed = 0
+        bots_done = 0
+        last_edit_time = time.time()
+
+        # Download media once to disk if the broadcast message has media
+        media_path = None
+        if broadcast_msg.media:
+            try:
+                media_path = await client.download_media(broadcast_msg)
+                logger.info(f"Downloaded broadcast media to {media_path}")
+            except Exception as dl_err:
+                logger.error(f"Failed to download broadcast media: {dl_err}")
+
+        try:
+            for sess in active_sessions:
+                sess_id = sess.get("session_id") or sess.get("phone")
+                phone_num = sess.get("phone") or sess_id
+
+                try:
+                    # Check if bot is running
+                    bot_obj = userbot_manager._running_bots.get(sess_id) or userbot_manager._running_bots.get(phone_num)
+                    if not bot_obj or not bot_obj.is_running:
+                        started = await userbot_manager.start_userbot(sess_id)
+                        if not started and phone_num != sess_id:
+                            started = await userbot_manager.start_userbot(phone_num)
+                        bot_obj = userbot_manager._running_bots.get(sess_id) or userbot_manager._running_bots.get(phone_num)
+
+                    if not bot_obj or not bot_obj.client:
+                        logger.warning(f"Userbot {phone_num} could not be loaded or started for broadcast.")
+                        total_failed += 1
+                        bots_done += 1
+                        continue
+
+                    ub_client = bot_obj.client
+                    if not ub_client.is_connected():
+                        await ub_client.connect()
+
+                    # Iterate dialogs
+                    async for dialog in ub_client.iter_dialogs(limit=150):
+                        is_grp = dialog.is_group or (dialog.is_channel and getattr(dialog.entity, 'megagroup', False))
+                        is_dm = dialog.is_user and not getattr(dialog.entity, 'bot', False) and not getattr(dialog.entity, 'is_self', False)
+
+                        should_send = False
+                        if target == "groups" and is_grp:
+                            should_send = True
+                        elif target == "dms" and is_dm:
+                            should_send = True
+                        elif target == "both" and (is_grp or is_dm):
+                            should_send = True
+
+                        if not should_send:
+                            continue
+
+                        try:
+                            if media_path:
+                                await ub_client.send_file(dialog.id, media_path, caption=broadcast_msg.text or "")
+                            else:
+                                await ub_client.send_message(dialog.id, broadcast_msg.text or "")
+
+                            if is_grp:
+                                total_sent_groups += 1
+                            else:
+                                total_sent_dms += 1
+
+                            now = time.time()
+                            if now - last_edit_time >= 4.0:
+                                last_edit_time = now
+                                try:
+                                    await prog_msg.edit(
+                                        f"<blockquote><b>» ⏳ GLOBAL USERBOT BROADCAST IN PROGRESS</b>\n\n"
+                                        f"🎯 <b>Target:</b> <b>{target_title}</b>\n"
+                                        f"🤖 <b>Processing UserBots:</b> <code>[{bots_done + 1} / {total_bots}]</code>\n"
+                                        f"👥 <b>Groups Sent:</b> <code>{total_sent_groups}</code>\n"
+                                        f"👤 <b>DMs Sent:</b> <code>{total_sent_dms}</code>\n"
+                                        f"⚠️ <b>Skipped / Errors:</b> <code>{total_failed}</code>\n\n"
+                                        f"⚡ <i>Broadcasting actively in background with floodwait protection...</i></blockquote>"
+                                    )
+                                except Exception:
+                                    pass
+
+                            await asyncio.sleep(1.0)
+
+                        except FloodWaitError as fwe:
+                            if fwe.seconds <= 20:
+                                await asyncio.sleep(fwe.seconds + 1)
+                            else:
+                                logger.warning(f"Long FloodWait ({fwe.seconds}s) on userbot {phone_num}, moving to next...")
+                                total_failed += 1
+                                break
+                        except (ChatWriteForbiddenError, UserBannedInChannelError, ChatAdminRequiredError, ChannelPrivateError, InputPeerInvalidError):
+                            total_failed += 1
+                        except SlowModeWaitError:
+                            total_failed += 1
+                        except Exception as send_err:
+                            logger.debug(f"Failed to send from {phone_num} to {dialog.id}: {send_err}")
+                            total_failed += 1
+
+                except Exception as bot_err:
+                    logger.error(f"Error processing broadcast for bot {phone_num}: {bot_err}")
+                    total_failed += 1
+
+                bots_done += 1
+                try:
+                    await prog_msg.edit(
+                        f"<blockquote><b>» ⏳ GLOBAL USERBOT BROADCAST IN PROGRESS</b>\n\n"
+                        f"🎯 <b>Target:</b> <b>{target_title}</b>\n"
+                        f"🤖 <b>Processing UserBots:</b> <code>[{bots_done} / {total_bots}]</code>\n"
+                        f"👥 <b>Groups Sent:</b> <code>{total_sent_groups}</code>\n"
+                        f"👤 <b>DMs Sent:</b> <code>{total_sent_dms}</code>\n"
+                        f"⚠️ <b>Skipped / Errors:</b> <code>{total_failed}</code>\n\n"
+                        f"⚡ <i>Broadcasting actively in background with floodwait protection...</i></blockquote>"
+                    )
+                except Exception:
+                    pass
+
+        finally:
+            if media_path and os.path.exists(media_path):
+                try:
+                    os.remove(media_path)
+                except Exception:
+                    pass
+
+        report = (
+            f"<blockquote><b>» 📊 GLOBAL USERBOT BROADCAST COMPLETED</b>\n\n"
+            f"🎯 <b>Target Destination:</b> <b>{target_title}</b>\n"
+            f"🤖 <b>UserBots Used:</b> <b>{bots_done} / {total_bots}</b>\n"
+            f"👥 <b>Groups Delivered:</b> <b>{total_sent_groups}</b>\n"
+            f"👤 <b>DMs Delivered:</b> <b>{total_sent_dms}</b>\n"
+            f"⚠️ <b>Errors / Skipped:</b> <b>{total_failed}</b>\n"
+            f"✅ <b>Status:</b> <b>Completed Successfully</b></blockquote>"
+        )
+        try:
+            await prog_msg.edit(report)
+        except Exception:
+            try:
+                await prog_msg.respond(report)
+            except Exception:
+                pass
+
     @client.on(events.CallbackQuery(pattern="^admin_ub_bc_confirm$"))
     async def admin_ub_bc_confirm_callback(event):
         user_id = event.sender_id
@@ -1028,6 +1183,11 @@ def register_handlers(client):
             await admin_broadcast_menu_callback(event)
             return
             
+        try:
+            await event.answer("🚀 Starting Global UserBot Broadcast...", alert=False)
+        except Exception:
+            pass
+
         target = pending["target"]
         broadcast_msg = pending["message"]
         target_names = {
@@ -1038,101 +1198,35 @@ def register_handlers(client):
         target_title = target_names.get(target, target)
         
         all_sessions = database.get_sessions()
-        total_bots = len(all_sessions)
+        active_sessions = [
+            s for s in all_sessions 
+            if s.get("status") not in ("unauthorized", "dead", "revoked", "deleted", "banned")
+        ]
         
-        if total_bots == 0:
-            await event.respond("❌ No userbot sessions found in database.")
+        if not active_sessions:
+            await event.respond("❌ <b>No active or authorized userbot sessions found to broadcast.</b>\n\nPlease add or start userbots first.")
             return
             
         prog_msg = await event.respond(
             f"<blockquote><b>» ⏳ GLOBAL USERBOT BROADCAST IN PROGRESS</b>\n\n"
             f"🎯 <b>Target:</b> <b>{target_title}</b>\n"
-            f"🤖 <b>Processing UserBots:</b> <code>[0 / {total_bots}]</code>\n"
+            f"🤖 <b>Processing UserBots:</b> <code>[0 / {len(active_sessions)}]</code>\n"
             f"👥 <b>Groups Sent:</b> <code>0</code>\n"
             f"👤 <b>DMs Sent:</b> <code>0</code>\n\n"
             f"⚡ <i>Broadcasting in background with floodwait protection...</i></blockquote>"
         )
         
-        import userbot_manager
-        from telethon.errors import FloodWaitError
         import asyncio
-        
-        total_sent_groups = 0
-        total_sent_dms = 0
-        total_failed = 0
-        bots_done = 0
-        
-        for sess in all_sessions:
-            phone_num = sess["phone"]
-            try:
-                # Ensure bot is started
-                if not userbot_manager.is_bot_running(phone_num):
-                    await userbot_manager.start_userbot(phone_num)
-                    
-                bot_obj = userbot_manager._running_bots.get(phone_num)
-                if not bot_obj or not bot_obj.client:
-                    total_failed += 1
-                    bots_done += 1
-                    continue
-                    
-                ub_client = bot_obj.client
-                if not ub_client.is_connected():
-                    await ub_client.connect()
-                    
-                # Iterate dialogs
-                async for dialog in ub_client.iter_dialogs():
-                    is_grp = dialog.is_group or (dialog.is_channel and getattr(dialog.entity, 'megagroup', False))
-                    is_dm = dialog.is_user and not getattr(dialog.entity, 'bot', False) and not getattr(dialog.entity, 'is_self', False)
-                    
-                    should_send = False
-                    if target == "groups" and is_grp:
-                        should_send = True
-                    elif target == "dms" and is_dm:
-                        should_send = True
-                    elif target == "both" and (is_grp or is_dm):
-                        should_send = True
-                        
-                    if not should_send:
-                        continue
-                        
-                    try:
-                        # Forward or send message
-                        if broadcast_msg.media:
-                            await ub_client.send_file(dialog.id, broadcast_msg.media, caption=broadcast_msg.text)
-                        else:
-                            await ub_client.send_message(dialog.id, broadcast_msg.text)
-                            
-                        if is_grp:
-                            total_sent_groups += 1
-                        else:
-                            total_sent_dms += 1
-                        await asyncio.sleep(1.0)
-                    except FloodWaitError as fwe:
-                        logger.warning(f"FloodWait on userbot {phone_num}: sleeping {fwe.seconds}s")
-                        await asyncio.sleep(min(fwe.seconds, 15))
-                    except Exception as send_err:
-                        logger.debug(f"Failed to send from {phone_num} to {dialog.id}: {send_err}")
-                        total_failed += 1
-                        
-            except Exception as bot_err:
-                logger.error(f"Error processing broadcast for bot {phone_num}: {bot_err}")
-                total_failed += 1
-                
-            bots_done += 1
-            
-        report = (
-            f"<blockquote><b>» 📊 GLOBAL USERBOT BROADCAST COMPLETED</b>\n\n"
-            f"🎯 <b>Target Destination:</b> <b>{target_title}</b>\n"
-            f"🤖 <b>UserBots Used:</b> <b>{bots_done} / {total_bots}</b>\n"
-            f"👥 <b>Groups Delivered:</b> <b>{total_sent_groups}</b>\n"
-            f"👤 <b>DMs Delivered:</b> <b>{total_sent_dms}</b>\n"
-            f"⚠️ <b>Errors / Skipped:</b> <b>{total_failed}</b>\n"
-            f"✅ <b>Status:</b> <b>Completed Successfully</b></blockquote>"
+        asyncio.create_task(
+            _execute_global_ub_broadcast(
+                client=client,
+                prog_msg=prog_msg,
+                target=target,
+                target_title=target_title,
+                broadcast_msg=broadcast_msg,
+                active_sessions=active_sessions
+            )
         )
-        try:
-            await prog_msg.edit(report)
-        except Exception:
-            await event.respond(report)
 
 
     # ------------------ Admin Message Input Listener ------------------
@@ -1478,11 +1572,12 @@ def register_handlers(client):
                 }
                 target_title = target_names.get(target, target)
                 all_sessions = database.get_sessions()
+                active_sessions = [s for s in all_sessions if s.get("status") not in ("unauthorized", "dead", "revoked", "deleted", "banned")]
                 
                 confirm_text = (
                     f"<blockquote><b>» 🚀 CONFIRM GLOBAL USERBOT BROADCAST</b>\n\n"
                     f"🎯 <b>Target:</b> <b>{target_title}</b>\n"
-                    f"🤖 <b>Total UserBots:</b> <b>{len(all_sessions)}</b>\n\n"
+                    f"🤖 <b>Active UserBots:</b> <b>{len(active_sessions)}</b>\n\n"
                     f"⚠️ <i>Broadcast will be dispatched from all connected userbots across their joined chats with smart flood protection.</i>\n\n"
                     f"<b>Are you ready to start broadcasting?</b></blockquote>"
                 )
