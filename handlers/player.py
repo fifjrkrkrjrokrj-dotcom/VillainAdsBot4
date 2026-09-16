@@ -137,15 +137,16 @@ def format_now_playing_text(song_info: dict, requester_name: str, requester_id: 
     
     req_name_safe = html.escape(requester_name)
     text = (
-        f"<blockquote><b>» 🎵 ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ</b>\n\n"
+        f"<b>» 🎵 ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ</b>\n\n"
         f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{title_safe}</b>\n"
         f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
         f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
         f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{req_name_safe}</a>\n"
         f"<b>🤖 sᴛʀᴇᴀᴍ sᴏᴜʀᴄᴇ :</b> <b>{ub_name}</b> ({ub_display})\n\n"
-        f"⚡ <i>ᴄᴏɴᴛʀᴏʟ sᴛʀᴇᴀᴍ ᴜsɪɴɢ ɪɴᴛᴇʀᴀᴄᴛɪᴠᴇ ʙᴜᴛᴛᴏɴs ʙᴇʟᴏᴡ.</i></blockquote>"
+        f"⚡ <i>ᴄᴏɴᴛʀᴏʟ sᴛʀᴇᴀᴍ ᴜsɪɴɢ ɪɴᴛᴇʀᴀᴄᴛɪᴠᴇ ʙᴜᴛᴛᴏɴs ʙᴇʟᴏᴡ.</i>"
     )
-    return text
+    import utils
+    return utils.format_html_message(text)
 
 
 async def play_next_in_queue(chat_id: int, client=None):
@@ -179,7 +180,12 @@ async def play_next_in_queue(chat_id: int, client=None):
     audio_title = next_item.get("title")
     audio_duration = next_item.get("duration", 30)
     
-    bot_obj, err = await get_or_start_userbot_for_chat(requester_id, chat_id)
+    active_sess = _active_chat_players.get(chat_id)
+    if active_sess and active_sess.get("bot"):
+        bot_obj = active_sess["bot"]
+    else:
+        bot_obj, err = await get_or_start_userbot_for_chat(requester_id, chat_id)
+
     if not bot_obj:
         logger.error(f"Cannot auto-advance queue: {err}")
         return
@@ -212,28 +218,26 @@ async def play_next_in_queue(chat_id: int, client=None):
             return True
         return os.path.exists(s) and os.path.getsize(s) > 0
 
-    # Use main bot if available, otherwise fallback
-    send_client = client or _main_bot or getattr(bot_obj, "client", None)
     sent_msg = None
-    if send_client:
+    if _main_bot:
         try:
             if thumb_enabled and _thumb_valid(thumb_file):
-                sent_msg = await send_client.send_message(chat_id, np_text, file=thumb_file, buttons=buttons, parse_mode="html")
+                sent_msg = await _main_bot.send_message(chat_id, np_text, file=thumb_file, buttons=buttons, parse_mode="html")
             else:
-                sent_msg = await send_client.send_message(chat_id, np_text, buttons=buttons, parse_mode="html")
+                sent_msg = await _main_bot.send_message(chat_id, np_text, buttons=buttons, parse_mode="html")
         except Exception as send_err:
-            logger.warning(f"Failed to send queue now playing with thumb: {send_err}, fallback to text")
-            try:
-                sent_msg = await send_client.send_message(chat_id, np_text, buttons=buttons, parse_mode="html")
-            except Exception:
-                # If even text with buttons fails (e.g. self-bot without bot permissions), send pure text but WITH thumbnail if available
-                try:
-                    if thumb_enabled and _thumb_valid(thumb_file):
-                        sent_msg = await send_client.send_message(chat_id, np_text, file=thumb_file, parse_mode="html")
-                    else:
-                        sent_msg = await send_client.send_message(chat_id, np_text, parse_mode="html")
-                except Exception:
-                    pass
+            logger.warning(f"Failed to send queue now playing with thumb using main_bot: {send_err}")
+            
+    # Fallback to userbot if main bot fails or is unavailable
+    ub_client = getattr(bot_obj, "client", None)
+    if not sent_msg and ub_client:
+        try:
+            if thumb_enabled and _thumb_valid(thumb_file):
+                sent_msg = await ub_client.send_message(chat_id, np_text, file=thumb_file, parse_mode="html")
+            else:
+                sent_msg = await ub_client.send_message(chat_id, np_text, parse_mode="html")
+        except Exception as ub_err:
+            logger.warning(f"Userbot also failed to send queue np: {ub_err}")
                 
     _active_chat_players[chat_id] = {
         "bot": bot_obj,

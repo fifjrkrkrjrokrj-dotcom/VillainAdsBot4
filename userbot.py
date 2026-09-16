@@ -1413,6 +1413,17 @@ class UserBot:
     async def get_pytgcalls(self) -> PyTgCalls:
         if not self.pytgcalls_client:
             self.pytgcalls_client = PyTgCalls(self.client)
+            
+            @self.pytgcalls_client.on_stream_end()
+            async def on_stream_end(client, update):
+                try:
+                    chat_id = getattr(update, "chat_id", None)
+                    if chat_id:
+                        from handlers.player import play_next_in_queue
+                        await play_next_in_queue(chat_id)
+                except Exception as e:
+                    logger.error(f"Error in on_stream_end: {e}")
+
             await self.pytgcalls_client.start()
         return self.pytgcalls_client
 
@@ -1447,6 +1458,13 @@ class UserBot:
         if not self.is_running or not target_chat:
             return False, "Not in a Voice Chat."
         try:
+            from handlers.player import _chat_queues, _active_chat_players, _track_timer_tasks
+            _chat_queues.pop(target_chat, None)
+            _active_chat_players.pop(target_chat, None)
+            prev_timer = _track_timer_tasks.pop(target_chat, None)
+            if prev_timer and not prev_timer.done() and prev_timer != asyncio.current_task():
+                prev_timer.cancel()
+
             pytg = await self.get_pytgcalls()
             try:
                 await pytg.leave_group_call(target_chat)
@@ -2038,6 +2056,16 @@ class UserBot:
                             sender_name = getattr(sender, "first_name", "User") or "User"
                             requester_id = getattr(sender, "id", 0) or 0
 
+                            # Fetch metadata if it's a query and not a local file
+                            if query and not local_file_path:
+                                try:
+                                    yt = YouTube()
+                                    t, m, s, thumb, vid = await yt.details(query)
+                                    audio_title = t or audio_title
+                                    audio_duration = s or audio_duration
+                                except Exception:
+                                    pass
+                                    
                             # If already playing and not force play -> Add to Queue
                             if is_already_playing and not is_force:
                                 if chat_id not in _chat_queues:
@@ -2137,6 +2165,7 @@ class UserBot:
                             from handlers.player import _main_bot, build_now_playing_markup
                             buttons = build_now_playing_markup(chat_id, is_paused=False, is_muted=False)
                             
+                            sent_msg = None
                             if _main_bot:
                                 try:
                                     await prog.delete()
@@ -2144,48 +2173,80 @@ class UserBot:
                                     pass
                                 try:
                                     if thumb_enabled and _tf_valid:
-                                        await _main_bot.send_message(chat_id, np_text, file=thumb_file, buttons=buttons)
+                                        sent_msg = await _main_bot.send_message(chat_id, np_text, file=thumb_file, buttons=buttons)
                                     else:
-                                        await _main_bot.send_message(chat_id, np_text, buttons=buttons)
+                                        sent_msg = await _main_bot.send_message(chat_id, np_text, buttons=buttons)
                                 except Exception as e:
                                     if thumb_enabled and _tf_valid:
-                                        await event.respond(np_text, file=thumb_file)
+                                        sent_msg = await event.respond(np_text, file=thumb_file)
                                     else:
-                                        await event.respond(np_text)
+                                        sent_msg = await event.respond(np_text)
                             else:
                                 if thumb_enabled and _tf_valid:
                                     try:
                                         await prog.delete()
                                     except Exception:
                                         pass
-                                    await event.respond(np_text, file=thumb_file)
+                                    sent_msg = await event.respond(np_text, file=thumb_file)
                                 else:
                                     try:
-                                        await prog.edit(np_text)
+                                        sent_msg = await prog.edit(np_text)
                                     except Exception:
-                                        await event.respond(np_text)
+                                        sent_msg = await event.respond(np_text)
+                                        
+                            if sent_msg and hasattr(sent_msg, "id"):
+                                _active_chat_players[chat_id]["msg_id"] = sent_msg.id
                             return
 
                         elif cmd in ("skip", "next", "cskip", "cnext"):
-                            from handlers.player import _chat_queues, _active_chat_players, play_next_in_queue
-                            queue = _chat_queues.get(chat_id, [])
-                            if not queue:
+                            try:
+                                await event.delete()
+                            except Exception:
+                                pass
+                            from handlers.player import _chat_queues, _active_chat_players, _track_timer_tasks, play_next_in_queue
+                            
+                            old_p = _active_chat_players.get(chat_id)
+                            if old_p and old_p.get("msg_id"):
+                                try:
+                                    from handlers.player import _main_bot
+                                    if _main_bot:
+                                        await _main_bot.delete_messages(chat_id, old_p["msg_id"])
+                                    else:
+                                        await self.client.delete_messages(chat_id, old_p["msg_id"])
+                                except Exception:
+                                    pass
+                                    
+                            queue_list = _chat_queues.get(chat_id, [])
+                            prev_timer = _track_timer_tasks.pop(chat_id, None)
+                            if prev_timer and not prev_timer.done() and prev_timer != asyncio.current_task():
+                                prev_timer.cancel()
+
+                            if not queue_list:
                                 await self.stop_song(chat_id)
-                                _active_chat_players.pop(chat_id, None)
-                                prog = await event.reply(
+                                prog = await event.respond(
                                     utils.format_html_message(
                                         "<blockquote><b>» ⏭️ ǫᴜᴇᴜᴇ ᴇᴍᴘᴛʏ</b>\n\n"
                                         "ɴᴏ ᴍᴏʀᴇ sᴏɴɢs ɪɴ ǫᴜᴇᴜᴇ. sᴛʀᴇᴀᴍ ʜᴀs ʙᴇᴇɴ sᴛᴏᴘᴘᴇᴅ.</blockquote>"
                                     )
                                 )
+                                await asyncio.sleep(3)
+                                try:
+                                    await prog.delete()
+                                except Exception:
+                                    pass
                                 return
-                            prog = await event.reply(
+
+                            prog = await event.respond(
                                 utils.format_html_message(
                                     "<blockquote><b>» ⏭️ sᴋɪᴘᴘɪɴɢ ᴛʀᴀᴄᴋ</b>\n\n"
                                     "sᴋɪᴘᴘɪɴɢ ᴛᴏ ɴᴇxᴛ sᴏɴɢ ɪɴ ǫᴜᴇᴜᴇ...</blockquote>"
                                 )
                             )
                             await play_next_in_queue(chat_id)
+                            try:
+                                await prog.delete()
+                            except Exception:
+                                pass
                             return
 
                         elif cmd in ("queue", "q", "playlist", "cqueue"):
@@ -2330,7 +2391,30 @@ class UserBot:
                             return
                             
                         elif cmd in ("stop", "end"):
-                            prog = await event.reply(
+                            try:
+                                await event.delete()
+                            except Exception:
+                                pass
+                            from handlers.player import _chat_queues, _active_chat_players, _track_timer_tasks
+                            
+                            old_p = _active_chat_players.get(chat_id)
+                            if old_p and old_p.get("msg_id"):
+                                try:
+                                    from handlers.player import _main_bot
+                                    if _main_bot:
+                                        await _main_bot.delete_messages(chat_id, old_p["msg_id"])
+                                    else:
+                                        await self.client.delete_messages(chat_id, old_p["msg_id"])
+                                except Exception:
+                                    pass
+                                    
+                            _chat_queues.pop(chat_id, None)
+                            _active_chat_players.pop(chat_id, None)
+                            prev_timer = _track_timer_tasks.pop(chat_id, None)
+                            if prev_timer and not prev_timer.done() and prev_timer != asyncio.current_task():
+                                prev_timer.cancel()
+
+                            prog = await event.respond(
                                 utils.format_html_message(
                                     "<blockquote><b>» ⏳ sᴛᴏᴘᴘɪɴɢ sᴛʀᴇᴀᴍ</b>\n\nsᴛᴏᴘᴘɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ...</blockquote>"
                                 )
@@ -2339,9 +2423,14 @@ class UserBot:
                             if success:
                                 await prog.edit(
                                     utils.format_html_message(
-                                        "<blockquote><b>» ⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ</b>\n\nᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ ʜᴀs ʙᴇᴇɴ sᴛᴏᴘᴘᴇᴅ.</blockquote>"
+                                        "<blockquote><b>» ⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ</b>\n\nᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ ʜᴀs ʙᴇᴇɴ sᴛᴏᴘᴘᴇᴅ & ǫᴜᴇᴜᴇ ᴄʟᴇᴀʀᴇᴅ.</blockquote>"
                                     )
                                 )
+                                await asyncio.sleep(3)
+                                try:
+                                    await prog.delete()
+                                except Exception:
+                                    pass
                             else:
                                 await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ sᴛᴏᴘ</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
                             return

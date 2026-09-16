@@ -123,21 +123,122 @@ def register_handlers(client):
             
         import psutil
         import datetime
+        import threading
         
         try:
             uptime_seconds = int(time.time() - _BOT_START_TIME)
-            uptime = datetime.timedelta(seconds=uptime_seconds)
-            cpu_pct = psutil.cpu_percent(interval=0.1)
-            mem = psutil.virtual_memory()
-            disk_path = os.getcwd() if os.name == 'nt' else '/app' if os.path.exists('/app') else '.'
-            disk = psutil.disk_usage(disk_path)
+            days, remainder = divmod(uptime_seconds, 86400)
+            hours, remainder = divmod(remainder, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            uptime_str = f"{days}d {hours}h {minutes}m {seconds}s" if days else f"{hours}h {minutes}m {seconds}s"
             
+            # 1. CPU Usage (sample over 0.3 seconds)
+            cpu_pct = psutil.cpu_percent(interval=0.3)
+            cpu_cores = psutil.cpu_count(logical=True) or 1
+            
+            # 2. RAM Usage (Container cgroup aware)
+            cgroup_mem_limit = None
+            cgroup_mem_usage = None
+            
+            # Try cgroup v2
+            if os.path.exists("/sys/fs/cgroup/memory.max") and os.path.exists("/sys/fs/cgroup/memory.current"):
+                try:
+                    with open("/sys/fs/cgroup/memory.max", "r") as f:
+                        val = f.read().strip()
+                        if val != "max" and val.isdigit():
+                            cgroup_mem_limit = int(val)
+                    with open("/sys/fs/cgroup/memory.current", "r") as f:
+                        val = f.read().strip()
+                        if val.isdigit():
+                            cgroup_mem_usage = int(val)
+                except Exception:
+                    pass
+                    
+            # Try cgroup v1 fallback
+            if cgroup_mem_limit is None and os.path.exists("/sys/fs/cgroup/memory/memory.limit_in_bytes"):
+                try:
+                    with open("/sys/fs/cgroup/memory/memory.limit_in_bytes", "r") as f:
+                        val = f.read().strip()
+                        if val.isdigit() and int(val) < (1 << 60):
+                            cgroup_mem_limit = int(val)
+                    if os.path.exists("/sys/fs/cgroup/memory/memory.usage_in_bytes"):
+                        with open("/sys/fs/cgroup/memory/memory.usage_in_bytes", "r") as f:
+                            val = f.read().strip()
+                            if val.isdigit():
+                                cgroup_mem_usage = int(val)
+                except Exception:
+                    pass
+
+            sys_mem = psutil.virtual_memory()
+            
+            if cgroup_mem_limit and cgroup_mem_limit < sys_mem.total:
+                total_ram_mb = cgroup_mem_limit // (1024 ** 2)
+                used_ram_mb = (cgroup_mem_usage or 0) // (1024 ** 2)
+                ram_pct = round((used_ram_mb / total_ram_mb) * 100, 1) if total_ram_mb else sys_mem.percent
+            else:
+                total_ram_mb = sys_mem.total // (1024 ** 2)
+                used_ram_mb = sys_mem.used // (1024 ** 2)
+                ram_pct = sys_mem.percent
+
+            # Bot Process RAM
+            proc_mem_bytes = 0
+            try:
+                main_proc = psutil.Process(os.getpid())
+                proc_mem_bytes += main_proc.memory_info().rss
+                for child in main_proc.children(recursive=True):
+                    try:
+                        proc_mem_bytes += child.memory_info().rss
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            proc_ram_mb = round(proc_mem_bytes / (1024 ** 2), 1)
+
+            # 3. Disk Usage
+            disk_path = "C:\\" if os.name == 'nt' else '/'
+            try:
+                disk = psutil.disk_usage(disk_path)
+                disk_pct = disk.percent
+                disk_used_gb = round(disk.used / (1024 ** 3), 1)
+                disk_total_gb = round(disk.total / (1024 ** 3), 1)
+            except Exception:
+                disk_pct, disk_used_gb, disk_total_gb = 0, 0, 0
+
+            # Downloads folder size
+            dl_mb = 0
+            if os.path.exists("downloads"):
+                try:
+                    for root, dirs, files in os.walk("downloads"):
+                        for f in files:
+                            dl_mb += os.path.getsize(os.path.join(root, f))
+                    dl_mb = round(dl_mb / (1024 ** 2), 1)
+                except Exception:
+                    pass
+
+            # 4. Network I/O
+            try:
+                net = psutil.net_io_counters()
+                sent_mb = round(net.bytes_sent / (1024 ** 2), 1)
+                recv_mb = round(net.bytes_recv / (1024 ** 2), 1)
+            except Exception:
+                sent_mb, recv_mb = 0, 0
+
+            # 5. Running UserBots & System Threads
+            import userbot_manager
+            running_bots = len(getattr(userbot_manager, "_running_bots", {}))
+            threads_count = threading.active_count()
+
             text = (
-                "<blockquote><b>» 🖥️ ᴠᴘs sʏsᴛᴇᴍ ᴜsᴀɢᴇ</b>\n\n"
-                f"⏱️ <b>ᴜᴘᴛɪᴍᴇ :</b> <code>{uptime}</code>\n"
-                f"💻 <b>ᴄᴘᴜ ᴜsᴀɢᴇ :</b> <code>{cpu_pct}%</code>\n"
-                f"🧠 <b>ʀᴀᴍ ᴜsᴀɢᴇ :</b> <code>{mem.percent}%</code> <code>({mem.used // (1024**2)}MB / {mem.total // (1024**2)}MB)</code>\n"
-                f"💽 <b>ᴅɪsᴋ ᴜsᴀɢᴇ :</b> <code>{disk.percent}%</code> <code>({disk.used // (1024**3)}GB / {disk.total // (1024**3)}GB)</code></blockquote>"
+                "<blockquote><b>» 🖥️ ᴠᴘs sʏsᴛᴇᴍ ᴜsᴀɢᴇ & sᴛᴀᴛs</b>\n\n"
+                f"⏱️ <b>ᴜᴘᴛɪᴍᴇ :</b> <code>{uptime_str}</code>\n"
+                f"💻 <b>ᴄᴘᴜ ᴜsᴀɢᴇ :</b> <code>{cpu_pct}%</code> <code>({cpu_cores} Cores)</code>\n"
+                f"🧠 <b>ʀᴀᴍ ᴜsᴀɢᴇ :</b> <code>{ram_pct}%</code> <code>({used_ram_mb}MB / {total_ram_mb}MB)</code>\n"
+                f"🤖 <b>ʙᴏᴛ ᴘʀᴏᴄᴇss ʀᴀᴍ :</b> <code>{proc_ram_mb} MB</code>\n"
+                f"💽 <b>ᴅɪsᴋ ᴜsᴀɢᴇ :</b> <code>{disk_pct}%</code> <code>({disk_used_gb}GB / {disk_total_gb}GB)</code>\n"
+                f"📁 <b>ᴅᴏᴡɴʟᴏᴀᴅs ᴄᴀᴄʜᴇ :</b> <code>{dl_mb} MB</code>\n"
+                f"📡 <b>ɴᴇᴛᴡᴏʀᴋ ɪ/ᴏ :</b> <code>⬆️ {sent_mb}MB | ⬇️ {recv_mb}MB</code>\n"
+                f"🤖 <b>ᴀᴄᴛɪᴠᴇ ᴜsᴇʀʙᴏᴛs :</b> <code>{running_bots} Running</code>\n"
+                f"🧵 <b>sʏsᴛᴇᴍ ᴛʜʀᴇᴀᴅs :</b> <code>{threads_count} Active</code></blockquote>"
             )
             
             buttons = [

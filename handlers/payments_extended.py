@@ -137,7 +137,7 @@ def register_handlers(client):
     @client.on(events.CallbackQuery(pattern="^settings_referrals$"))
     async def referrals_dashboard_callback(event):
         user_id = event.sender_id
-        user = database.get_user(user_id)
+        user = database.get_user(user_id) or {}
         lang = user.get("language", "en") if user else "en"
         
         # Calculate stats
@@ -152,17 +152,15 @@ def register_handlers(client):
         global_settings = database.get_global_settings()
         comm_rate = global_settings.get("referral_commission", 0.10) * 100
         
-        text = (
+        text = utils.format_html_message(
             f"<blockquote><b>» 👥 ʀᴇғᴇʀ & ᴇᴀʀɴ ᴘʀᴏɢʀᴀᴍ</b>\n\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔗 Your Referral Link:\n`{ref_link}`\n\n"
-            f"💰 Get <b>₹1.00</b> instantly when a new user starts the bot using your link!\n"
-            f"📈 Also earn <b>{comm_rate:.0f}%</b> commission on all their slot upgrades!\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"👤 Total referred: <b>{referred_count}</b>\n"
-            f"👛 Total referral earnings: <b>₹{earnings:.2f}</b>\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"_Share your link and start earning wallet balance to buy slots!_"
+            f"🔗 <b>ʏᴏᴜʀ ʀᴇғᴇʀʀᴀʟ ʟɪɴᴋ :</b>\n<code>{ref_link}</code>\n\n"
+            f"💰 <b>sɪɢɴᴜᴘ ʙᴏɴᴜs :</b> ɢᴇᴛ <b>₹1.00</b> ɪɴsᴛᴀɴᴛʟʏ ᴡʜᴇɴ ᴀ ғʀɪᴇɴᴅ ᴊᴏɪɴs!\n"
+            f"📈 <b>ᴄᴏᴍᴍɪssɪᴏɴ :</b> ᴇᴀʀɴ <b>{comm_rate:.0f}%</b> ᴄᴏᴍᴍɪssɪᴏɴ ᴏɴ ᴀʟʟ ᴛʜᴇɪʀ sʟᴏᴛ ᴜᴘɢʀᴀᴅᴇs!\n\n"
+            f"📊 <b>ʏᴏᴜʀ sᴛᴀᴛɪsᴛɪᴄs :</b>\n"
+            f"👤 <b>ᴛᴏᴛᴀʟ ʀᴇғᴇʀʀᴇᴅ :</b> <code>{referred_count}</code>\n"
+            f"👛 <b>ᴛᴏᴛᴀʟ ᴇᴀʀɴɪɴɢs :</b> <code>₹{earnings:.2f}</code>\n\n"
+            f"💡 <i>sʜᴀʀᴇ ʏᴏᴜʀ ʟɪɴᴋ & ᴇᴀʀɴ ғʀᴇᴇ ᴡᴀʟʟᴇᴛ ʙᴀʟᴀɴᴄᴇ!</i></blockquote>"
         )
         
         kb = [
@@ -173,6 +171,8 @@ def register_handlers(client):
         await event.respond(text, buttons=kb)
         try:
             await event.delete()
+        except Exception:
+            pass
         except Exception:
             pass
 
