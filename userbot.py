@@ -1570,35 +1570,36 @@ class UserBot:
             else:
                 stream_obj = AudioPiped(file_path)
                 
+            # Always try change_stream first — pytgcalls handles it whether
+            # we're already in VC or not (after .end, pytgcalls may still be
+            # connected internally even if our tracking says otherwise).
             try:
-                if actual_chat in self.joined_vcs or self.current_vc_chat_id == actual_chat:
-                    await pytg.change_stream(actual_chat, stream_obj)
-                else:
+                await pytg.change_stream(actual_chat, stream_obj)
+                self.joined_vcs.add(actual_chat)
+                self.current_vc_chat_id = actual_chat
+                logger.info(f"change_stream succeeded for {actual_chat}")
+            except Exception as cs_err:
+                cs_err_str = str(cs_err).lower()
+                logger.warning(f"change_stream failed ({cs_err}), trying join_group_call...")
+                # If video failed with video source error, fallback to AudioPiped
+                if play_type == "video" and ("video source" in cs_err_str or "no video" in cs_err_str):
+                    stream_obj = AudioPiped(file_path)
+                try:
                     await pytg.join_group_call(actual_chat, stream_obj)
                     self.joined_vcs.add(actual_chat)
                     self.current_vc_chat_id = actual_chat
-            except Exception as first_try_err:
-                err_str = str(first_try_err).lower()
-                logger.warning(f"Initial stream attempt error: {first_try_err}")
-                
-                # If video failed with video source error, fallback to AudioPiped
-                if play_type == "video" and ("video source" in err_str or "video" in err_str):
-                    logger.info("Falling back to AudioPiped stream...")
-                    stream_obj = AudioPiped(file_path)
-                    
-                if "already_joined" in err_str or "already in" in err_str or "node" in err_str:
-                    try:
-                        await pytg.change_stream(actual_chat, stream_obj)
-                        self.joined_vcs.add(actual_chat)
-                        self.current_vc_chat_id = actual_chat
-                    except Exception as ch_err:
-                        return False, f"Could not switch stream: {ch_err}", None
-                else:
-                    try:
-                        await pytg.join_group_call(actual_chat, stream_obj)
-                        self.joined_vcs.add(actual_chat)
-                        self.current_vc_chat_id = actual_chat
-                    except Exception as join_err:
+                    logger.info(f"join_group_call succeeded for {actual_chat}")
+                except Exception as join_err:
+                    join_err_str = str(join_err).lower()
+                    if "already" in join_err_str or "node" in join_err_str:
+                        # pytgcalls says we're still in — try change_stream one more time
+                        try:
+                            await pytg.change_stream(actual_chat, stream_obj)
+                            self.joined_vcs.add(actual_chat)
+                            self.current_vc_chat_id = actual_chat
+                        except Exception as final_err:
+                            return False, f"Could not stream media: {final_err}", None
+                    else:
                         return False, f"Could not stream media: {join_err}", None
                     
             song_info = {

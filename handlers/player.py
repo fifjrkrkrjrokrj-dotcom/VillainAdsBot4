@@ -159,12 +159,13 @@ async def play_next_in_queue(chat_id: int, client=None):
         
     queue = _chat_queues.get(chat_id, [])
     if not queue:
-        # No more songs in queue
+        # No more songs in queue — cleanly stop the stream
+        _chat_queues.pop(chat_id, None)
         active_sess = _active_chat_players.pop(chat_id, None)
         if active_sess and active_sess.get("bot"):
+            bot = active_sess["bot"]
             try:
-                await active_sess["bot"].stop_song(chat_id)
-                await active_sess["bot"].leave_voice_chat(chat_id)
+                await bot.stop_song(chat_id)
             except Exception:
                 pass
         return
