@@ -56,6 +56,11 @@ async def show_admin_panel(event, user_id: int):
             utils.styled_button("🎨 Branding Settings", "admin_branding_settings", style="primary")
         ],
         [
+            utils.styled_button(f"🏦 UPI: {'ON' if global_settings.get('payment_upi_enabled', True) else 'OFF'}", "admin_tgl_pay_upi", style="primary"),
+            utils.styled_button(f"🪙 USDT: {'ON' if global_settings.get('payment_usdt_enabled', True) else 'OFF'}", "admin_tgl_pay_usdt", style="primary"),
+            utils.styled_button(f"💎 TON: {'ON' if global_settings.get('payment_ton_enabled', True) else 'OFF'}", "admin_tgl_pay_ton", style="primary")
+        ],
+        [
             utils.styled_button("🏦 Set UPI ID", "admin_set_upi", style="primary"),
             utils.styled_button("🪙 Set USDT", "admin_set_usdt", style="primary"),
             utils.styled_button("💎 Set TON", "admin_set_ton", style="primary")
@@ -266,7 +271,7 @@ def register_handlers(client):
             return
         from handlers.my_bots import show_all_slots_dashboard, set_admin_impersonation
         set_admin_impersonation(user_id, "__ALL__")
-        await show_all_slots_dashboard(event, user_id, flash_message="👑 **Owner Panel**: Controlling ALL userbots in system!", fetch_all=True)
+        await show_all_slots_dashboard(event, user_id, flash_message="<blockquote><b>» 👑 ᴏᴡɴᴇʀ ᴘᴀɴᴇʟ:</b> ᴄᴏɴᴛʀᴏʟʟɪɴɢ ᴀʟʟ ᴜsᴇʀʙᴏᴛs ɪɴ sʏsᴛᴇᴍ!</blockquote>", fetch_all=True)
 
     @client.on(events.CallbackQuery(pattern="^cancel_admin_plan$"))
     async def cancel_admin_plan_callback(event):
@@ -414,7 +419,7 @@ def register_handlers(client):
         global_settings = database.get_global_settings()
         admins = global_settings.get("admins", [])
         admin_list = "\n".join([f"• `{a}`" for a in admins])
-        text = f"👑 **Administrator Management**\n\n**Current Admins:**\n{admin_list}\n\nChoose an option below:"
+        text = f"<blockquote><b>» 👑 ᴀᴅᴍɪɴɪsᴛʀᴀᴛᴏʀ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ</b>\n\n<b>ᴄᴜʀʀᴇɴᴛ ᴀᴅᴍɪɴs :</b>\n{admin_list}\n\n⚡ <i>ᴄʜᴏᴏsᴇ ᴀɴ ᴏᴘᴛɪᴏɴ ʙᴇʟᴏᴡ:</i></blockquote>"
         buttons = [
             [
                 utils.styled_button("➕ Add Admin", "admin_add_admin", style="success"),
@@ -422,7 +427,7 @@ def register_handlers(client):
             ],
             [utils.styled_button("🔙 Back to Admin Panel", "menu_admin", style="primary")]
         ]
-        await event.respond(text, buttons=buttons)
+        await event.respond(text, buttons=buttons, parse_mode="html")
 
     # ------------------ Button Actions ------------------
     @client.on(events.CallbackQuery(pattern="^admin_toggle_maint$"))
@@ -582,17 +587,17 @@ def register_handlers(client):
         
         # Custom prompt display helper
         if action == "set_upi":
-            prompt_text = "🏦 Send the new Admin UPI ID (e.g. `merchant@upi`):"
+            prompt_text = "<blockquote><b>» 🏦 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴀᴅᴍɪɴ ᴜᴘɪ ɪᴅ</b> (e.g. <code>merchant@upi</code>):</blockquote>"
         elif action == "set_usdt":
-            prompt_text = "🪙 Send the new USDT wallet address:"
+            prompt_text = "<blockquote><b>» 🪙 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴜsᴅᴛ ᴡᴀʟʟᴇᴛ ᴀᴅᴅʀᴇss :</b></blockquote>"
         elif action == "set_ton":
-            prompt_text = "💎 Send the new TON wallet address:"
+            prompt_text = "<blockquote><b>» 💎 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴛᴏɴ ᴡᴀʟʟᴇᴛ ᴀᴅᴅʀᴇss :</b></blockquote>"
         elif action == "set_ub_joins":
-            prompt_text = "🔗 Send the new list of userbot auto-join links, separated by commas (or 'none'):"
+            prompt_text = "<blockquote><b>» 🔗 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ʟɪsᴛ ᴏғ ᴜsᴇʀʙᴏᴛ ᴀᴜᴛᴏ-ᴊᴏɪɴ ʟɪɴᴋs</b> (sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs ᴏʀ 'none'):</blockquote>"
         elif action == "join_all_sessions":
-            prompt_text = "👥 **Join All Sessions**\n\nSend the invite link/username of the group or channel that all logged-in accounts should join:"
+            prompt_text = "<blockquote><b>» 👥 ᴊᴏɪɴ ᴀʟʟ sᴇssɪᴏɴs</b>\n\nsᴇɴᴅ ᴛʜᴇ ɪɴᴠɪᴛᴇ ʟɪɴᴋ/ᴜsᴇʀɴᴀᴍᴇ ᴏғ ᴛʜᴇ ɢʀᴏᴜᴘ ᴏʀ ᴄʜᴀɴɴᴇʟ ᴛʜᴀᴛ ᴀʟʟ ʟᴏɢɢᴇᴅ-ɪɴ ᴀᴄᴄᴏᴜɴᴛs sʜᴏᴜʟᴅ ᴊᴏɪɴ :</blockquote>"
         elif action == "set_comm":
-            prompt_text = "📊 Send the new referral commission rate (0.01 - 0.99 for 1%-99%):"
+            prompt_text = "<blockquote><b>» 📊 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ʀᴇғᴇʀʀᴀʟ ᴄᴏᴍᴍɪssɪᴏɴ ʀᴀᴛᴇ</b> (0.01 - 0.99 for 1%-99%):</blockquote>"
         else:
             prompt_text = utils.get_text(prompt_key, lang)
             
@@ -1453,6 +1458,24 @@ def register_handlers(client):
     async def admin_branding_settings_callback(event):
         await show_branding_settings(event, event.sender_id)
 
+    @client.on(events.CallbackQuery(pattern=r"^admin_tgl_pay_(upi|usdt|ton)$"))
+    async def admin_tgl_pay_opt_callback(event):
+        user_id = event.sender_id
+        if not check_admin(user_id):
+            return
+            
+        opt = event.pattern_match.group(1).decode("utf-8")
+        global_settings = database.get_global_settings()
+        
+        setting_key = f"payment_{opt}_enabled"
+        # Toggle current value (default is True)
+        current_val = global_settings.get(setting_key, True)
+        global_settings[setting_key] = not current_val
+        database.update_global_settings(global_settings)
+        
+        await event.answer(f"{opt.upper()} payment method {'enabled' if not current_val else 'disabled'}.", alert=True)
+        await show_admin_panel(event, user_id)
+
     @client.on(events.CallbackQuery(pattern=r"^admin_tgl_brand_(name|bio)_opt$"))
     async def admin_toggle_branding_opt_callback(event):
         element = event.pattern_match.group(1)
@@ -1503,14 +1526,12 @@ async def show_branding_settings(event, user_id: int):
     bio_text = global_settings.get("branding_bio_text") or "Not Set (Fallback:  via @BotUsername)"
     
     text = (
-        "🎨 **Branding Configurations**\n"
-        "━━━━━━━━━━━━━━━━━━━━\n"
-        f"📛 **Name Branding**: {brand_name_val}\n"
-        f"Suffix: `{name_text}`\n\n"
-        f"📝 **Bio Branding**: {brand_bio_val}\n"
-        f"Suffix: `{bio_text}`\n"
-        "━━━━━━━━━━━━━━━━━━━━\n"
-        "Configure global branding text appended to userbots."
+        "<blockquote><b>» 🎨 ʙʀᴀɴᴅɪɴɢ ᴄᴏɴғɪɢᴜʀᴀᴛɪᴏɴs</b>\n\n"
+        f"📛 <b>ɴᴀᴍᴇ ʙʀᴀɴᴅɪɴɢ :</b> {brand_name_val}\n"
+        f"sᴜғғɪx: <code>{name_text}</code>\n\n"
+        f"📝 <b>ʙɪᴏ ʙʀᴀɴᴅɪɴɢ :</b> {brand_bio_val}\n"
+        f"sᴜғғɪx: <code>{bio_text}</code>\n\n"
+        "⚡ <i>ᴄᴏɴғɪɢᴜʀᴇ ɢʟᴏʙᴀʟ ʙʀᴀɴᴅɪɴɢ ᴛᴇxᴛ ᴀᴘᴘᴇɴᴅᴇᴅ ᴛᴏ ᴜsᴇʀʙᴏᴛs.</i></blockquote>"
     )
     
     buttons = [

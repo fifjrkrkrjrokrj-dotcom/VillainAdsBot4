@@ -70,12 +70,11 @@ def register_handlers(client):
         _payment_user_states[user_id] = {"action": "WAITING_FOR_COUPON"}
         
         text = (
-            "🎟️ **Redeem Coupon**\n"
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            "Enter your coupon code below to credit your wallet:"
+            "<blockquote><b>» 🎟️ ʀᴇᴅᴇᴇᴍ ᴄᴏᴜᴘᴏɴ</b>\n\n"
+            "⚡ <i>ᴇɴᴛᴇʀ ʏᴏᴜʀ ᴄᴏᴜᴘᴏɴ ᴄᴏᴅᴇ ʙᴇʟᴏᴡ ᴛᴏ ᴄʀᴇᴅɪᴛ ʏᴏᴜʀ ᴡᴀʟʟᴇᴛ :</i></blockquote>"
         )
         buttons = [[utils.styled_button("🔙 Cancel", "menu_settings", style="danger")]]
-        await event.respond(text, buttons=buttons)
+        await event.respond(text, buttons=buttons, parse_mode="html")
         try:
             await event.delete()
         except Exception:
@@ -297,27 +296,32 @@ def register_handlers(client):
         wallet_bal = user.get("wallet_balance", 0.0)
         
         text = (
-            f"💳 **Select Payment Method**\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"Quantity: **{qty} ID(s)**\n"
-            f"Total Cost: **₹{cost_inr:.2f}**\n"
-            f"Wallet Balance: **₹{wallet_bal:.2f}**\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"Choose your payment method below:"
+            f"<blockquote><b>» 💳 sᴇʟᴇᴄᴛ ᴘᴀʏᴍᴇɴᴛ ᴍᴇᴛʜᴏᴅ</b>\n\n"
+            f"ǫᴜᴀɴᴛɪᴛʏ : <b>{qty} ɪᴅ(s)</b>\n"
+            f"ᴛᴏᴛᴀʟ ᴄᴏsᴛ : <b>₹{cost_inr:.2f}</b>\n"
+            f"ᴡᴀʟʟᴇᴛ ʙᴀʟᴀɴᴄᴇ : <b>₹{wallet_bal:.2f}</b>\n\n"
+            f"⚡ <i>ᴄʜᴏᴏsᴇ ʏᴏᴜʀ ᴘᴀʏᴍᴇɴᴛ ᴍᴇᴛʜᴏᴅ ʙᴇʟᴏᴡ :</i></blockquote>"
         )
         
-        buttons = [
-            [utils.styled_button("💳 UPI Payment", f"pay_method_upi_{qty}_{payment_id}", style="primary")],
-            [utils.styled_button("🪙 USDT (BEP20)", f"pay_method_usdt_{qty}_{payment_id}", style="primary")],
-            [utils.styled_button("💎 TON (Toncoin)", f"pay_method_ton_{qty}_{payment_id}", style="primary")]
-        ]
+        global_settings = database.get_global_settings()
+        buttons = []
+        
+        if global_settings.get("payment_upi_enabled", True):
+            buttons.append([utils.styled_button("💳 UPI Payment", f"pay_method_upi_{qty}_{payment_id}", style="primary")])
+        if global_settings.get("payment_usdt_enabled", True):
+            buttons.append([utils.styled_button("🪙 USDT (BEP20)", f"pay_method_usdt_{qty}_{payment_id}", style="primary")])
+        if global_settings.get("payment_ton_enabled", True):
+            buttons.append([utils.styled_button("💎 TON (Toncoin)", f"pay_method_ton_{qty}_{payment_id}", style="primary")])
         
         # Allow paying using wallet if balance covers it
         if wallet_bal >= cost_inr:
             buttons.append([utils.styled_button("👛 Pay via Wallet Balance", f"pay_method_wallet_{qty}_{payment_id}", style="success")])
             
-        buttons.append([utils.styled_button("❌ Cancel", "menu_settings", style="danger")])
-        await event.respond(text, buttons=buttons)
+        if not buttons:
+            buttons = [[utils.styled_button("⚠️ No Payment Methods Available", "menu_settings", style="danger")]]
+        
+        buttons.append([utils.styled_button("🔙 Cancel", "menu_settings", style="danger")])
+        await event.respond(text, buttons=buttons, parse_mode="html")
         try:
             await event.delete()
         except Exception:

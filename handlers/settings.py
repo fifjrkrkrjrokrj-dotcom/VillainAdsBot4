@@ -18,12 +18,10 @@ async def show_settings_menu(event, user_id: int):
     wallet_bal = user.get("wallet_balance", 0.0)
     
     text = (
-        f"> ⚙️ **USER SETTINGS**\n"
-        f"> ━━━━━━━━━━━━━━━━━━━━\n"
-        f"> 👛 **Wallet Balance**: `₹{wallet_bal:.2f}`\n"
-        f"> 🌐 **Current Language**: `{lang.upper()}`\n"
-        f"> ━━━━━━━━━━━━━━━━━━━━\n"
-        f"> _Select an action below to manage your account:_"
+        f"<blockquote><b>» ⚙️ ᴜsᴇʀ sᴇᴛᴛɪɴɢs</b>\n\n"
+        f"👛 <b>ᴡᴀʟʟᴇᴛ ʙᴀʟᴀɴᴄᴇ :</b> <code>₹{wallet_bal:.2f}</code>\n"
+        f"🌐 <b>ᴄᴜʀʀᴇɴᴛ ʟᴀɴɢᴜᴀɢᴇ :</b> <code>{lang.upper()}</code>\n\n"
+        f"⚡ <i>sᴇʟᴇᴄᴛ ᴀɴ ᴀᴄᴛɪᴏɴ ʙᴇʟᴏᴡ ᴛᴏ ᴍᴀɴᴀɢᴇ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ :</i></blockquote>"
     )
     buttons = [
         [
@@ -38,9 +36,9 @@ async def show_settings_menu(event, user_id: int):
     ]
     
     try:
-        await event.edit(text, buttons=buttons)
+        await event.edit(text, buttons=buttons, parse_mode="html")
     except Exception:
-        await event.respond(text, buttons=buttons)
+        await event.respond(text, buttons=buttons, parse_mode="html")
 
 async def show_purchase_menu(event, user_id: int):
     """
