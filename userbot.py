@@ -2653,19 +2653,22 @@ class UserBot:
                                     
                             auto_reply_msgs = [m for m in auto_reply_msgs if m]
                             if auto_reply_msgs:
-                                selected_reply = random.choice(auto_reply_msgs)
-                                processed_reply = utils.parse_spintax(selected_reply)
-                                processed_reply = utils.normalize_text(processed_reply)
-                                processed_reply = utils.make_message_unique(processed_reply)
+                                msgs_to_send = auto_reply_msgs if ar_mode == "multiple" else [random.choice(auto_reply_msgs)]
                                 
-                                try:
-                                    # Add 1-2 sec human delay before group reply
-                                    await asyncio.sleep(random.uniform(1.0, 2.5))
-                                    await event.reply(processed_reply)
-                                    self.tag_cooldown[event.chat_id] = now
-                                    logger.info(f"Auto-replied to tag/DM in chat {event.chat_id} for userbot {self.session_id}")
-                                except Exception as reply_err:
-                                    logger.warning(f"Could not send auto-reply in chat {event.chat_id}: {reply_err}")
+                                for selected_reply in msgs_to_send:
+                                    processed_reply = utils.parse_spintax(selected_reply)
+                                    processed_reply = utils.normalize_text(processed_reply)
+                                    processed_reply = utils.make_message_unique(processed_reply)
+                                    
+                                    try:
+                                        # Add 1-2 sec human delay before group reply
+                                        await asyncio.sleep(random.uniform(1.0, 2.5))
+                                        await event.reply(processed_reply, parse_mode='html')
+                                        logger.info(f"Auto-replied to tag/DM in chat {event.chat_id} for userbot {self.session_id}")
+                                    except Exception as reply_err:
+                                        logger.warning(f"Could not send auto-reply in chat {event.chat_id}: {reply_err}")
+                                        
+                                self.tag_cooldown[event.chat_id] = now
 
                 # 4. Private message handling (Auto-Welcome)
                 if event.is_private:
