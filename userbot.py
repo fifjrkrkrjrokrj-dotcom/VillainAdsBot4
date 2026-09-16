@@ -2572,40 +2572,57 @@ class UserBot:
                             )
                             return
 
-                # 2. Group / Channel message handling (Auto-Contact, Tag Auto-Reply)
-                if event.is_group or event.is_channel:
-                    is_reply_to_us = False
-                    if event.is_reply:
-                        try:
-                            reply_msg = await event.get_reply_message()
-                            if reply_msg and reply_msg.sender_id == self.me_id:
-                                is_reply_to_us = True
-                        except Exception:
-                            pass
-                    
-                    is_tagged = event.mentioned or is_reply_to_us
-                    
-                    # 1. Auto-Add Contact on Mention/Reply
-                    if is_tagged and self.settings.get("auto_add_contact"):
-                        sender = await event.get_sender()
-                        if sender and not sender.bot:
+                    # 2. Group / Channel message handling (Auto-Contact)
+                    if event.is_group or event.is_channel:
+                        is_reply_to_us = False
+                        if event.is_reply:
                             try:
-                                from telethon.tl.functions.contacts import AddContactRequest
-                                fname = sender.first_name or "Contact"
-                                lname = sender.last_name or ""
-                                await self.client(AddContactRequest(
-                                    id=sender.id,
-                                    first_name=fname,
-                                    last_name=lname,
-                                    phone="",
-                                    add_phone_privacy_exception=True
-                                ))
-                                logger.info(f"Auto-added contact: {sender.id} ({fname} {lname}) on mention/reply in chat {event.chat_id}")
-                            except Exception as add_err:
-                                logger.warning(f"Failed to auto-add contact {sender.id}: {add_err}")
+                                reply_msg = await event.get_reply_message()
+                                if reply_msg and reply_msg.sender_id == self.me_id:
+                                    is_reply_to_us = True
+                            except Exception:
+                                pass
+                        
+                        is_tagged = event.mentioned or is_reply_to_us
+                        
+                        # 1. Auto-Add Contact on Mention/Reply
+                        if is_tagged and self.settings.get("auto_add_contact"):
+                            sender = await event.get_sender()
+                            if sender and not sender.bot:
+                                try:
+                                    from telethon.tl.functions.contacts import AddContactRequest
+                                    fname = sender.first_name or "Contact"
+                                    lname = sender.last_name or ""
+                                    await self.client(AddContactRequest(
+                                        id=sender.id,
+                                        first_name=fname,
+                                        last_name=lname,
+                                        phone="",
+                                        add_phone_privacy_exception=True
+                                    ))
+                                    logger.info(f"Auto-added contact: {sender.id} ({fname} {lname}) on mention/reply in chat {event.chat_id}")
+                                except Exception as add_err:
+                                    logger.warning(f"Failed to auto-add contact {sender.id}: {add_err}")
 
-                    # 2. Tag Auto-Reply on Group Mention/Reply
-                    if is_tagged and self.settings.get("auto_reply"):
+                    # 3. Tag Auto-Reply (Works in Groups and DMs)
+                    is_reply_target = False
+                    if event.is_group or event.is_channel:
+                        is_reply_to_us = False
+                        if event.is_reply:
+                            try:
+                                reply_msg = await event.get_reply_message()
+                                if reply_msg and reply_msg.sender_id == self.me_id:
+                                    is_reply_to_us = True
+                            except Exception:
+                                pass
+                        is_reply_target = event.mentioned or is_reply_to_us
+                    elif event.is_private:
+                        # In DMs, every message to us is considered a target for auto-reply
+                        sender = await event.get_sender()
+                        if sender and not getattr(sender, "is_self", False) and not sender.bot:
+                            is_reply_target = True
+
+                    if is_reply_target and self.settings.get("auto_reply"):
                         now = time.time()
                         last_reply_time = self.tag_cooldown.get(event.chat_id, 0)
                         
@@ -2633,22 +2650,21 @@ class UserBot:
                                     await asyncio.sleep(random.uniform(1.0, 2.5))
                                     await event.reply(processed_reply)
                                     self.tag_cooldown[event.chat_id] = now
-                                    logger.info(f"Auto-replied to tag in chat {event.chat_id} for userbot {self.session_id}")
+                                    logger.info(f"Auto-replied to tag/DM in chat {event.chat_id} for userbot {self.session_id}")
                                 except Exception as reply_err:
                                     logger.warning(f"Could not send auto-reply in chat {event.chat_id}: {reply_err}")
-                    return
 
-            # 3. Private message handling (Auto-Welcome)
-            if event.is_private:
-                sess_data = database.get_session(self.session_id)
-                settings = sess_data.get("settings", {}) if sess_data else self.settings
-                
-                if not settings.get("auto_welcome"):
-                    return
+                # 4. Private message handling (Auto-Welcome)
+                if event.is_private:
+                    sess_data = database.get_session(self.session_id)
+                    settings = sess_data.get("settings", {}) if sess_data else self.settings
                     
-                sender = await event.get_sender()
-                if not sender or sender.bot or getattr(sender, "is_self", False):
-                    return
+                    if not settings.get("auto_welcome"):
+                        return
+                        
+                    sender = await event.get_sender()
+                    if not sender or sender.bot or getattr(sender, "is_self", False):
+                        return
                     
                 welcomed_users = sess_data.get("stats", {}).get("welcomed_users", []) if sess_data else []
                 if sender.id not in welcomed_users:
@@ -2661,8 +2677,8 @@ class UserBot:
                             welcome_messages = [settings.get("welcome_msg")]
                         welcome_messages = [m for m in welcome_messages if m]
                         if welcome_messages:
-                            # Rotational selection
-                            messages_to_send = [random.choice(welcome_messages)]
+                            # Send all messages in multiple mode
+                            messages_to_send = welcome_messages
                     else:
                         single_msg = settings.get("welcome_msg")
                         if not single_msg:
