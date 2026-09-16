@@ -445,21 +445,28 @@ def register_handlers(client):
             pn_encoded = urllib.parse.quote(config.BOT_NAME)
             upi_uri = f"upi://pay?pa={upi_id}&pn={pn_encoded}&am={cost_inr:.2f}&cu=INR&tn={payment_id}"
             qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=jpg&data={urllib.parse.quote(upi_uri)}"
+            amount_text = f"ᴀᴍᴏᴜɴᴛ ᴛᴏ ᴘᴀʏ: <b>₹{cost_inr:.2f}</b>"
         elif method == "usdt":
-            address_text = f"🪙 USDT (BEP20) Address:\n`{global_settings.get('usdt_bep20_address', '0x000')}`"
+            address_text = f"🪙 ᴜsᴅᴛ (ʙᴇᴘ20) ᴀᴅᴅʀᴇss:\n`{global_settings.get('usdt_bep20_address', '0x000')}`"
             qr_url = None
+            usdt_rate = global_settings.get("usdt_rate", 90.0)
+            cost_crypto = cost_inr / usdt_rate if usdt_rate > 0 else 0
+            amount_text = f"ᴀᴍᴏᴜɴᴛ ᴛᴏ ᴘᴀʏ: <b>₹{cost_inr:.2f}</b> (ᴀᴘᴘʀᴏx <b>${cost_crypto:.2f} ᴜsᴅᴛ</b>)"
         else: # ton
-            address_text = f"💎 TON (Toncoin) Address:\n`{global_settings.get('ton_address', 'UQ00000000000000000000000000000000000000000000000')}`"
+            address_text = f"💎 ᴛᴏɴ (ᴛᴏɴᴄᴏɪɴ) ᴀᴅᴅʀᴇss:\n`{global_settings.get('ton_address', 'UQ00000000000000000000000000000000000000000000000')}`"
             qr_url = None
+            ton_rate = global_settings.get("ton_rate", 500.0)
+            cost_crypto = cost_inr / ton_rate if ton_rate > 0 else 0
+            amount_text = f"ᴀᴍᴏᴜɴᴛ ᴛᴏ ᴘᴀʏ: <b>₹{cost_inr:.2f}</b> (ᴀᴘᴘʀᴏx <b>{cost_crypto:.2f} ᴛᴏɴ</b>)"
             
         text = (
             f"<blockquote><b>» 💳 ᴍᴀᴋᴇ ᴘᴀʏᴍᴇɴᴛ</b>\n\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"Method: <b>{method.upper()}</b>\n"
-            f"Amount to Pay: <b>₹{cost_inr:.2f}</b>\n"
+            f"ᴍᴇᴛʜᴏᴅ: <b>{method.upper()}</b>\n"
+            f"{amount_text}\n"
             f"{address_text}\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"📸 Send your payment confirmation <b>screenshot (as a photo or image link)</b>:"
+            f"📸 sᴇɴᴅ ʏᴏᴜʀ ᴘᴀʏᴍᴇɴᴛ ᴄᴏɴғɪʀᴍᴀᴛɪᴏɴ <b>sᴄʀᴇᴇɴsʜᴏᴛ (ᴀs ᴀ ᴘʜᴏᴛᴏ ᴏʀ ɪᴍᴀɢᴇ ʟɪɴᴋ)</b>:</blockquote>"
         )
         
         buttons = [[utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "menu_settings", style="danger")]]

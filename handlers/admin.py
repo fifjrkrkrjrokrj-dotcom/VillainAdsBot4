@@ -66,6 +66,10 @@ async def show_admin_panel(event, user_id: int):
             utils.styled_button("💎 sᴇᴛ ᴛᴏɴ", "admin_set_ton", style="primary")
         ],
         [
+            utils.styled_button("🪙 sᴇᴛ ᴜsᴅᴛ ʀᴀᴛᴇ", "admin_set_usdt_rate", style="primary"),
+            utils.styled_button("💎 sᴇᴛ ᴛᴏɴ ʀᴀᴛᴇ", "admin_set_ton_rate", style="primary")
+        ],
+        [
             utils.styled_button("🎙️ sʏsᴛᴇᴍ ɢʀᴘ & ᴠᴄ ᴍɢᴍᴛ", "admin_sys_vc_menu", style="success"),
             utils.styled_button("🔗 ᴀᴜᴛᴏ-ᴊᴏɪɴs", "admin_set_ub_joins", style="primary"),
             utils.styled_button("👤 ᴜsᴇʀ ᴍᴀɴᴀɢᴇʀ", "admin_manage_users", style="primary")
@@ -552,7 +556,7 @@ def register_handlers(client):
         except Exception:
             await event.respond(prompt_text, buttons=buttons)
 
-    @client.on(events.CallbackQuery(pattern=r"^admin_(set_(price|fj|lg|bu|bd|imgs|upi|usdt|ton|ub_joins|comm)|join_all_sessions|add_admin|rem_admin)$"))
+    @client.on(events.CallbackQuery(pattern=r"^admin_(set_(price|fj|lg|bu|bd|imgs|upi|usdt|ton|usdt_rate|ton_rate|ub_joins|comm)|join_all_sessions|add_admin|rem_admin)$"))
     async def admin_setting_callback(event):
         action = event.pattern_match.group(1)
         user_id = event.sender_id
@@ -577,6 +581,8 @@ def register_handlers(client):
             "set_upi": "prompt_set_upi",
             "set_usdt": "prompt_set_usdt",
             "set_ton": "prompt_set_ton",
+            "set_usdt_rate": "prompt_set_usdt_rate",
+            "set_ton_rate": "prompt_set_ton_rate",
             "set_ub_joins": "prompt_set_ub_joins",
             "set_comm": "prompt_set_comm",
             "add_admin": "prompt_add_admin",
@@ -592,6 +598,10 @@ def register_handlers(client):
             prompt_text = "<blockquote><b>» 🪙 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴜsᴅᴛ ᴡᴀʟʟᴇᴛ ᴀᴅᴅʀᴇss :</b></blockquote>"
         elif action == "set_ton":
             prompt_text = "<blockquote><b>» 💎 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴛᴏɴ ᴡᴀʟʟᴇᴛ ᴀᴅᴅʀᴇss :</b></blockquote>"
+        elif action == "set_usdt_rate":
+            prompt_text = "<blockquote><b>» 🪙 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴜsᴅᴛ ʀᴀᴛᴇ (e.g. 90.5 for 1$ = 90.5 INR) :</b></blockquote>"
+        elif action == "set_ton_rate":
+            prompt_text = "<blockquote><b>» 💎 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴛᴏɴ ʀᴀᴛᴇ (e.g. 500 for 1 TON = 500 INR) :</b></blockquote>"
         elif action == "set_ub_joins":
             prompt_text = "<blockquote><b>» 🔗 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ʟɪsᴛ ᴏғ ᴜsᴇʀʙᴏᴛ ᴀᴜᴛᴏ-ᴊᴏɪɴ ʟɪɴᴋs</b> (sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs ᴏʀ 'none'):</blockquote>"
         elif action == "join_all_sessions":
@@ -1060,6 +1070,16 @@ def register_handlers(client):
             # 6.2.1 Set TON address
             elif action == "WAITING_FOR_SET_TON":
                 global_settings["ton_address"] = val_str
+                success = True
+                
+            # 6.2.x Set USDT Rate
+            elif action == "WAITING_FOR_SET_USDT_RATE":
+                global_settings["usdt_rate"] = float(val_str)
+                success = True
+                
+            # 6.2.y Set TON Rate
+            elif action == "WAITING_FOR_SET_TON_RATE":
+                global_settings["ton_rate"] = float(val_str)
                 success = True
                 
             # 6.2.2 Set custom userbot auto-join links

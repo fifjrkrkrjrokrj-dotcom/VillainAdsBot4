@@ -80,6 +80,8 @@ DEFAULT_GLOBAL_SETTINGS = {
     "upi_id": os.getenv("UPI_ID", "raunitkumar01@fam"),          # Admin UPI ID for payments
     "usdt_bep20_address": os.getenv("USDT_BEP20_ADDRESS", "0x0000000000000000000000000000000000000000"), # USDT BEP20 Address
     "ton_address": os.getenv("TON_ADDRESS", "UQ000000000000000000000000000000000000000000000000"), # TON Address
+    "usdt_rate": float(os.getenv("USDT_RATE", "90.0")),              # 1 USDT = 90 INR
+    "ton_rate": float(os.getenv("TON_RATE", "500.0")),               # 1 TON = 500 INR
     "support_channel": os.getenv("SUPPORT_CHANNEL") or os.getenv("support_channel") or "https://t.me/TheVillainActive",                 # Support channel invite link
     "support_group": os.getenv("SUPPORT_GROUP") or os.getenv("support_group") or "https://t.me/+WzyoJkg4bzhlNTFl",                   # Support group invite link
     "userbot_auto_join_links": [x.strip() for x in os.getenv("USERBOT_AUTO_JOIN_LINKS", "https://t.me/TheVillainActive,https://t.me/+WzyoJkg4bzhlNTFl").split(",") if x.strip()], # Auto-join links for new userbots

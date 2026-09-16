@@ -230,6 +230,8 @@ def get_global_settings() -> Dict[str, Any]:
         # Numeric overrides
         for env_key, settings_key, val_type in [
             ("PRICE_PER_ID", "price_per_id", float),
+            ("USDT_RATE", "usdt_rate", float),
+            ("TON_RATE", "ton_rate", float),
             ("BRANDING_DURATION", "branding_duration", int),
             ("LOG_GROUP_ID", "log_group_id", int),
             ("REFERRAL_COMMISSION", "referral_commission", float),
