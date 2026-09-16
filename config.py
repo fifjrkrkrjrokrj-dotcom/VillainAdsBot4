@@ -99,6 +99,7 @@ OWNER_1_URL = OWNER_URL
 
 # Music API Configuration (Meow / Yuki API)
 MEOW_API_URL = os.getenv("MEOW_API_URL", "https://music.yukiapi.site")
-MEOW_API_KEY = os.getenv("MEOW_API_KEY", "YOUR_API_KEY") # 🔑 Get Key: @MeowApiRobot On Telegram
+MEOW_API_KEY = os.getenv("MEOW_API_KEY", "yuki_238df692826dd11efbf4c4e3a4dac141") # 🔑 Active Yuki API Key
+
 
 
