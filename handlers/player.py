@@ -150,9 +150,9 @@ async def play_next_in_queue(chat_id: int, client=None):
     """
     Dequeues and plays the next scheduled track for the given chat.
     """
-    # Cancel previous timer if still alive
+    # Cancel previous timer if still alive and not current task
     prev_timer = _track_timer_tasks.pop(chat_id, None)
-    if prev_timer and not prev_timer.done():
+    if prev_timer and not prev_timer.done() and prev_timer != asyncio.current_task():
         prev_timer.cancel()
         
     queue = _chat_queues.get(chat_id, [])
@@ -382,7 +382,7 @@ def register_handlers(client):
 
         # Cancel any previous track timer
         prev_timer = _track_timer_tasks.pop(chat_id, None)
-        if prev_timer and not prev_timer.done():
+        if prev_timer and not prev_timer.done() and prev_timer != asyncio.current_task():
             prev_timer.cancel()
 
         # 5. Stream media into Voice Chat
@@ -464,10 +464,10 @@ def register_handlers(client):
             
         queue = _chat_queues.get(chat_id, [])
         if not queue:
+            _active_chat_players.pop(chat_id, None)
             bot_obj, _ = await get_or_start_userbot_for_chat(user_id, chat_id)
             if bot_obj:
                 await bot_obj.stop_song(chat_id)
-            _active_chat_players.pop(chat_id, None)
             
             await event.reply(
                 utils.format_html_message(
@@ -588,8 +588,11 @@ def register_handlers(client):
         elif cmd in ("stop", "end"):
             _chat_queues.pop(chat_id, None)
             prev_timer = _track_timer_tasks.pop(chat_id, None)
-            if prev_timer and not prev_timer.done():
+            if prev_timer and not prev_timer.done() and prev_timer != asyncio.current_task():
                 prev_timer.cancel()
+
+            # Eagerly pop from active players to prevent race conditions with new .play commands
+            _active_chat_players.pop(chat_id, None)
 
             prog = await event.reply(
                 utils.format_html_message(
@@ -597,7 +600,6 @@ def register_handlers(client):
                 )
             )
             success, msg = await bot_obj.stop_song(chat_id)
-            _active_chat_players.pop(chat_id, None)
             if success:
                 try:
                     await prog.edit(
@@ -767,11 +769,11 @@ def register_handlers(client):
         elif action == "stop":
             _chat_queues.pop(chat_id, None)
             prev_timer = _track_timer_tasks.pop(chat_id, None)
-            if prev_timer and not prev_timer.done():
+            if prev_timer and not prev_timer.done() and prev_timer != asyncio.current_task():
                 prev_timer.cancel()
-                
-            success, msg = await bot_obj.stop_song(chat_id)
+            
             _active_chat_players.pop(chat_id, None)
+            success, msg = await bot_obj.stop_song(chat_id)
             if success:
                 await event.answer("⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ.")
                 try:
