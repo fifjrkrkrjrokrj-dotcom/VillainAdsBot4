@@ -80,7 +80,7 @@ def register_handlers(client):
                 msg = await event.get_message()
                 original_text = msg.message or "Payment Verification Request"
                 if "Approved by" not in original_text and "Rejected by" not in original_text:
-                    status_text = f"\n\n✅ **Approved by {admin_username}**"
+                    status_text = f"\n\n✅ <b>Approved by {admin_username}</b>"
                     updated_text = f"{original_text}{status_text}"
                 else:
                     updated_text = original_text
@@ -95,9 +95,9 @@ def register_handlers(client):
                 import datetime
                 expiry_str = datetime.datetime.fromtimestamp(expires_at).strftime('%d %b %Y %H:%M') if expires_at else "N/A"
                 notify_text = (
-                    f"✅ **Your subscription upgrade of {qty} slot(s) has been approved!**\n"
-                    f"Plan: **{payment_req.get('plan_name', 'Upgrade')}**\n"
-                    f"Expires at: **{expiry_str}**"
+                    f"✅ <b>Your subscription upgrade of {qty} slot(s) has been approved!</b>\n"
+                    f"Plan: <b>{payment_req.get('plan_name', 'Upgrade')}</b>\n"
+                    f"Expires at: <b>{expiry_str}</b>"
                 )
                 await client.send_message(user_id, notify_text)
             except Exception as e:
@@ -119,7 +119,7 @@ def register_handlers(client):
                 msg = await event.get_message()
                 original_text = msg.message or "Payment Verification Request"
                 if "Approved by" not in original_text and "Rejected by" not in original_text:
-                    status_text = f"\n\n❌ **Rejected by {admin_username}**"
+                    status_text = f"\n\n❌ <b>Rejected by {admin_username}</b>"
                     updated_text = f"{original_text}{status_text}"
                 else:
                     updated_text = original_text

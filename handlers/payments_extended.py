@@ -40,7 +40,7 @@ def register_handlers(client):
             buttons.append([utils.styled_button("✅ I've Joined — Verify", "verify_sub", style="success")])
             
             lines = [
-                "❌ **Still not joined all channels!**\n━━━━━━━━━━━━━━━━━━━━\nJoin these channels to continue:\n"
+                "❌ <b>Still not joined all channels!</b>\n━━━━━━━━━━━━━━━━━━━━\nJoin these channels to continue:\n"
             ]
             for ch in not_joined:
                 lines.append(f"• {ch.get('channel_name') or ch.get('channel_id')}")
@@ -125,9 +125,9 @@ def register_handlers(client):
         database.save_user(user)
         
         await event.reply(
-            f"🎉 **Coupon Redeemed Successfully!**\n"
+            f"🎉 <b>Coupon Redeemed Successfully!</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"💰 Amount: **₹{amount:.2f}** has been credited to your wallet balance."
+            f"💰 Amount: <b>₹{amount:.2f}</b> has been credited to your wallet balance."
         )
         # Return to settings
         from handlers.settings import show_settings_menu
@@ -153,14 +153,14 @@ def register_handlers(client):
         comm_rate = global_settings.get("referral_commission", 0.10) * 100
         
         text = (
-            f"👥 **Refer & Earn Program**\n"
+            f"<blockquote><b>» 👥 ʀᴇғᴇʀ & ᴇᴀʀɴ ᴘʀᴏɢʀᴀᴍ</b>\n\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"🔗 Your Referral Link:\n`{ref_link}`\n\n"
-            f"💰 Get **₹1.00** instantly when a new user starts the bot using your link!\n"
-            f"📈 Also earn **{comm_rate:.0f}%** commission on all their slot upgrades!\n"
+            f"💰 Get <b>₹1.00</b> instantly when a new user starts the bot using your link!\n"
+            f"📈 Also earn <b>{comm_rate:.0f}%</b> commission on all their slot upgrades!\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"👤 Total referred: **{referred_count}**\n"
-            f"👛 Total referral earnings: **₹{earnings:.2f}**\n"
+            f"👤 Total referred: <b>{referred_count}</b>\n"
+            f"👛 Total referral earnings: <b>₹{earnings:.2f}</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"_Share your link and start earning wallet balance to buy slots!_"
         )
@@ -218,7 +218,7 @@ def register_handlers(client):
         
         # Ask quantity
         text = (
-            "⚙️ **Select Slots Quantity**\n"
+            "⚙️ <b>Select Slots Quantity</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n"
             "How many bot account slots would you like to purchase under this plan?"
         )
@@ -374,12 +374,12 @@ def register_handlers(client):
         
         await event.answer("🎉 Payment successful! Slots upgraded.", alert=True)
         await event.respond(
-            f"🎉 **Upgrade Successful!**\n"
+            f"🎉 <b>Upgrade Successful!</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"Plan: **{plan_name}**\n"
-            f"Slots purchased: **{qty}**\n"
-            f"Cost: **₹{cost_inr:.2f}** deducted from wallet balance.\n"
-            f"Expiry Date: **{expiry_str}**"
+            f"Plan: <b>{plan_name}</b>\n"
+            f"Slots purchased: <b>{qty}</b>\n"
+            f"Cost: <b>₹{cost_inr:.2f}</b> deducted from wallet balance.\n"
+            f"Expiry Date: <b>{expiry_str}</b>"
         )
         
         # Handle referral commission
@@ -396,8 +396,8 @@ def register_handlers(client):
                 try:
                     await client.send_message(
                         referrer_id,
-                        f"💰 **Commission Received!**\n"
-                        f"Referred user upgraded slots. **₹{commission:.2f}** added to your wallet."
+                        f"💰 <b>Commission Received!</b>\n"
+                        f"Referred user upgraded slots. <b>₹{commission:.2f}</b> added to your wallet."
                     )
                 except Exception:
                     pass
@@ -453,13 +453,13 @@ def register_handlers(client):
             qr_url = None
             
         text = (
-            f"💳 **Make Payment**\n"
+            f"<blockquote><b>» 💳 ᴍᴀᴋᴇ ᴘᴀʏᴍᴇɴᴛ</b>\n\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"Method: **{method.upper()}**\n"
-            f"Amount to Pay: **₹{cost_inr:.2f}**\n"
+            f"Method: <b>{method.upper()}</b>\n"
+            f"Amount to Pay: <b>₹{cost_inr:.2f}</b>\n"
             f"{address_text}\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"📸 Send your payment confirmation **screenshot (as a photo or image link)**:"
+            f"📸 Send your payment confirmation <b>screenshot (as a photo or image link)</b>:"
         )
         
         buttons = [[utils.styled_button("❌ Cancel", "menu_settings", style="danger")]]
@@ -532,8 +532,8 @@ def register_handlers(client):
             
             buttons = [[utils.styled_button("❌ Cancel", "menu_settings", style="danger")]]
             await event.reply(
-                "📸 **Screenshot received!**\n\n"
-                "🔢 **Now enter your UTR / Transaction Hash:**\n"
+                "📸 <b>Screenshot received!</b>\n\n"
+                "🔢 <b>Now enter your UTR / Transaction Hash:</b>\n"
                 "Example: `612207806800` or transaction reference code.",
                 buttons=buttons
             )
@@ -566,7 +566,7 @@ def register_handlers(client):
                 database.save_payment_request(pay_record)
                 
             # Confirm to User
-            await event.reply("📩 **Payment submitted successfully!**\nAn administrator will review your submission shortly.")
+            await event.reply("📩 <b>Payment submitted successfully!</b>\nAn administrator will review your submission shortly.")
             
             # Forward notification and screenshot to Admin log group
             global_settings = database.get_global_settings()
@@ -575,11 +575,11 @@ def register_handlers(client):
                 try:
                     user_mention = f"[{user_id}](tg://user?id={user_id})"
                     admin_text = (
-                        f"🚨 **New Payment Verification Request**\n"
+                        f"🚨 <b>New Payment Verification Request</b>\n"
                         f"━━━━━━━━━━━━━━━━━━━━\n"
                         f"User: {user_mention} (`{user_id}`)\n"
-                        f"Method: **{method.upper()}**\n"
-                        f"Amount: **₹{amount:.2f}** (qty: {qty})\n"
+                        f"Method: <b>{method.upper()}</b>\n"
+                        f"Amount: <b>₹{amount:.2f}</b> (qty: {qty})\n"
                         f"UTR/Hash: `{utr_code}`\n"
                         f"━━━━━━━━━━━━━━━━━━━━"
                     )
@@ -616,7 +616,7 @@ def register_handlers(client):
         ch_name = " ".join(args[3:]) if len(args) > 3 else ch_id
         
         database.add_force_channel(ch_id, ch_link, ch_name)
-        await event.reply(f"✅ Channel added to force subscribe list: **{ch_name}**")
+        await event.reply(f"✅ Channel added to force subscribe list: <b>{ch_name}</b>")
 
     @client.on(events.NewMessage(pattern=r"^/removechannel"))
     async def removechannel_cmd(event):
@@ -630,7 +630,7 @@ def register_handlers(client):
             
         ch_id = args[1]
         database.delete_force_channel(ch_id)
-        await event.reply(f"✅ Channel **{ch_id}** removed from force subscribe list.")
+        await event.reply(f"✅ Channel <b>{ch_id}</b> removed from force subscribe list.")
 
     # ==================== Admin Coupon commands ====================
     @client.on(events.NewMessage(pattern=r"^/addcoupon"))
@@ -663,11 +663,11 @@ def register_handlers(client):
         }
         database.save_coupon(coupon_data)
         await event.reply(
-            f"🎟️ **Coupon Code Generated Successfully!**\n"
+            f"🎟️ <b>Coupon Code Generated Successfully!</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"🔑 Code: `{code}`\n"
-            f"💰 Amount: **₹{amount:.2f}**\n"
-            f"👥 Max Uses: **{max_uses}**"
+            f"💰 Amount: <b>₹{amount:.2f}</b>\n"
+            f"👥 Max Uses: <b>{max_uses}</b>"
         )
 
     @client.on(events.NewMessage(pattern=r"^/removecoupon"))
@@ -718,12 +718,12 @@ def register_handlers(client):
         })
         database.save_global_settings(global_settings)
         await event.reply(
-            f"✅ **Subscription Plan Added Successfully!**\n"
+            f"✅ <b>Subscription Plan Added Successfully!</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"Plan ID: `{plan_id}`\n"
-            f"Name: **{button_name}**\n"
-            f"Days: **{days}**\n"
-            f"Price per account: **₹{price:.2f}**"
+            f"Name: <b>{button_name}</b>\n"
+            f"Days: <b>{days}</b>\n"
+            f"Price per account: <b>₹{price:.2f}</b>"
         )
 
     @client.on(events.NewMessage(pattern=r"^/removeplan"))
@@ -871,11 +871,11 @@ async def approve_matching_payment(bot_client, utr: str, amount: float):
                 expiry_str = datetime.datetime.fromtimestamp(expires_at).strftime('%d %b %Y %H:%M')
                 await bot_client.send_message(
                     user_id,
-                    f"🎉 **Payment Automatically Verified!**\n"
+                    f"🎉 <b>Payment Automatically Verified!</b>\n"
                     f"━━━━━━━━━━━━━━━━━━━━\n"
                     f"Your payment with UTR `{utr}` has been auto-approved.\n"
-                    f"Slots added: **{qty}**\n"
-                    f"New slots limit: **{user['allowed_slots']}**"
+                    f"Slots added: <b>{qty}</b>\n"
+                    f"New slots limit: <b>{user['allowed_slots']}</b>"
                 )
             except Exception as ne:
                 logger.warning(f"Failed to notify user: {ne}")
@@ -888,12 +888,12 @@ async def approve_matching_payment(bot_client, utr: str, amount: float):
                 user_mention = f"[{user_id}](tg://user?id={user_id})"
                 await bot_client.send_message(
                     log_group_id,
-                    f"✅ **Auto-Payment Approved (Gmail)**\n"
+                    f"✅ <b>Auto-Payment Approved (Gmail)</b>\n"
                     f"━━━━━━━━━━━━━━━━━━━━\n"
                     f"User: {user_mention} (`{user_id}`)\n"
                     f"Amount: ₹{amount}\n"
                     f"UTR Code: `{utr}`\n"
-                    f"Slots upgraded: **{qty}**"
+                    f"Slots upgraded: <b>{qty}</b>"
                 )
             except Exception as le:
                 logger.warning(f"Failed to log to admin group: {le}")
@@ -912,8 +912,8 @@ async def approve_matching_payment(bot_client, utr: str, amount: float):
                     try:
                         await bot_client.send_message(
                             referrer_id,
-                            f"💰 **Commission Received!**\n"
-                            f"Referred user upgraded slots. **₹{commission:.2f}** added to your wallet."
+                            f"💰 <b>Commission Received!</b>\n"
+                            f"Referred user upgraded slots. <b>₹{commission:.2f}</b> added to your wallet."
                         )
                     except Exception:
                         pass

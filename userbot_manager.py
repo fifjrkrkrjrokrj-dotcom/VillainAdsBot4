@@ -390,7 +390,7 @@ async def set_userbot_name(session_id: str, new_name: str) -> tuple[bool, str]:
                     
                 await client(UpdateProfileRequest(first_name=final_first_name))
                 bot_obj.name = new_name
-                return True, f"Name updated to: **{new_name}**"
+                return True, f"Name updated to: <b>{new_name}</b>"
             except Exception as e:
                 logger.error(f"Failed to update profile on Telegram for {session_id}: {e}")
                 return False, f"Updated in database, but Telegram error: {e}"
@@ -407,13 +407,13 @@ async def set_userbot_name(session_id: str, new_name: str) -> tuple[bool, str]:
             if await temp_client.is_user_authorized():
                 await temp_client(UpdateProfileRequest(first_name=new_name))
                 await temp_client.disconnect()
-                return True, f"Name updated to: **{new_name}**"
+                return True, f"Name updated to: <b>{new_name}</b>"
             else:
                 await temp_client.disconnect()
         except Exception as e:
             logger.warning(f"Could not update offline bot profile via temp client: {e}")
             
-    return True, f"Name updated to: **{new_name}**"
+    return True, f"Name updated to: <b>{new_name}</b>"
 
 async def restore_original_profile(session_id: str) -> tuple:
     """

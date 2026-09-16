@@ -73,7 +73,7 @@ def download_progress_sync(current, total, msg_to_edit, operation_name="Download
         filled = int(percent / 10)
         bar = "█" * filled + "░" * (10 - filled)
         text = (
-            f"📥 **{operation_name}...**\n"
+            f"📥 <b>{operation_name}...</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"📁 Size: `{total / (1024*1024):.2f} MB`\n"
             f"📊 Progress: `[{bar}] {percent:.1f}%`"
@@ -445,7 +445,7 @@ async def show_bot_dashboard(event, phone: str, user_id: int, flash_message: Opt
             
     except Exception as e:
         logger.exception("Error rendering bot dashboard")
-        err_msg = f"❌ **Error rendering dashboard:** {e}"
+        err_msg = f"❌ <b>Error rendering dashboard:</b> {e}"
         try:
             await event.edit(err_msg)
         except Exception:
@@ -467,7 +467,7 @@ async def show_all_slots_dashboard(event, user_id: int, flash_message: Optional[
     lang = user.get("language", "en") if user else "en"
         
     if not sessions:
-        text = "⚠️ **All Slots Dashboard**\n\nNo connected UserBots found in system." if is_sys_all else "⚠️ **All Slots Dashboard**\n\nNo connected UserBots found."
+        text = "⚠️ <b>All Slots Dashboard</b>\n\nNo connected UserBots found in system." if is_sys_all else "⚠️ <b>All Slots Dashboard</b>\n\nNo connected UserBots found."
         back_btn = [utils.styled_button("🚪 Exit Admin Access", "admin_exit_impersonation", style="danger")] if (sender_id in _admin_impersonation or is_sys_all) else [utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")]
         buttons = [back_btn]
         try:
@@ -732,7 +732,7 @@ def register_handlers(client):
             database.save_session(s)
             userbot_manager.reload_bot_settings(s["phone"])
         word = "ENABLED" if target_state else "DISABLED"
-        await show_all_slots_dashboard(event, user_id, flash_message=f"💬 **Tag Auto-Reply {word} for all userbots!**", fetch_all=is_system_all_mode(event.sender_id))
+        await show_all_slots_dashboard(event, user_id, flash_message=f"💬 <b>Tag Auto-Reply {word} for all userbots!</b>", fetch_all=is_system_all_mode(event.sender_id))
 
     @client.on(events.CallbackQuery(pattern="^menu_all_slots$"))
     async def menu_all_slots_callback(event):
@@ -973,10 +973,10 @@ def register_handlers(client):
         }
         
         prompt_text = (
-            "❌ **Leave Group / Channel**\n"
+            "❌ <b>Leave Group / Channel</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n"
-            "> Send the **Group invite link**, **Username**, or **Chat ID** of the group you want the userbot to leave.\n\n"
-            "✍️ **Send the link or ID below:**"
+            "> Send the <b>Group invite link</b>, <b>Username</b>, or <b>Chat ID</b> of the group you want the userbot to leave.\n\n"
+            "✍️ <b>Send the link or ID below:</b>"
         )
         buttons = [[utils.styled_button("🔙 Cancel", f"vc_menu_{phone}", style="primary")]]
         try:
@@ -1141,10 +1141,10 @@ def register_handlers(client):
         }
         
         prompt_text = (
-            "❌ **Leave Group / Channel (All Slots)**\n"
+            "❌ <b>Leave Group / Channel (All Slots)</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n"
-            "> Send the **Group invite link**, **Username**, or **Chat ID** of the group you want ALL running userbots to leave.\n\n"
-            "✍️ **Send the link or ID below:**"
+            "> Send the <b>Group invite link</b>, <b>Username</b>, or <b>Chat ID</b> of the group you want ALL running userbots to leave.\n\n"
+            "✍️ <b>Send the link or ID below:</b>"
         )
         buttons = [[utils.styled_button("🔙 Cancel", "all_slots_vc_menu", style="primary")]]
         try:
@@ -1186,7 +1186,7 @@ def register_handlers(client):
             await event.answer("⚠️ No slots found.", alert=True)
             return
             
-        progress_msg = await event.reply("⏳ **Restarting userbots sequentially to optimize memory...**")
+        progress_msg = await event.reply("⏳ <b>Restarting userbots sequentially to optimize memory...</b>")
         
         restarted = 0
         limit_reached = False
@@ -1210,9 +1210,9 @@ def register_handlers(client):
         await progress_msg.delete()
         
         if limit_reached:
-            flash = f"🔄 **Restarted {restarted} userbots!**\n⚠️ *Some bots stopped but couldn't restart as the server limit of {max_running} active bots was reached.*"
+            flash = f"🔄 <b>Restarted {restarted} userbots!</b>\n⚠️ *Some bots stopped but couldn't restart as the server limit of {max_running} active bots was reached.*"
         else:
-            flash = f"🔄 **Restarted {restarted} userbots!**"
+            flash = f"🔄 <b>Restarted {restarted} userbots!</b>"
             
         await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(event.sender_id))
 
@@ -1331,7 +1331,7 @@ def register_handlers(client):
             await event.answer("⚠️ Start at least one userbot first!", alert=True)
             return
             
-        progress_msg = await event.reply("⏳ **Refreshing statistics for all running userbots concurrently...**")
+        progress_msg = await event.reply("⏳ <b>Refreshing statistics for all running userbots concurrently...</b>")
         
         async def _refresh_one(phone):
             bot_obj = userbot_manager._running_bots[phone]
@@ -1345,14 +1345,14 @@ def register_handlers(client):
         refreshed = sum(1 for r in results if not isinstance(r, Exception) and r)
         
         await progress_msg.delete()
-        await show_all_slots_dashboard(event, user_id, flash_message=f"🔄 **Refreshed stats for {refreshed} userbots!**", fetch_all=is_system_all_mode(event.sender_id))
+        await show_all_slots_dashboard(event, user_id, flash_message=f"🔄 <b>Refreshed stats for {refreshed} userbots!</b>", fetch_all=is_system_all_mode(event.sender_id))
 
     @client.on(events.CallbackQuery(pattern="^all_slots_delete$"))
     async def all_slots_delete_callback(event):
         user_id = _admin_impersonation.get(event.sender_id, event.sender_id)
         text = (
-            "⚠️ **Delete All UserBots**\n\n"
-            "Are you absolutely sure you want to delete **ALL** connected userbots? "
+            "⚠️ <b>Delete All UserBots</b>\n\n"
+            "Are you absolutely sure you want to delete <b>ALL</b> connected userbots? "
             "This will delete all Telegram sessions from disk and database. This action cannot be undone!"
         )
         buttons = [
@@ -1377,7 +1377,7 @@ def register_handlers(client):
         deleted = sum(1 for r in results if not isinstance(r, Exception) and r)
         
         from .my_bots import show_bots_list
-        await show_bots_list(event, user_id, flash_message=f"🗑️ **Deleted {deleted} userbot sessions successfully.**")
+        await show_bots_list(event, user_id, flash_message=f"🗑️ <b>Deleted {deleted} userbot sessions successfully.</b>")
 
     @client.on(events.CallbackQuery(pattern="^all_slots_start$"))
     async def all_slots_start_callback(event):
@@ -1387,7 +1387,7 @@ def register_handlers(client):
             await event.answer("⚠️ No slots found.", alert=True)
             return
             
-        progress_msg = await event.reply("⏳ **Starting userbots sequentially to optimize memory...**")
+        progress_msg = await event.reply("⏳ <b>Starting userbots sequentially to optimize memory...</b>")
         
         started = 0
         limit_reached = False
@@ -1411,9 +1411,9 @@ def register_handlers(client):
             pass
         
         if limit_reached:
-            flash = f"🟢 **Started {started} userbots!**\n⚠️ *Some userbots could not start because the server limit of {max_running} active bots was reached.*"
+            flash = f"🟢 <b>Started {started} userbots!</b>\n⚠️ *Some userbots could not start because the server limit of {max_running} active bots was reached.*"
         else:
-            flash = f"🟢 **Started {started} userbots!**"
+            flash = f"🟢 <b>Started {started} userbots!</b>"
             
         await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(event.sender_id))
 
@@ -1425,7 +1425,7 @@ def register_handlers(client):
             await event.answer("⚠️ No slots found.", alert=True)
             return
             
-        progress_msg = await event.reply("⏳ **Stopping all userbots concurrently...**")
+        progress_msg = await event.reply("⏳ <b>Stopping all userbots concurrently...</b>")
         
         async def _stop_one(s):
             phone = s["phone"]
@@ -1441,7 +1441,7 @@ def register_handlers(client):
             await progress_msg.delete()
         except Exception:
             pass
-        await show_all_slots_dashboard(event, user_id, flash_message=f"🔴 **Stopped {stopped} userbots!**", fetch_all=is_system_all_mode(event.sender_id))
+        await show_all_slots_dashboard(event, user_id, flash_message=f"🔴 <b>Stopped {stopped} userbots!</b>", fetch_all=is_system_all_mode(event.sender_id))
 
     @client.on(events.CallbackQuery(pattern="^all_slots_vc_join$"))
     async def all_slots_vc_join_callback(event):
@@ -2105,14 +2105,14 @@ def register_handlers(client):
             await event.answer("⚠️ Userbot must be running to restore a profile.", alert=True)
             return
             
-        progress_msg = await event.reply("⏳ **Restoring original profile, please wait...**")
+        progress_msg = await event.reply("⏳ <b>Restoring original profile, please wait...</b>")
         success, msg = await userbot_manager.restore_original_profile(phone)
         await progress_msg.delete()
         
         if success:
-            flash = f"✅ **Profile restored!**\n{msg}"
+            flash = f"✅ <b>Profile restored!</b>\n{msg}"
         else:
-            flash = f"❌ **Restoration failed:** {msg}"
+            flash = f"❌ <b>Restoration failed:</b> {msg}"
             
         await show_bot_dashboard(event, phone, user_id, flash_message=flash)
 
@@ -2201,7 +2201,7 @@ def register_handlers(client):
         
         # Check if already running
         if userbot_manager.is_bot_running(phone):
-            await show_bot_dashboard(event, phone, user_id, flash_message="🟢 **Userbot is already running.**")
+            await show_bot_dashboard(event, phone, user_id, flash_message="🟢 <b>Userbot is already running.</b>")
             return
 
         # Limit check removed
@@ -2209,9 +2209,9 @@ def register_handlers(client):
         # Start bot in background
         success = await userbot_manager.start_userbot(phone)
         if success:
-            flash = "🟢 **Userbot successfully started!**"
+            flash = "🟢 <b>Userbot successfully started!</b>"
         else:
-            flash = "❌ **Failed to start Userbot. Check Telegram session/auth.**"
+            flash = "❌ <b>Failed to start Userbot. Check Telegram session/auth.</b>"
             
         await show_bot_dashboard(event, phone, user_id, flash_message=flash)
 
@@ -2222,7 +2222,7 @@ def register_handlers(client):
         
         # Stop bot
         await userbot_manager.stop_userbot(phone)
-        await show_bot_dashboard(event, phone, user_id, flash_message="🔴 **Userbot stopped.**")
+        await show_bot_dashboard(event, phone, user_id, flash_message="🔴 <b>Userbot stopped.</b>")
 
     @client.on(events.CallbackQuery(pattern=r"^restart_bot_(.+)$"))
     async def restart_bot_callback(event):
@@ -2236,9 +2236,9 @@ def register_handlers(client):
         # Start
         success = await userbot_manager.start_userbot(phone)
         if success:
-            flash = "🔄 **Userbot successfully restarted!**"
+            flash = "🔄 <b>Userbot successfully restarted!</b>"
         else:
-            flash = "❌ **Failed to start Userbot after stopping.**"
+            flash = "❌ <b>Failed to start Userbot after stopping.</b>"
             
         await show_bot_dashboard(event, phone, user_id, flash_message=flash)
 
@@ -2299,7 +2299,7 @@ def register_handlers(client):
         user_id = _admin_impersonation.get(event.sender_id, event.sender_id)
         
         await userbot_manager.remove_userbot(phone)
-        await show_bots_list(event, user_id, flash_message="🗑️ **Userbot session successfully deleted.**")
+        await show_bots_list(event, user_id, flash_message="🗑️ <b>Userbot session successfully deleted.</b>")
 
     # ------------------ Toggles ------------------
     @client.on(events.CallbackQuery(pattern=r"^toggle_(spam|welcome|add_contact|reply)_(?!mode_)(\+?\d+)$"))
@@ -2351,12 +2351,12 @@ def register_handlers(client):
                     sess = database.get_session(phone)
                     users = sess["stats"]["user_count"]
                     
-                    flash = f"🔄 **Stats refreshed! Groups: {len(groups)} | Contacts: {users}**"
+                    flash = f"🔄 <b>Stats refreshed! Groups: {len(groups)} | Contacts: {users}</b>"
                 except Exception as e:
                     logger.error(f"Error refreshing stats: {e}")
-                    flash = f"❌ **Error during refresh: {e}**"
+                    flash = f"❌ <b>Error during refresh: {e}</b>"
             else:
-                flash = "⚠️ **Bot must be running to refresh statistics.**"
+                flash = "⚠️ <b>Bot must be running to refresh statistics.</b>"
                 
         await show_bot_dashboard(event, phone, user_id, flash_message=flash)
 
@@ -2911,9 +2911,9 @@ def register_handlers(client):
             state = _bot_action_states.pop(user_id, {})
             phone = state.get("phone")
             if phone:
-                await show_bot_dashboard(event, phone, user_id, flash_message="❌ **Action cancelled.**")
+                await show_bot_dashboard(event, phone, user_id, flash_message="❌ <b>Action cancelled.</b>")
             else:
-                await show_all_slots_dashboard(event, user_id, flash_message="❌ **Action cancelled.**", fetch_all=is_system_all_mode(user_id))
+                await show_all_slots_dashboard(event, user_id, flash_message="❌ <b>Action cancelled.</b>", fetch_all=is_system_all_mode(user_id))
             return
             
         state = _bot_action_states.pop(user_id)
@@ -3021,7 +3021,7 @@ def register_handlers(client):
                 await event.reply("❌ No userbots are currently running.")
                 return
                 
-            progress_msg = await event.reply(f"⏳ **Leaving group concurrently on {len(running_phones)} userbots...**")
+            progress_msg = await event.reply(f"⏳ <b>Leaving group concurrently on {len(running_phones)} userbots...</b>")
             
             async def _leave_grp_concurrent(phone_num):
                 bot_obj = userbot_manager._running_bots[phone_num]
@@ -3259,7 +3259,7 @@ def register_handlers(client):
             
             if media_obj:
                 is_audio_file = True
-                progress_msg = await event.reply("📥 **Downloading uploaded media...**\n━━━━━━━━━━━━━━━━━━━━\n📊 Progress: `[░░░░░░░░░░] 0.0%`")
+                progress_msg = await event.reply("📥 <b>Downloading uploaded media...</b>\n━━━━━━━━━━━━━━━━━━━━\n📊 Progress: `[░░░░░░░░░░] 0.0%`")
                 os.makedirs("downloads", exist_ok=True)
                 try:
                     local_file_path = await client.download_media(
@@ -3269,7 +3269,7 @@ def register_handlers(client):
                     )
                 except Exception as dl_err:
                     logger.error(f"Failed to download media: {dl_err}")
-                    await progress_msg.edit(f"❌ **Failed to download media:** {dl_err}")
+                    await progress_msg.edit(f"❌ <b>Failed to download media:</b> {dl_err}")
                     return
                 finally:
                     try:
@@ -3317,11 +3317,11 @@ def register_handlers(client):
                     
             if success_count > 0 and song_info_global:
                 caption = (
-                    f"> 🎵 **Now Playing (All Slots)**\n"
+                    f"> 🎵 <b>Now Playing (All Slots)</b>\n"
                     f"> \n"
-                    f"> • **Title**: `{song_info_global['title']}`\n"
-                    f"> • **Duration**: `{song_info_global['duration']}s`\n"
-                    f"> • **Requested by**: [{user.get('name', 'User')}](tg://user?id={user_id})\n"
+                    f"> • <b>Title</b>: `{song_info_global['title']}`\n"
+                    f"> • <b>Duration</b>: `{song_info_global['duration']}s`\n"
+                    f"> • <b>Requested by</b>: [{user.get('name', 'User')}](tg://user?id={user_id})\n"
                     f"> \n"
                     f"> 🎧 _Playing on {success_count} userbot(s) in Voice Chats!_"
                 )
@@ -3775,7 +3775,7 @@ def register_handlers(client):
             
             if media_obj:
                 is_audio_file = True
-                progress_msg = await event.reply("📥 **Downloading uploaded media...**\n━━━━━━━━━━━━━━━━━━━━\n📊 Progress: `[░░░░░░░░░░] 0.0%`")
+                progress_msg = await event.reply("📥 <b>Downloading uploaded media...</b>\n━━━━━━━━━━━━━━━━━━━━\n📊 Progress: `[░░░░░░░░░░] 0.0%`")
                 os.makedirs("downloads", exist_ok=True)
                 try:
                     local_file_path = await client.download_media(
@@ -3785,7 +3785,7 @@ def register_handlers(client):
                     )
                 except Exception as dl_err:
                     logger.error(f"Failed to download media: {dl_err}")
-                    await progress_msg.edit(f"❌ **Failed to download media:** {dl_err}")
+                    await progress_msg.edit(f"❌ <b>Failed to download media:</b> {dl_err}")
                     return
                 finally:
                     try:
@@ -3814,11 +3814,11 @@ def register_handlers(client):
             
             if success and song_info:
                 caption = (
-                    f"> 🎵 **Now Playing**\n"
+                    f"> 🎵 <b>Now Playing</b>\n"
                     f"> \n"
-                    f"> • **Title**: `{song_info['title']}`\n"
-                    f"> • **Duration**: `{song_info['duration']}s`\n"
-                    f"> • **Requested by**: [{user.get('name', 'User')}](tg://user?id={user_id})\n"
+                    f"> • <b>Title</b>: `{song_info['title']}`\n"
+                    f"> • <b>Duration</b>: `{song_info['duration']}s`\n"
+                    f"> • <b>Requested by</b>: [{user.get('name', 'User')}](tg://user?id={user_id})\n"
                     f"> \n"
                     f"> 🎧 _Playing in voice chat for userbot `{phone}`_"
                 )

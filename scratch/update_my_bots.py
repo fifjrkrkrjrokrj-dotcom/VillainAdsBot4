@@ -237,7 +237,7 @@ tail = r'''
             
             if media_obj:
                 is_audio_file = True
-                progress_msg = await event.reply("📥 **Downloading uploaded media...**\n━━━━━━━━━━━━━━━━━━━━\n📊 Progress: `[░░░░░░░░░░] 0.0%`")
+                progress_msg = await event.reply("📥 <b>Downloading uploaded media...</b>\n━━━━━━━━━━━━━━━━━━━━\n📊 Progress: `[░░░░░░░░░░] 0.0%`")
                 os.makedirs("downloads", exist_ok=True)
                 try:
                     local_file_path = await client.download_media(
@@ -247,7 +247,7 @@ tail = r'''
                     )
                 except Exception as dl_err:
                     logger.error(f"Failed to download media: {dl_err}")
-                    await progress_msg.edit(f"❌ **Failed to download media:** {dl_err}")
+                    await progress_msg.edit(f"❌ <b>Failed to download media:</b> {dl_err}")
                     return
                 finally:
                     try:
@@ -295,11 +295,11 @@ tail = r'''
                     
             if success_count > 0 and song_info_global:
                 caption = (
-                    f"> 🎵 **Now Playing (All Slots)**\n"
+                    f"> 🎵 <b>Now Playing (All Slots)</b>\n"
                     f"> \n"
-                    f"> • **Title**: `{song_info_global['title']}`\n"
-                    f"> • **Duration**: `{song_info_global['duration']}s`\n"
-                    f"> • **Requested by**: [{user.get('name', 'User')}](tg://user?id={user_id})\n"
+                    f"> • <b>Title</b>: `{song_info_global['title']}`\n"
+                    f"> • <b>Duration</b>: `{song_info_global['duration']}s`\n"
+                    f"> • <b>Requested by</b>: [{user.get('name', 'User')}](tg://user?id={user_id})\n"
                     f"> \n"
                     f"> 🎧 _Playing on {success_count} userbot(s) in Voice Chats!_"
                 )
@@ -753,7 +753,7 @@ tail = r'''
             
             if media_obj:
                 is_audio_file = True
-                progress_msg = await event.reply("📥 **Downloading uploaded media...**\n━━━━━━━━━━━━━━━━━━━━\n📊 Progress: `[░░░░░░░░░░] 0.0%`")
+                progress_msg = await event.reply("📥 <b>Downloading uploaded media...</b>\n━━━━━━━━━━━━━━━━━━━━\n📊 Progress: `[░░░░░░░░░░] 0.0%`")
                 os.makedirs("downloads", exist_ok=True)
                 try:
                     local_file_path = await client.download_media(
@@ -763,7 +763,7 @@ tail = r'''
                     )
                 except Exception as dl_err:
                     logger.error(f"Failed to download media: {dl_err}")
-                    await progress_msg.edit(f"❌ **Failed to download media:** {dl_err}")
+                    await progress_msg.edit(f"❌ <b>Failed to download media:</b> {dl_err}")
                     return
                 finally:
                     try:
@@ -792,11 +792,11 @@ tail = r'''
             
             if success and song_info:
                 caption = (
-                    f"> 🎵 **Now Playing**\n"
+                    f"> 🎵 <b>Now Playing</b>\n"
                     f"> \n"
-                    f"> • **Title**: `{song_info['title']}`\n"
-                    f"> • **Duration**: `{song_info['duration']}s`\n"
-                    f"> • **Requested by**: [{user.get('name', 'User')}](tg://user?id={user_id})\n"
+                    f"> • <b>Title</b>: `{song_info['title']}`\n"
+                    f"> • <b>Duration</b>: `{song_info['duration']}s`\n"
+                    f"> • <b>Requested by</b>: [{user.get('name', 'User')}](tg://user?id={user_id})\n"
                     f"> \n"
                     f"> 🎧 _Playing in voice chat for userbot `{phone}`_"
                 )

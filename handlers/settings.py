@@ -55,7 +55,7 @@ async def show_purchase_menu(event, user_id: int):
     if not plans:
         buttons = [[utils.styled_button("🔙 Back", "menu_settings", style="primary")]]
         text = (
-            f"> ❌ **NO PLANS AVAILABLE**\n"
+            f"> ❌ <b>NO PLANS AVAILABLE</b>\n"
             f"> ━━━━━━━━━━━━━━━━━━━━\n"
             f"> No subscription plans are currently configured by administrators.\n"
             f"> ━━━━━━━━━━━━━━━━━━━━"
@@ -67,10 +67,10 @@ async def show_purchase_menu(event, user_id: int):
         return
         
     text = (
-        f"> 💳 **PURCHASE SLOT UPGRADES**\n"
+        f"<blockquote><b>» 💳 ᴘᴜʀᴄʜᴀsᴇ sʟᴏᴛ ᴜᴘɢʀᴀᴅᴇs</b>\n\n"
         f"> ━━━━━━━━━━━━━━━━━━━━\n"
-        f"> 📊 **Current Allowed Slots**: `{allowed}`\n"
-        f"> 💡 Select a subscription plan below to upgrade:\n"
+        f"📊 <b>ᴄᴜʀʀᴇɴᴛ ᴀʟʟᴏᴡᴇᴅ sʟᴏᴛs :</b> <code>{allowed}</code>\n"
+        f"⚡ <i>sᴇʟᴇᴄᴛ ᴀ sᴜʙsᴄʀɪᴘᴛɪᴏɴ ᴘʟᴀɴ ʙᴇʟᴏᴡ ᴛᴏ ᴜᴘɢʀᴀᴅᴇ:</i></blockquote>"
         f"> ━━━━━━━━━━━━━━━━━━━━"
     )
     

@@ -1,6 +1,6 @@
 TRANSLATIONS = {
     "en": {
-        "select_lang": "📱 ᴘʟᴇᴀsᴇ sᴇʟᴇᴄᴛ ʏᴏᴜʀ ʟᴀɴɢᴜᴀɢᴇ / ᴋʀɪᴘʏᴀ ᴀᴘɴɪ ʙʜᴀsʜᴀ ᴄʜᴜɴᴇɪɴ / ᴘᴏᴢʜᴀʟᴜʏsᴛᴀ, ᴠʏʙᴇʀɪᴛᴇ ʏᴀᴢʏᴋ:",
+        "select_lang": "<blockquote><b>» 📱 ᴘʟᴇᴀsᴇ sᴇʟᴇᴄᴛ ʏᴏᴜʀ ʟᴀɴɢᴜᴀɢᴇ / ᴋʀɪᴘʏᴀ ᴀᴘɴɪ ʙʜᴀsʜᴀ ᴄʜᴜɴᴇɪɴ / ᴘᴏᴢʜᴀʟᴜʏsᴛᴀ, ᴠʏʙᴇʀɪᴛᴇ ʏᴀᴢʏᴋ:</b></blockquote>",
         "tos_title": "⚠️ ᴛᴇʀᴍs ᴏғ sᴇʀᴠɪᴄᴇ",
         "tos_text": "<blockquote><b>» ⚠️ ᴅɪsᴄʟᴀɪᴍᴇʀ & ᴛᴇʀᴍs ᴏғ sᴇʀᴠɪᴄᴇ</b>\n\n1. ᴛʜɪs ʙᴏᴛ ɪs ᴀ ᴛᴏᴏʟ ᴛᴏ ᴀᴜᴛᴏᴍᴀᴛᴇ ᴘᴇʀsᴏɴᴀʟ ᴛᴇʟᴇɢʀᴀᴍ ᴀᴄᴄᴏᴜɴᴛs.\n2. ʀᴜɴɴɪɴɢ ᴀᴜᴛᴏᴍᴀᴛᴇᴅ ᴀᴄᴛɪᴏɴs (ʟɪᴋᴇ sᴘᴀᴍs ᴏʀ ʀᴀᴘɪᴅ ʙʀᴏᴀᴅᴄᴀsᴛs) ᴠɪᴏʟᴀᴛᴇs ᴛᴇʟᴇɢʀᴀᴍ's ᴛᴏs ᴀɴᴅ ᴍɪɢʜᴛ ʀᴇsᴜʟᴛ ɪɴ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ ʙᴇɪɴɢ <b>ʙᴀɴɴᴇᴅ</b> ᴏʀ <b>ғʀᴏᴢᴇɴ</b>.\n3. ᴛʜᴇ ʙᴏᴛ ᴏᴡɴᴇʀ ᴀɴᴅ ᴅᴇᴠᴇʟᴏᴘᴇʀ ᴀʀᴇ ɴᴏᴛ ʀᴇsᴘᴏɴsɪʙʟᴇ ғᴏʀ ᴀɴʏ ʙᴀɴs, ᴅᴀᴛᴀ ʟᴏss, ᴏʀ ᴀᴄᴛɪᴏɴ ᴛᴀᴋᴇɴ ᴏɴ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ.\n4. ᴜsᴇ ɪᴛ ᴀᴛ ʏᴏᴜʀ ᴏᴡɴ ʀɪsᴋ.\n\n<i>ᴅᴏ ʏᴏᴜ ᴀᴄᴄᴇᴘᴛ ᴛʜᴇsᴇ ᴛᴇʀᴍs ᴛᴏ ᴘʀᴏᴄᴇᴇᴅ?</i></blockquote>",
         "tos_accept_btn": "✅ ᴀᴄᴄᴇᴘᴛ & ᴄᴏɴᴛɪɴᴜᴇ",
@@ -193,7 +193,7 @@ TRANSLATIONS = {
     },
     
     "hi": {
-        "select_lang": "📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык:",
+        "select_lang": "<blockquote><b>» 📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык:</b></blockquote>",
         "tos_title": "⚠️ सेवा की शर्तें",
         "tos_text": "> ⚠️ <b>अस्वीकरण और सेवा की शर्तें</b>\n> ━━━━━━━━━━━━━━━━━━━━\n> 1. यह बॉट व्यक्तिगत टेलीग्राम खातों को स्वचालित करने का एक उपकरण है।\n> 2. स्वचालित कार्य (जैसे स्पैम या तीव्र प्रसारण) चलाना टेलीग्राम की सेवा शर्तों का उल्लंघन करता है और इसके परिणामस्वरूप आपका खाता <b>प्रतिबंधित (banned)</b> या <b>फ्रोजन</b> हो सकता है।\n> 3. बॉट मालिक और डेवलपर आपके खाते पर किसी भी प्रतिबंध, डेटा हानि या की गई कार्रवाई के लिए जिम्मेदार नहीं हैं।\n> 4. इसे अपने जोखिम पर उपयोग करें।\n> \n> आगे बढ़ने के लिए क्या आप इन शर्तों को स्वीकार करते हैं?",
         "tos_accept_btn": "✅ स्वीकार करें और आगे बढ़ें",
@@ -387,7 +387,7 @@ TRANSLATIONS = {
     },
     
     "ru": {
-        "select_lang": "📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык:",
+        "select_lang": "<blockquote><b>» 📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык:</b></blockquote>",
         "tos_title": "⚠️ Условия использования",
         "tos_text": "⚠️ <b>Условия предоставления услуг</b>\n\n1. Этот бот — инструмент для автоматизации личных аккаунтов Telegram.\n2. Запуск автоматических действий (таких как спам или частые рассылки) нарушает Условия использования Telegram и может привести к <b>блокировке</b> или <b>заморозке</b> вашего аккаунта.\n3. Владелец и разработчик бота не несут ответственности за любые блокировки, потерю данных или действия, предпринятые в отношении вашего аккаунта.\n4. Используйте на свой страх и риск.\n\nВы принимаете эти условия, чтобы продолжить?",
         "tos_accept_btn": "✅ Принять и продолжить",
@@ -572,7 +572,7 @@ TRANSLATIONS = {
     },
     
     "ja": {
-        "select_lang": "📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык / 言語を選択してください:",
+        "select_lang": "<blockquote><b>» 📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык / 言語を選択してください:</b></blockquote>",
         "tos_title": "⚠️ 利用規約",
         "tos_text": "⚠️ <b>免責事項と利用規約</b>\n\n1. このボットは個人のTelegramアカウントを自動化するためのツールです。\n2. 自動化されたアクション（スパムや急速なブロードキャストなど）を実行することはTelegramの利用規約に違反し、アカウントが<b>禁止</b>または<b>凍結</b>される可能性があります。\n3. ボットの所有者および開発者は、アカウントに対する禁止、データ損失、または実行されたアクションについて一切の責任を負いません。\n4. 自己責任でご利用ください。\n\n続行するには、これらの規約に同意しますか？",
         "tos_accept_btn": "✅ 同意して続行",
@@ -734,7 +734,7 @@ TRANSLATIONS = {
     },
 
     "fr": {
-        "select_lang": "📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык / Veuillez choisir votre langue :",
+        "select_lang": "<blockquote><b>» 📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык / Veuillez choisir votre langue :</b></blockquote>",
         "tos_title": "⚠️ Conditions d'utilisation",
         "tos_text": "⚠️ <b>Clause de non-responsabilité & Conditions d'utilisation</b>\n\n1. Ce bot est un outil pour automatiser les comptes personnels Telegram.\n2. L'exécution d'actions automatisées (comme les spams ou les diffusions rapides) viole les conditions d'utilisation de Telegram et peut entraîner le <b>bannissement</b> ou le <b>gel</b> de votre compte.\n3. Le propriétaire et le développeur du bot ne sont pas responsables des bannissements, pertes de données ou actions prises sur votre compte.\n4. Utilisez-le à vos propres risques.\n\nAcceptez-vous ces conditions pour continuer ?",
         "tos_accept_btn": "✅ Accepter & Continuer",
@@ -896,7 +896,7 @@ TRANSLATIONS = {
     },
 
     "de": {
-        "select_lang": "📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык / Bitte wählen Sie Ihre Sprache:",
+        "select_lang": "<blockquote><b>» 📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык / Bitte wählen Sie Ihre Sprache:</b></blockquote>",
         "tos_title": "⚠️ Nutzungsbedingungen",
         "tos_text": "⚠️ <b>Haftungsausschluss & Nutzungsbedingungen</b>\n\n1. Dieser Bot ist ein Werkzeug zur Automatisierung persönlicher Telegram-Konten.\n2. Das Ausführen automatisierter Aktionen (wie Spam oder schnelle Übertragungen) verstößt gegen die Nutzungsbedingungen von Telegram und kann zur <b>Sperrung</b> oder zum <b>Einfrieren</b> Ihres Kontos führen.\n3. Der Bot-Besitzer und -Entwickler sind nicht verantwortlich für Sperren, Datenverluste oder Maßnahmen, die an Ihrem Konto vorgenommen werden.\n4. Die Nutzung erfolgt auf eigene Gefahr.\n\nStimmen Sie diesen Bedingungen zu, um fortzufahren?",
         "tos_accept_btn": "✅ Akzeptieren & Weiter",
@@ -1058,7 +1058,7 @@ TRANSLATIONS = {
     },
 
     "zh": {
-        "select_lang": "📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык / 请选择您的语言:",
+        "select_lang": "<blockquote><b>» 📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык / 请选择您的语言:</b></blockquote>",
         "tos_title": "⚠️ 服务条款",
         "tos_text": "⚠️ <b>免责声明与服务条款</b>\n\n1. 本机器人是一个用于自动化个人 Telegram 账号的工具。\n2. 运行自动化操作（如垃圾群发或高频广播）违反了 Telegram 的服务条款，可能会导致您的账号被<b>封禁</b>或<b>冻结</b>。\n3. 机器人所有者和开发者不对您的账号被封禁、数据丢失或采取的任何措施承担任何责任。\n4. 请自行承担使用风险。\n\n您是否接受这些条款以继续？",
         "tos_accept_btn": "✅ 接受并继续",
@@ -1220,7 +1220,7 @@ TRANSLATIONS = {
     },
 
     "ar": {
-        "select_lang": "📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык / يرجى اختيار اللغة الخاصة بك:",
+        "select_lang": "<blockquote><b>» 📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык / يرجى اختيار اللغة الخاصة بك:</b></blockquote>",
         "tos_title": "⚠️ شروط الخدمة",
         "tos_text": "⚠️ <b>إخلاء المسؤولية وشروط الخدمة</b>\n\n1. هذا البوت أداة لأتمتة حسابات تيليجرام الشخصية.\n2. تشغيل الإجراءات المؤتمتة (مثل إرسال رسائل غير مرغوب فيها أو البث السريع) ينتهك شروط خدمة تيليجرام وقد يؤدي إلى <b>حظر</b> حسابك أو <b>تجميده</b>.\n3. لا يتحمل مالك ومطور البوت أي مسؤولية عن الحظر أو فقدان البيانات أو أي إجراء يتخذ بحق حسابك.\n4. استخدم البوت على مسؤوليتك الخاصة.\n\nهل تقبل هذه الشروط للمتابعة؟",
         "tos_accept_btn": "✅ قبول ومتابعة",

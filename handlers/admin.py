@@ -129,8 +129,8 @@ def register_handlers(client):
                 "<blockquote><b>» 🖥️ ᴠᴘs sʏsᴛᴇᴍ ᴜsᴀɢᴇ</b>\n\n"
                 f"⏱️ <b>ᴜᴘᴛɪᴍᴇ :</b> <code>{uptime}</code>\n"
                 f"💻 <b>ᴄᴘᴜ ᴜsᴀɢᴇ :</b> <code>{cpu_pct}%</code>\n"
-                f"🧠 <b>ʀᴀᴍ ᴜsᴀɢᴇ :</b> <code>{mem.percent}%</code> <code>({mem.used // (1024**2)}MB / {mem.total // (1024**2)}MB)</code>\n"
-                f"💽 <b>ᴅɪsᴋ ᴜsᴀɢᴇ :</b> <code>{disk.percent}%</code> <code>({disk.used // (1024**3)}GB / {disk.total // (1024**3)}GB)</code></blockquote>"
+                f"🧠 <b>ʀᴀᴍ ᴜsᴀɢᴇ :</b> <code>{mem.percent}%</code> <code>({mem.used // (1024<b>2)}MB / {mem.total // (1024</b>2)}MB)</code>\n"
+                f"💽 <b>ᴅɪsᴋ ᴜsᴀɢᴇ :</b> <code>{disk.percent}%</code> <code>({disk.used // (1024<b>3)}GB / {disk.total // (1024</b>3)}GB)</code></blockquote>"
             )
             
             buttons = [
@@ -208,15 +208,15 @@ def register_handlers(client):
 
     @client.on(events.CallbackQuery(pattern="^admin_sys_join_grp$"))
     async def admin_sys_join_grp_callback(event):
-        await _prompt_sys_action(event, "WAITING_FOR_SYS_JOIN_GRP", "System Join Group", "> Send the **Group invite link** or **Username** below.")
+        await _prompt_sys_action(event, "WAITING_FOR_SYS_JOIN_GRP", "System Join Group", "> Send the <b>Group invite link</b> or <b>Username</b> below.")
 
     @client.on(events.CallbackQuery(pattern="^admin_sys_leave_grp$"))
     async def admin_sys_leave_grp_callback(event):
-        await _prompt_sys_action(event, "WAITING_FOR_SYS_LEAVE_GRP", "System Leave Group", "> Send the **Group invite link** or **Username/ID** below to leave.")
+        await _prompt_sys_action(event, "WAITING_FOR_SYS_LEAVE_GRP", "System Leave Group", "> Send the <b>Group invite link</b> or <b>Username/ID</b> below to leave.")
 
     @client.on(events.CallbackQuery(pattern="^admin_sys_join_vc$"))
     async def admin_sys_join_vc_callback(event):
-        await _prompt_sys_action(event, "WAITING_FOR_SYS_JOIN_VC", "System Join VC", "> Send the **Group invite link** or **Username/ID** below to join its active Voice Chat.")
+        await _prompt_sys_action(event, "WAITING_FOR_SYS_JOIN_VC", "System Join VC", "> Send the <b>Group invite link</b> or <b>Username/ID</b> below to join its active Voice Chat.")
 
     @client.on(events.CallbackQuery(pattern="^admin_sys_leave_vc$"))
     async def admin_sys_leave_vc_callback(event):
@@ -243,7 +243,7 @@ def register_handlers(client):
         
         all_sessions = database.get_sessions()
         total = len(all_sessions)
-        progress_msg = await event.reply(f"⏳ **Disconnecting {total} bots from Voice Chats...**")
+        progress_msg = await event.reply(f"⏳ <b>Disconnecting {total} bots from Voice Chats...</b>")
         
         import userbot_manager
         success_count = 0
@@ -257,12 +257,12 @@ def register_handlers(client):
                     
         await progress_msg.delete()
         _admin_action_states.pop(user_id, None)
-        await event.reply(f"✅ **System Leave VC Complete**\nDisconnected {success_count} bots.")
+        await event.reply(f"✅ <b>System Leave VC Complete</b>\nDisconnected {success_count} bots.")
         await admin_sys_vc_menu_callback(event)
 
     @client.on(events.CallbackQuery(pattern="^admin_sys_play_song$"))
     async def admin_sys_play_song_callback(event):
-        await _prompt_sys_action(event, "WAITING_FOR_SYS_PLAY_SONG", "System Play Song", "> Send the **Song Name**, **YouTube Link**, or `/play <name>` below to stream on all connected bots.")
+        await _prompt_sys_action(event, "WAITING_FOR_SYS_PLAY_SONG", "System Play Song", "> Send the <b>Song Name</b>, <b>YouTube Link</b>, or `/play <name>` below to stream on all connected bots.")
 
     @client.on(events.CallbackQuery(pattern="^admin_owner_all_bots$"))
     async def admin_owner_all_bots_callback(event):
@@ -304,16 +304,16 @@ def register_handlers(client):
         global_settings = database.get_global_settings()
         plans = global_settings.get("subscription_plans", [])
         
-        text = "📅 **Subscription Plans Management**\n\nConfigure custom duration-based slot options for your users.\n\n"
+        text = "📅 <b>Subscription Plans Management</b>\n\nConfigure custom duration-based slot options for your users.\n\n"
         if not plans:
             text += "_No plans configured yet._"
         else:
-            text += "**Active Plans:**\n"
+            text += "<b>Active Plans:</b>\n"
             for i, p in enumerate(plans, 1):
-                text += f"{i}. **{p.get('button_name')}**\n" \
+                text += f"{i}. <b>{p.get('button_name')}</b>\n" \
                         f"   • ID: `{p.get('id')}`\n" \
-                        f"   • Duration: **{p.get('days')} days**\n" \
-                        f"   • Price/account: **₹{p.get('price'):.2f}**\n\n"
+                        f"   • Duration: <b>{p.get('days')} days</b>\n" \
+                        f"   • Price/account: <b>₹{p.get('price'):.2f}</b>\n\n"
                         
         buttons = [
             [
@@ -364,10 +364,10 @@ def register_handlers(client):
         
         if not plans:
             buttons = [[utils.styled_button("🔙 Back to Plans", "admin_manage_plans", style="primary")]]
-            await event.respond("❌ **No subscription plans are currently configured.**", buttons=buttons)
+            await event.respond("❌ <b>No subscription plans are currently configured.</b>", buttons=buttons)
             return
             
-        text = "❌ **Select Plan to Remove**\n\nTap on any plan button below to delete it immediately:"
+        text = "❌ <b>Select Plan to Remove</b>\n\nTap on any plan button below to delete it immediately:"
         buttons = []
         for plan in plans:
             btn_label = f"🗑️ {plan['button_name']} (₹{plan['price']:.0f} / {plan['days']} days)"
@@ -933,13 +933,13 @@ def register_handlers(client):
                 database.save_global_settings(global_settings)
                 
                 await event.reply(
-                    f"✅ **Subscription Plan Added Successfully!**\n"
+                    f"✅ <b>Subscription Plan Added Successfully!</b>\n"
                     f"━━━━━━━━━━━━━━━━━━━━\n"
                     f"Plan ID: `{plan_id}`\n"
-                    f"Name: **{name}**\n"
-                    f"Days: **{days}**\n"
-                    f"Slots count: **{slots}**\n"
-                    f"Total Price: **₹{price:.2f}**"
+                    f"Name: <b>{name}</b>\n"
+                    f"Days: <b>{days}</b>\n"
+                    f"Slots count: <b>{slots}</b>\n"
+                    f"Total Price: <b>₹{price:.2f}</b>"
                 )
                 
                 # Show manage plans sub-menu
@@ -1088,7 +1088,7 @@ def register_handlers(client):
                 }
                 action_name = action_name_map[action]
                 
-                progress_msg = await event.reply(f"⏳ **Executing '{action_name}' on all {total} bots...**\nPlease wait, this may take a while as offline bots will be temporarily started.")
+                progress_msg = await event.reply(f"⏳ <b>Executing '{action_name}' on all {total} bots...</b>\nPlease wait, this may take a while as offline bots will be temporarily started.")
                 
                 from userbot import join_channel_single, leave_channel_single
                 import userbot_manager
@@ -1132,12 +1132,12 @@ def register_handlers(client):
                 fail_count = total - success_count
                 
                 report = (
-                    f"📊 **System Action Report: {action_name}**\n"
+                    f"📊 <b>System Action Report: {action_name}</b>\n"
                     f"━━━━━━━━━━━━━━━━━━━━\n"
                     f"Input: {link}\n"
-                    f"Total Accounts in DB: **{total}**\n"
-                    f"✅ Success: **{success_count}**\n"
-                    f"❌ Failed: **{fail_count}**"
+                    f"Total Accounts in DB: <b>{total}</b>\n"
+                    f"✅ Success: <b>{success_count}</b>\n"
+                    f"❌ Failed: <b>{fail_count}</b>"
                 )
                 await event.reply(report)
                 _admin_action_states.pop(user_id, None)
@@ -1271,10 +1271,10 @@ def register_handlers(client):
                 current_bal = target_user.get("wallet_balance", 0.0)
                 if edit_type == "ADDBAL":
                     new_bal = current_bal + amount
-                    success_msg = f"✅ **Successfully added ₹{amount:.2f} to user's wallet!**\nNew Balance: **₹{new_bal:.2f}**"
+                    success_msg = f"✅ <b>Successfully added ₹{amount:.2f} to user's wallet!</b>\nNew Balance: <b>₹{new_bal:.2f}</b>"
                 else:
                     new_bal = max(0.0, current_bal - amount)
-                    success_msg = f"✅ **Successfully subtracted ₹{amount:.2f} from user's wallet!**\nNew Balance: **₹{new_bal:.2f}**"
+                    success_msg = f"✅ <b>Successfully subtracted ₹{amount:.2f} from user's wallet!</b>\nNew Balance: <b>₹{new_bal:.2f}</b>"
                     
                 target_user["wallet_balance"] = new_bal
                 database.save_user(target_user)
@@ -1342,7 +1342,7 @@ def register_handlers(client):
             return
             
         text = (
-            "👥 **User Management Panel**\n"
+            "👥 <b>User Management Panel</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n"
             "Manage user accounts, view detailed stats, and apply bans/unbans."
         )
@@ -1416,7 +1416,7 @@ def register_handlers(client):
         
         from handlers.my_bots import show_all_slots_dashboard, set_admin_impersonation
         set_admin_impersonation(user_id, target_uid)
-        await show_all_slots_dashboard(event, target_uid, flash_message=f"👑 **Admin Access**: Controlling UserBots for User `{target_uid}`")
+        await show_all_slots_dashboard(event, target_uid, flash_message=f"👑 <b>Admin Access</b>: Controlling UserBots for User `{target_uid}`")
 
     @client.on(events.CallbackQuery(pattern=r"^admin_usr_(addbal|subbal)_(\d+)$"))
     async def admin_usr_editbal_callback(event):
@@ -1434,9 +1434,9 @@ def register_handlers(client):
         _admin_action_states[user_id] = f"WAITING_FOR_EDITBAL_{action.upper()}_{target_uid}"
         
         prompt_text = (
-            f"👛 **{'Add' if action == 'addbal' else 'Subtract'} Balance**\n"
+            f"👛 <b>{'Add' if action == 'addbal' else 'Subtract'} Balance</b>\n"
             f"User ID: `{target_uid}`\n"
-            f"Current Balance: **₹{target_user.get('wallet_balance', 0.0):.2f}**\n\n"
+            f"Current Balance: <b>₹{target_user.get('wallet_balance', 0.0):.2f}</b>\n\n"
             f"Send the amount in ₹ to {'add' if action == 'addbal' else 'subtract'}:"
         )
         
@@ -1500,7 +1500,7 @@ def register_handlers(client):
         _admin_action_states[user_id] = f"WAITING_FOR_BRAND_{element.upper()}_TXT"
         
         prompt_text = (
-            f"✏️ **Set {element.capitalize()} Branding Suffix**\n\n"
+            f"✏️ <b>Set {element.capitalize()} Branding Suffix</b>\n\n"
             f"Send the suffix text to be appended to all userbots' {element}s (or send `none` to disable suffix):\n\n"
             f"Example: ` via @BotUsername`"
         )
@@ -1586,7 +1586,7 @@ async def process_admin_usr_search(event, search_query: str, action: str):
         
     if not target_user or not target_id:
         buttons = [[utils.styled_button("🔙 Back to User Management", "admin_manage_users", style="primary")]]
-        await event.reply("❌ **User not found.** Please verify the User ID or Username.", buttons=buttons)
+        await event.reply("❌ <b>User not found.</b> Please verify the User ID or Username.", buttons=buttons)
         return
         
     username = target_user.get("username") or "None"
@@ -1605,21 +1605,21 @@ async def process_admin_usr_search(event, search_query: str, action: str):
         is_banned = target_user.get("is_banned", False)
         
         stats_text = (
-            f"👤 **User Statistics Report**\n"
+            f"👤 <b>User Statistics Report</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"🆔 User ID: `{target_id}`\n"
             f"🔗 Username: @{username}\n"
-            f"🏷️ Name: **{first_name} {last_name}**\n"
-            f"🚪 TOS Accepted: **{'Yes' if target_user.get('tos_accepted') else 'No'}**\n"
+            f"🏷️ Name: <b>{first_name} {last_name}</b>\n"
+            f"🚪 TOS Accepted: <b>{'Yes' if target_user.get('tos_accepted') else 'No'}</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"📈 Slots Limit: **{target_user.get('allowed_slots', 1)}**\n"
-            f"👛 Wallet Balance: **₹{target_user.get('wallet_balance', 0.0):.2f}**\n"
-            f"👥 Total Referred: **{referred_count}**\n"
+            f"📈 Slots Limit: <b>{target_user.get('allowed_slots', 1)}</b>\n"
+            f"👛 Wallet Balance: <b>₹{target_user.get('wallet_balance', 0.0):.2f}</b>\n"
+            f"👥 Total Referred: <b>{referred_count}</b>\n"
             f"🧑‍🤝‍🧑 Referred By: `{target_user.get('referred_by') or 'Direct'}`\n"
-            f"🚫 Banned: **{'Yes 🔴' if is_banned else 'No 🟢'}**\n"
+            f"🚫 Banned: <b>{'Yes 🔴' if is_banned else 'No 🟢'}</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"📱 Total Accounts: **{len(sessions)}**\n"
-            f"🟢 Active Userbots: **{active_userbots}**"
+            f"📱 Total Accounts: <b>{len(sessions)}</b>\n"
+            f"🟢 Active Userbots: <b>{active_userbots}</b>"
         )
         
         buttons = [
@@ -1634,9 +1634,9 @@ async def process_admin_usr_search(event, search_query: str, action: str):
         set_admin_impersonation(user_id, target_id)
         sessions = database.get_sessions(target_id)
         if sessions:
-            await show_all_slots_dashboard(event, target_id, flash_message=f"👑 **Admin Access**: Controlling UserBots of User `{target_id}` (@{username})")
+            await show_all_slots_dashboard(event, target_id, flash_message=f"👑 <b>Admin Access</b>: Controlling UserBots of User `{target_id}` (@{username})")
         else:
-            await show_bots_list(event, target_id, flash_message=f"👑 **Admin Access**: Viewing Dashboard of User `{target_id}` (@{username})")
+            await show_bots_list(event, target_id, flash_message=f"👑 <b>Admin Access</b>: Viewing Dashboard of User `{target_id}` (@{username})")
         
     elif action == "ban":
         if target_id in config.ORIGINAL_ADMIN_IDS:
@@ -1644,7 +1644,7 @@ async def process_admin_usr_search(event, search_query: str, action: str):
             return
         target_user["is_banned"] = True
         database.save_user(target_user)
-        await event.reply(f"✅ **User Banned successfully!**\nUser ID: `{target_id}`\nUsername: @{username}")
+        await event.reply(f"✅ <b>User Banned successfully!</b>\nUser ID: `{target_id}`\nUsername: @{username}")
         # Re-render menu
         class MockEvent:
             def __init__(self):
@@ -1658,7 +1658,7 @@ async def process_admin_usr_search(event, search_query: str, action: str):
     elif action == "unban":
         target_user["is_banned"] = False
         database.save_user(target_user)
-        await event.reply(f"✅ **User Unbanned successfully!**\nUser ID: `{target_id}`\nUsername: @{username}")
+        await event.reply(f"✅ <b>User Unbanned successfully!</b>\nUser ID: `{target_id}`\nUsername: @{username}")
         # Re-render menu
         class MockEvent:
             def __init__(self):
@@ -1672,12 +1672,12 @@ async def process_admin_usr_search(event, search_query: str, action: str):
     elif action == "bal":
         wallet_bal = target_user.get("wallet_balance", 0.0)
         bal_text = (
-            f"👛 **User Balance Management**\n"
+            f"👛 <b>User Balance Management</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"🆔 User ID: `{target_id}`\n"
             f"🔗 Username: @{username}\n"
-            f"🏷️ Name: **{first_name} {last_name}**\n"
-            f"👛 Current Balance: **₹{wallet_bal:.2f}**\n"
+            f"🏷️ Name: <b>{first_name} {last_name}</b>\n"
+            f"👛 Current Balance: <b>₹{wallet_bal:.2f}</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"Choose an option below to add or subtract balance:"
         )

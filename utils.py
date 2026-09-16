@@ -78,7 +78,7 @@ def format_html_message(text: str) -> str:
     """
     Formats text into valid Telegram HTML entities with <blockquote> for card UI.
     Converts markdown blockquotes ('> ') to native Telegram <blockquote>...</blockquote> tags.
-    Converts **bold** to <b>, `code` to <code>, and _italic_ to <i>.
+    Converts <b>bold</b> to <b>, `code` to <code>, and _italic_ to <i>.
     """
     if not text or not isinstance(text, str):
         return text
@@ -235,7 +235,7 @@ async def send_force_sub_msg(event, not_joined: list, lang: str):
     buttons.append([styled_button("✅ I've Joined — Verify", "verify_sub", style="success")])
     
     lines = [
-        "⚠️ **Access Restricted**\n━━━━━━━━━━━━━━━━━━━━\nJoin these channels to use the bot:\n"
+        "⚠️ <b>Access Restricted</b>\n━━━━━━━━━━━━━━━━━━━━\nJoin these channels to use the bot:\n"
     ]
     for ch in not_joined:
         lines.append(f"• {ch.get('channel_name') or ch.get('channel_id')}")
