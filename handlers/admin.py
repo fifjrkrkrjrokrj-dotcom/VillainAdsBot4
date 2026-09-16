@@ -3,6 +3,10 @@ from telethon import events
 import database
 import config
 import utils
+import time
+import os
+
+_BOT_START_TIME = time.time()
 
 logger = logging.getLogger(__name__)
 
@@ -106,22 +110,22 @@ def register_handlers(client):
             return
             
         import psutil
-        import time
         import datetime
         
         try:
-            uptime = datetime.timedelta(seconds=int(time.time() - psutil.boot_time()))
+            uptime_seconds = int(time.time() - _BOT_START_TIME)
+            uptime = datetime.timedelta(seconds=uptime_seconds)
             cpu_pct = psutil.cpu_percent(interval=0.1)
             mem = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            disk_path = os.getcwd() if os.name == 'nt' else '/app' if os.path.exists('/app') else '.'
+            disk = psutil.disk_usage(disk_path)
             
             text = (
-                "🖥️ **VPS System Usage**\n"
-                "━━━━━━━━━━━━━━━━━━━━\n"
-                f"⏱️ **Uptime:** `{uptime}`\n"
-                f"💻 **CPU Usage:** `{cpu_pct}%`\n"
-                f"🧠 **RAM Usage:** `{mem.percent}%` `({mem.used // (1024**2)}MB / {mem.total // (1024**2)}MB)`\n"
-                f"💽 **Disk Usage:** `{disk.percent}%` `({disk.used // (1024**3)}GB / {disk.total // (1024**3)}GB)`\n"
+                "<blockquote><b>» 🖥️ ᴠᴘs sʏsᴛᴇᴍ ᴜsᴀɢᴇ</b>\n\n"
+                f"⏱️ <b>ᴜᴘᴛɪᴍᴇ :</b> <code>{uptime}</code>\n"
+                f"💻 <b>ᴄᴘᴜ ᴜsᴀɢᴇ :</b> <code>{cpu_pct}%</code>\n"
+                f"🧠 <b>ʀᴀᴍ ᴜsᴀɢᴇ :</b> <code>{mem.percent}%</code> <code>({mem.used // (1024**2)}MB / {mem.total // (1024**2)}MB)</code>\n"
+                f"💽 <b>ᴅɪsᴋ ᴜsᴀɢᴇ :</b> <code>{disk.percent}%</code> <code>({disk.used // (1024**3)}GB / {disk.total // (1024**3)}GB)</code></blockquote>"
             )
             
             buttons = [
@@ -129,7 +133,7 @@ def register_handlers(client):
                 [utils.styled_button("🔙 Back to Admin Panel", "menu_admin", style="danger")]
             ]
             
-            await event.edit(text, buttons=buttons)
+            await event.edit(text, buttons=buttons, parse_mode="html")
         except Exception as e:
             logger.error(f"VPS Usage error: {e}")
             await event.answer(f"Failed to fetch VPS stats: {e}", alert=True)
@@ -144,19 +148,18 @@ def register_handlers(client):
         total = len(all_sessions)
         
         text = (
-            f"🎙️ **SYSTEM-WIDE BOT MANAGEMENT**\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"> **Total Bots in DB**: **{total}**\n\n"
-            f"⚠️ **WARNING**: These actions will command ALL {total} bots in the database.\n"
-            f"If a bot is currently STOPPED, it will be temporarily started to execute the action.\n\n"
-            f"👥 **System Group Actions**:\n"
-            f"• Join Group: All {total} bots join a group via link.\n"
-            f"• Leave Group: All {total} bots leave a group/channel.\n\n"
-            f"🎙️ **System VC Actions**:\n"
-            f"• Join VC: Connect all {total} bots to group voice chat.\n"
-            f"• Leave VC: Disconnect all {total} bots from voice chat.\n\n"
-            f"🎵 **System Media Actions**:\n"
-            f"• Play Song: Stream audio/video on all {total} bots."
+            f"<blockquote><b>» 🎙️ sʏsᴛᴇᴍ-ᴡɪᴅᴇ ʙᴏᴛ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ</b>\n\n"
+            f"📌 <b>ᴛᴏᴛᴀʟ ʙᴏᴛs ɪɴ ᴅʙ :</b> <code>{total}</code>\n\n"
+            f"⚠️ <b>ᴡᴀʀɴɪɴɢ :</b> ᴛʜᴇsᴇ ᴀᴄᴛɪᴏɴs ᴡɪʟʟ ᴄᴏᴍᴍᴀɴᴅ ᴀʟʟ <b>{total}</b> ʙᴏᴛs ɪɴ ᴛʜᴇ ᴅᴀᴛᴀʙᴀsᴇ.\n"
+            f"ɪғ ᴀ ʙᴏᴛ ɪs ᴄᴜʀʀᴇɴᴛʟʏ sᴛᴏᴘᴘᴇᴅ, ɪᴛ ᴡɪʟʟ ʙᴇ ᴛᴇᴍᴘᴏʀᴀʀɪʟʏ sᴛᴀʀᴛᴇᴅ ᴛᴏ ᴇxᴇᴄᴜᴛᴇ ᴛʜᴇ ᴀᴄᴛɪᴏɴ.\n\n"
+            f"👥 <b>sʏsᴛᴇᴍ ɢʀᴏᴜᴘ ᴀᴄᴛɪᴏɴs :</b>\n"
+            f"• ᴊᴏɪɴ ɢʀᴏᴜᴘ: ᴀʟʟ {total} ʙᴏᴛs ᴊᴏɪɴ ᴀ ɢʀᴏᴜᴘ ᴠɪᴀ ʟɪɴᴋ.\n"
+            f"• ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ: ᴀʟʟ {total} ʙᴏᴛs ʟᴇᴀᴠᴇ ᴀ ɢʀᴏᴜᴘ/ᴄʜᴀɴɴᴇʟ.\n\n"
+            f"🎙️ <b>sʏsᴛᴇᴍ ᴠᴄ ᴀᴄᴛɪᴏɴs :</b>\n"
+            f"• ᴊᴏɪɴ ᴠᴄ: ᴄᴏɴɴᴇᴄᴛ ᴀʟʟ {total} ʙᴏᴛs ᴛᴏ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.\n"
+            f"• ʟᴇᴀᴠᴇ ᴠᴄ: ᴅɪsᴄᴏɴɴᴇᴄᴛ ᴀʟʟ {total} ʙᴏᴛs ғʀᴏᴍ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.\n\n"
+            f"🎵 <b>sʏsᴛᴇᴍ ᴍᴇᴅɪᴀ ᴀᴄᴛɪᴏɴs :</b>\n"
+            f"• ᴘʟᴀʏ sᴏɴɢ: sᴛʀᴇᴀᴍ ᴀᴜᴅɪᴏ/ᴠɪᴅᴇᴏ ᴏɴ ᴀʟʟ {total} ʙᴏᴛs.</blockquote>"
         )
         
         buttons = [
@@ -177,9 +180,9 @@ def register_handlers(client):
         ]
         
         try:
-            await event.edit(text, buttons=buttons)
+            await event.edit(text, buttons=buttons, parse_mode="html")
         except Exception:
-            await event.respond(text, buttons=buttons)
+            await event.respond(text, buttons=buttons, parse_mode="html")
 
     # Reusable prompt function for system actions
     async def _prompt_sys_action(event, action_key, title, instructions):
@@ -188,16 +191,15 @@ def register_handlers(client):
             return
         _admin_action_states[user_id] = action_key
         prompt_text = (
-            f"👑 **{title}**\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"{instructions}\n\n"
-            f"⚠️ **ALL userbot sessions in the database (whether ON or OFF)** will execute this!"
+            f"<blockquote><b>» 👑 {title}</b>\n\n"
+            f"📌 {instructions}\n\n"
+            f"⚠️ <b>ᴀʟʟ ᴜsᴇʀʙᴏᴛ sᴇssɪᴏɴs ɪɴ ᴛʜᴇ ᴅᴀᴛᴀʙᴀsᴇ (ᴡʜᴇᴛʜᴇʀ ᴏɴ ᴏʀ ᴏғғ)</b> ᴡɪʟʟ ᴇxᴇᴄᴜᴛᴇ ᴛʜɪs!</blockquote>"
         )
         buttons = [[utils.styled_button("🔙 Cancel", "admin_sys_vc_menu", style="danger")]]
         try:
-            await event.edit(prompt_text, buttons=buttons)
+            await event.edit(prompt_text, buttons=buttons, parse_mode="html")
         except Exception:
-            await event.respond(prompt_text, buttons=buttons)
+            await event.respond(prompt_text, buttons=buttons, parse_mode="html")
 
     @client.on(events.CallbackQuery(pattern="^admin_sys_join_grp$"))
     async def admin_sys_join_grp_callback(event):
