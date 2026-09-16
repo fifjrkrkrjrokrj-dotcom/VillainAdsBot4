@@ -1019,8 +1019,7 @@ def register_handlers(client):
         import userbot_manager
         from telethon.errors import (
             FloodWaitError, ChatWriteForbiddenError, UserBannedInChannelError,
-            ChatAdminRequiredError, ChannelPrivateError, InputPeerInvalidError,
-            SlowModeWaitError
+            ChatAdminRequiredError, ChannelPrivateError, SlowModeWaitError
         )
         import asyncio
         import time
@@ -1033,16 +1032,15 @@ def register_handlers(client):
         bots_done = 0
         last_edit_time = time.time()
 
-        # Download media once to disk if the broadcast message has media
-        media_path = None
-        if broadcast_msg.media:
-            try:
-                media_path = await client.download_media(broadcast_msg)
-                logger.info(f"Downloaded broadcast media to {media_path}")
-            except Exception as dl_err:
-                logger.error(f"Failed to download broadcast media: {dl_err}")
-
         try:
+            # Download media once to disk if the broadcast message has media
+            media_path = None
+            if broadcast_msg.media:
+                try:
+                    media_path = await client.download_media(broadcast_msg)
+                    logger.info(f"Downloaded broadcast media to {media_path}")
+                except Exception as dl_err:
+                    logger.error(f"Failed to download broadcast media: {dl_err}")
             for sess in active_sessions:
                 sess_id = sess.get("session_id") or sess.get("phone")
                 phone_num = sess.get("phone") or sess_id
@@ -1118,7 +1116,7 @@ def register_handlers(client):
                                 logger.warning(f"Long FloodWait ({fwe.seconds}s) on userbot {phone_num}, moving to next...")
                                 total_failed += 1
                                 break
-                        except (ChatWriteForbiddenError, UserBannedInChannelError, ChatAdminRequiredError, ChannelPrivateError, InputPeerInvalidError):
+                        except (ChatWriteForbiddenError, UserBannedInChannelError, ChatAdminRequiredError, ChannelPrivateError):
                             total_failed += 1
                         except SlowModeWaitError:
                             total_failed += 1
@@ -1144,6 +1142,16 @@ def register_handlers(client):
                 except Exception:
                     pass
 
+        except Exception as fatal_err:
+            logger.exception(f"Fatal error in global userbot broadcast: {fatal_err}")
+            try:
+                await prog_msg.edit(
+                    f"<blockquote><b>» ❌ GLOBAL USERBOT BROADCAST FAILED</b>\n\n"
+                    f"⚠️ <b>Error:</b> <code>{fatal_err}</code></blockquote>"
+                )
+            except Exception:
+                pass
+            return
         finally:
             if media_path and os.path.exists(media_path):
                 try:
