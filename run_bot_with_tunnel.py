@@ -188,7 +188,7 @@ def run_tunnel_and_bot():
                             update_telegram_button(public_url)
                         failures = 0
                         
-            time.sleep(10)
+            time.sleep(60)
             
     except KeyboardInterrupt:
         log("Shutdown requested by user.")

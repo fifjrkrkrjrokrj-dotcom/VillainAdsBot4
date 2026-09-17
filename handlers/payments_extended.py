@@ -937,5 +937,5 @@ async def start_gmail_polling(bot_client):
                 await loop.run_in_executor(None, poll_gmail, bot_client)
         except Exception as e:
             logger.error(f"Error checking Gmail IMAP inbox: {e}")
-        # Poll every 30 seconds
-        await asyncio.sleep(30)
+        # Poll every 120 seconds to save CPU on Railway
+        await asyncio.sleep(120)
