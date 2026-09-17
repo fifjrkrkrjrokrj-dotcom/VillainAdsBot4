@@ -300,7 +300,7 @@ def register_handlers(client):
         audio_duration = 0
         
         display_query = audio_title or query or "Replied Media"
-        progress_msg = await event.reply(
+        progress_msg = await event.respond(
             utils.format_html_message(
                 f"<blockquote><b>» 🎧 ᴘʟᴀʏɪɴɢ ɪɴǫᴜɪʀʏ...</b>\n\n"
                 f"🔍 <i>{display_query}</i>\n"
@@ -518,7 +518,7 @@ def register_handlers(client):
             if bot_obj:
                 await bot_obj.stop_song(chat_id)
             
-            await event.reply(
+            await event.respond(
                 utils.format_html_message(
                     "<blockquote><b>» ⏭️ ǫᴜᴇᴜᴇ ᴇᴍᴘᴛʏ</b>\n\n"
                     "ɴᴏ ᴍᴏʀᴇ sᴏɴɢs ɪɴ ǫᴜᴇᴜᴇ. sᴛʀᴇᴀᴍ ʜᴀs ʙᴇᴇɴ sᴛᴏᴘᴘᴇᴅ.</blockquote>"
@@ -526,7 +526,7 @@ def register_handlers(client):
             )
             return
             
-        prog = await event.reply(
+        prog = await event.respond(
             utils.format_html_message(
                 "<blockquote><b>» ⏭️ sᴋɪᴘᴘɪɴɢ ᴛʀᴀᴄᴋ</b>\n\n"
                 "sᴋɪᴘᴘɪɴɢ ᴛᴏ ɴᴇxᴛ sᴏɴɢ ɪɴ ǫᴜᴇᴜᴇ...</blockquote>"
@@ -550,7 +550,7 @@ def register_handlers(client):
         queue = _chat_queues.get(chat_id, [])
         
         if not active and not queue:
-            await event.reply(
+            await event.respond(
                 utils.format_html_message(
                     "<blockquote><b>» 📜 ǫᴜᴇᴜᴇ ᴘʟᴀʏʟɪsᴛ</b>\n\n"
                     "<i>ǫᴜᴇᴜᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ ᴇᴍᴘᴛʏ. ᴜsᴇ <code>.play &lt;song&gt;</code> ᴛᴏ ᴀᴅᴅ ᴛʀᴀᴄᴋs!</i></blockquote>"
