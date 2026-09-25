@@ -131,7 +131,8 @@ def save_user(user_data: Dict[str, Any]):
 def get_all_users() -> List[Dict[str, Any]]:
     return list(_db.users.find({}))
 
-# ==================== Session CRUD Operations ====================
+_cached_sessions = {}
+
 def get_sessions(user_id: Optional[int] = None, include_bytes: bool = False) -> List[Dict[str, Any]]:
     projection = None if include_bytes else {"session_bytes": 0}
     if user_id is not None:
@@ -143,18 +144,41 @@ def get_sessions(user_id: Optional[int] = None, include_bytes: bool = False) -> 
 def get_session(session_id: str, include_bytes: bool = False) -> Optional[Dict[str, Any]]:
     if not session_id:
         return None
-    projection = None if include_bytes else {"session_bytes": 0}
+        
     session_id_str = str(session_id).strip()
+    
+    # Check cache if bytes not requested
+    if not include_bytes:
+        cached = _cached_sessions.get(session_id_str)
+        if cached and (time.time() - cached['time'] < 30):
+            return cached['data']
+            
+    projection = None if include_bytes else {"session_bytes": 0}
     sess = _db.sessions.find_one({"session_id": session_id_str}, projection)
     if not sess:
         sess = _db.sessions.find_one({"phone": session_id_str}, projection)
     if not sess:
         alt = session_id_str.lstrip("+") if session_id_str.startswith("+") else f"+{session_id_str}"
         sess = _db.sessions.find_one({"$or": [{"session_id": alt}, {"phone": alt}]}, projection)
+        
+    if sess and not include_bytes:
+        _cached_sessions[session_id_str] = {'data': sess, 'time': time.time()}
+        if sess.get("phone"):
+            _cached_sessions[str(sess["phone"])] = {'data': sess, 'time': time.time()}
+        
     return sess
 
 def save_session(session_data: Dict[str, Any]):
     session_data["user_id"] = int(session_data["user_id"])
+    
+    # Update cache
+    sid = session_data.get("session_id")
+    phone = session_data.get("phone")
+    if sid:
+        _cached_sessions[str(sid)] = {'data': session_data, 'time': time.time()}
+    if phone:
+        _cached_sessions[str(phone)] = {'data': session_data, 'time': time.time()}
+        
     if _db is not None:
         _db_executor.submit(lambda: _db.sessions.update_one(
             {"session_id": session_data["session_id"]},
@@ -166,6 +190,9 @@ def delete_session(session_id: str):
     if not session_id:
         return
     session_id_str = str(session_id).strip()
+    
+    # Clear cache
+    _cached_sessions.pop(session_id_str, None)
     alt = session_id_str.lstrip("+") if session_id_str.startswith("+") else f"+{session_id_str}"
     _db.sessions.delete_many({
         "$or": [

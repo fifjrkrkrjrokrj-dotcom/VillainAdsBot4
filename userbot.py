@@ -2815,11 +2815,6 @@ class UserBot:
                             pass
 
                     is_reply_target = is_mentioned or is_reply_to_us
-                elif event.is_private:
-                    # In DMs, every incoming message to us from real users is considered a target for auto-reply
-                    sender = await event.get_sender()
-                    if sender and not getattr(sender, "is_self", False) and not getattr(sender, "bot", False):
-                        is_reply_target = True
 
                 # Fetch latest settings from DB to prevent stale in-memory state
                 sess_data = database.get_session(self.session_id)

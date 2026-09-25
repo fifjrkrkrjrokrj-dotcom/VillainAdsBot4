@@ -8,68 +8,23 @@ from translations import TRANSLATIONS
 
 logger = logging.getLogger(__name__)
 
-SMALL_CAPS_MAP = {
-    'a': 'A', 'b': 'B', 'c': 'C', 'd': 'D', 'e': 'E', 'f': 'F', 'g': 'G', 'h': 'H',
-    'i': 'I', 'j': 'J', 'k': 'K', 'l': 'L', 'm': 'M', 'n': 'N', 'o': 'O', 'p': 'P',
-    'q': 'Q', 'r': 'R', 's': 's', 't': 'T', 'u': 'U', 'v': 'V', 'w': 'W', 'x': 'x',
-    'y': 'Y', 'z': 'Z',
-    'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'H': 'H',
-    'I': 'I', 'J': 'J', 'K': 'K', 'L': 'L', 'M': 'M', 'N': 'N', 'O': 'O', 'P': 'P',
-    'Q': 'Q', 'R': 'R', 'S': 's', 'T': 'T', 'U': 'U', 'V': 'V', 'W': 'W', 'X': 'x',
-    'Y': 'Y', 'Z': 'Z'
-}
-
 def to_small_caps(text: str) -> str:
     """
-    Converts Latin alphabetic text into aesthetic small-caps font.
-    Preserves emojis, punctuation, numbers, and non-Latin scripts.
+    Returns original text without modification since the user requested normal fonts.
     """
-    if not text or not isinstance(text, str):
-        return text
-    return ''.join(SMALL_CAPS_MAP.get(ch, ch) for ch in text)
+    return text
 
 def styled_button(text: str, callback_data: str, style: str = "primary"):
     """
-    Creates an inline button with uniform small-caps font.
+    Creates a standard inline button.
     """
-    styled_text = to_small_caps(text)
     try:
-        return Button.inline(styled_text, data=callback_data, style=style)
+        return Button.inline(text, data=callback_data, style=style)
     except TypeError:
         # Standard Telethon fallback
-        btn = Button.inline(styled_text, data=callback_data)
+        btn = Button.inline(text, data=callback_data)
         setattr(btn, "style", style)
         return btn
-
-# Global hook on Button methods to ensure 100% font consistency across every button in the bot
-_orig_inline = Button.inline
-_orig_url = Button.url
-_orig_text = Button.text
-
-def _hooked_inline(text, data=None, **kwargs):
-    if isinstance(text, bytes):
-        text = text.decode('utf-8', errors='ignore')
-    if isinstance(text, str):
-        text = to_small_caps(text)
-    return _orig_inline(text, data=data, **kwargs)
-
-def _hooked_url(text, url=None, **kwargs):
-    if isinstance(text, bytes):
-        text = text.decode('utf-8', errors='ignore')
-    if isinstance(text, str):
-        text = to_small_caps(text)
-    return _orig_url(text, url=url, **kwargs)
-
-def _hooked_text(text, **kwargs):
-    if isinstance(text, bytes):
-        text = text.decode('utf-8', errors='ignore')
-    if isinstance(text, str):
-        text = to_small_caps(text)
-    return _orig_text(text, **kwargs)
-
-Button.inline = staticmethod(_hooked_inline)
-Button.url = staticmethod(_hooked_url)
-Button.text = staticmethod(_hooked_text)
 
 
 import re
