@@ -12,44 +12,71 @@ logger = logging.getLogger(__name__)
 # Dictionary containing active running UserBot instances
 _running_bots: Dict[str, UserBot] = {}
 
+def find_running_bot(identifier: str) -> Optional[UserBot]:
+    """
+    Finds a running UserBot instance by session_id, phone number, or alias.
+    Handles matching with or without '+' prefix and database lookup fallbacks.
+    """
+    if not identifier:
+        return None
+    ident_str = str(identifier).strip()
+    
+    # 1. Direct dictionary key match
+    if ident_str in _running_bots:
+        return _running_bots[ident_str]
+        
+    # 2. Match with/without '+' prefix
+    alt = ident_str.lstrip("+") if ident_str.startswith("+") else f"+{ident_str}"
+    if alt in _running_bots:
+        return _running_bots[alt]
+        
+    # 3. Search active bots by attributes (session_id, phone)
+    for bot in list(_running_bots.values()):
+        if getattr(bot, "session_id", None) in (ident_str, alt):
+            return bot
+        bot_phone = getattr(bot, "phone", None)
+        if bot_phone and bot_phone in (ident_str, alt):
+            return bot
+            
+    # 4. Fallback search via database session record
+    try:
+        sess = database.get_session(ident_str)
+        if sess:
+            s_id = sess.get("session_id")
+            p_num = sess.get("phone")
+            for candidate in (s_id, p_num):
+                if candidate:
+                    c_str = str(candidate).strip()
+                    c_alt = c_str.lstrip("+") if c_str.startswith("+") else f"+{c_str}"
+                    if c_str in _running_bots:
+                        return _running_bots[c_str]
+                    if c_alt in _running_bots:
+                        return _running_bots[c_alt]
+                    for bot in list(_running_bots.values()):
+                        if getattr(bot, "session_id", None) in (c_str, c_alt):
+                            return bot
+                        if getattr(bot, "phone", None) in (c_str, c_alt):
+                            return bot
+    except Exception:
+        pass
+        
+    return None
+
 def can_start_more_bots() -> bool:
     """
     Returns True if starting another userbot would not exceed the concurrent limit.
-    Cleans up stale, dead, or deleted bots from the running registry.
     """
-    try:
-        sessions = database.get_sessions()
-        valid_running_session_ids = {s["session_id"] for s in sessions if s.get("status") == "running"}
-        
-        to_stop = []
-        for session_id, bot in list(_running_bots.items()):
-            # If the bot is not in the database or its database status is not 'running',
-            # or if the client is disconnected, we schedule it to stop.
-            if session_id not in valid_running_session_ids or (bot.client and not bot.client.is_connected()):
-                to_stop.append(session_id)
-                
-        for s_id in to_stop:
-            logger.info(f"Self-healing: Stopping and removing stale userbot session: {s_id}")
-            bot = _running_bots.pop(s_id, None)
-            if bot:
-                bot.is_running = False
-                asyncio.create_task(bot.stop())
-    except Exception as cleanup_err:
-        logger.error(f"Error during running registry self-healing: {cleanup_err}")
-
     max_running = getattr(config, "MAX_RUNNING_USERBOTS", 99999)
-    active_count = len([b for b in _running_bots.values() if b.is_running])
-    # Always return True to allow unlimited concurrent userbots
+    active_count = len([b for b in set(_running_bots.values()) if b.is_running])
     return True
 
 async def start_userbot(session_id: str) -> bool:
     """
     Starts a UserBot instance if not already running.
     """
-    if session_id in _running_bots:
-        # Already running, verify its status
-        if _running_bots[session_id].is_running:
-            return True
+    existing_bot = find_running_bot(session_id)
+    if existing_bot and existing_bot.is_running:
+        return True
             
     # Check concurrent limit to prevent OOM
     if not can_start_more_bots():
@@ -60,6 +87,18 @@ async def start_userbot(session_id: str) -> bool:
     success = await bot.start()
     if success:
         _running_bots[session_id] = bot
+        # Register aliases to ensure robust lookups
+        try:
+            sess = database.get_session(session_id)
+            if sess:
+                phone = sess.get("phone")
+                db_sid = sess.get("session_id")
+                if phone and phone not in _running_bots:
+                    _running_bots[phone] = bot
+                if db_sid and db_sid not in _running_bots:
+                    _running_bots[db_sid] = bot
+        except Exception:
+            pass
         return True
     return False
 
@@ -67,25 +106,23 @@ async def stop_userbot(session_id: str):
     """
     Stops a running UserBot instance.
     """
-    if session_id in _running_bots:
-        bot = _running_bots[session_id]
+    bot = find_running_bot(session_id)
+    if bot:
+        for k in list(_running_bots.keys()):
+            if _running_bots[k] is bot:
+                _running_bots.pop(k, None)
         await bot.stop()
-        _running_bots.pop(session_id, None)
+    elif session_id in _running_bots:
+        bot = _running_bots.pop(session_id)
+        await bot.stop()
 
 def is_bot_running(session_id: str) -> bool:
     """
-    Returns True if the UserBot is currently active in memory and connected.
+    Returns True if the UserBot is currently active in memory.
     """
-    if session_id in _running_bots:
-        bot = _running_bots[session_id]
-        if bot.is_running:
-            if bot.client and not bot.client.is_connected():
-                logger.info(f"Self-healing: Detected disconnected userbot {session_id} in is_bot_running, marking stopped.")
-                bot.is_running = False
-                _running_bots.pop(session_id, None)
-                asyncio.create_task(bot.stop())
-                return False
-            return True
+    bot = find_running_bot(session_id)
+    if bot and bot.is_running:
+        return True
     return False
 
 async def start_all_running_bots():
@@ -160,10 +197,9 @@ async def clone_profile(session_id: str, target: str, clone_type: str = "complet
     to the userbot instance associated with session_id based on clone_type.
     Supports usernames, invite links, and numeric Telegram user IDs.
     """
-    if session_id not in _running_bots or not _running_bots[session_id].is_running:
+    bot = find_running_bot(session_id)
+    if not bot or not bot.is_running:
         return False, "Userbot is not running. Please start it first."
-        
-    bot = _running_bots[session_id]
     client = bot.client
     if not client or not client.is_connected():
         return False, "Userbot client is not connected."
@@ -369,8 +405,8 @@ async def set_userbot_name(session_id: str, new_name: str) -> tuple[bool, str]:
     database.save_session(sess)
     
     # If running, update profile directly
-    if session_id in _running_bots and _running_bots[session_id].is_running:
-        bot_obj = _running_bots[session_id]
+    bot_obj = find_running_bot(session_id)
+    if bot_obj and bot_obj.is_running:
         client = bot_obj.client
         if client and client.is_connected():
             try:
@@ -419,10 +455,9 @@ async def restore_original_profile(session_id: str) -> tuple:
     """
     Restores the userbot's original profile (first_name, last_name, about/bio, and photo).
     """
-    if session_id not in _running_bots or not _running_bots[session_id].is_running:
+    bot = find_running_bot(session_id)
+    if not bot or not bot.is_running:
         return False, "Userbot is not running. Please start it first."
-        
-    bot = _running_bots[session_id]
     client = bot.client
     if not client or not client.is_connected():
         return False, "Userbot client is not connected."
@@ -490,11 +525,15 @@ def reload_bot_settings(session_id: str):
     """
     Reloads the in-memory settings of a running userbot.
     """
-    if session_id in _running_bots:
-        _running_bots[session_id].reload_settings()
+    bot = find_running_bot(session_id)
+    if bot:
+        bot.reload_settings()
+        logger.info(f"Reloaded settings for running userbot: {session_id}")
+    else:
+        logger.debug(f"Userbot {session_id} not running to reload settings.")
 
 def get_running_bot(session_id: str) -> Optional[UserBot]:
     """
     Returns the running UserBot instance for a session_id if it exists.
     """
-    return _running_bots.get(session_id)
+    return find_running_bot(session_id)

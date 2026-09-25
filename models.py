@@ -38,7 +38,15 @@ def create_default_session(session_id: str, user_id: int, phone: str, session_fi
             "auto_welcome": False,    # Auto-Welcome message toggle
             "auto_add_contact": False, # Auto-add to contacts on tag/reply toggle
             "vc_join": False,         # Auto-Join voice chat toggle
-            "tag_reply": False,       # Tag Reply toggle
+            "auto_reply": False,      # Tag Auto-Reply toggle
+            "auto_reply_mode": "single", # Auto-Reply mode: single or multiple
+            "auto_reply_msg": "Hello! How can I help you?",
+            "auto_reply_messages": [
+                "Hello! How can I help you? 😊",
+                "Hey there! Thanks for reaching out. Please leave a message! 💬",
+                "Hello! I am currently away, will get back to you soon. ✨"
+            ],
+            "tag_reply": False,       # Tag Reply toggle (legacy backward-compatibility)
             "tag_messages": [
                 "Hey! You mentioned me?",
                 "Hello, I am currently busy. Let's chat later!",

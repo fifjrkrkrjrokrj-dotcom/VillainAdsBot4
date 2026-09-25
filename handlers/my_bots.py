@@ -2550,6 +2550,7 @@ def register_handlers(client):
             settings["auto_reply_mode"] = new_mode
             database.save_session(sess)
             userbot_manager.reload_bot_settings(phone)
+            userbot_manager.reload_bot_settings(sess.get("session_id", phone))
             
         await render_auto_reply_menu(event, phone, user_id)
 
@@ -3191,9 +3192,10 @@ def register_handlers(client):
                 for s in sessions:
                     s.setdefault("settings", {})["auto_reply_msg"] = reply_msg
                     s["settings"]["auto_reply"] = True
+                    s["settings"]["auto_reply_mode"] = "single"
                     database.save_session(s)
-                    if userbot_manager.is_bot_running(s["phone"]):
-                        userbot_manager.reload_bot_settings(s["phone"])
+                    userbot_manager.reload_bot_settings(s.get("phone", ""))
+                    userbot_manager.reload_bot_settings(s.get("session_id", ""))
                 flash = "<blockquote><b>» 💬 sɪɴɢʟᴇ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴍᴇssᴀɢᴇ ᴜᴘᴅᴀᴛᴇᴅ ғᴏʀ ᴀʟʟ ʙᴏᴛs!</b></blockquote>"
                 await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
                 return
@@ -3203,15 +3205,22 @@ def register_handlers(client):
 
         elif action == "WAITING_FOR_ALL_AUTO_REPLY_MSGS":
             raw_text = event.text
-            msgs = [m.strip() for m in raw_text.split(",") if m.strip()]
+            if "\n" in raw_text and "," not in raw_text:
+                raw_msgs = raw_text.split("\n")
+            elif "|" in raw_text and "," not in raw_text:
+                raw_msgs = raw_text.split("|")
+            else:
+                raw_msgs = raw_text.split(",")
+            msgs = [m.strip() for m in raw_msgs if m.strip()]
             if msgs:
                 sessions = get_effective_sessions(user_id)
                 for s in sessions:
                     s.setdefault("settings", {})["auto_reply_messages"] = msgs
                     s["settings"]["auto_reply"] = True
+                    s["settings"]["auto_reply_mode"] = "multiple"
                     database.save_session(s)
-                    if userbot_manager.is_bot_running(s["phone"]):
-                        userbot_manager.reload_bot_settings(s["phone"])
+                    userbot_manager.reload_bot_settings(s.get("phone", ""))
+                    userbot_manager.reload_bot_settings(s.get("session_id", ""))
                 flash = f"<blockquote><b>» ✅ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴍᴇssᴀɢᴇs ᴜᴘᴅᴀᴛᴇᴅ ғᴏʀ ᴀʟʟ ʙᴏᴛs ({len(msgs)} ᴍsɢs)!</b></blockquote>"
                 await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
                 return
@@ -3745,8 +3754,10 @@ def register_handlers(client):
             if msg_text:
                 sess.setdefault("settings", {})["auto_reply_msg"] = msg_text
                 sess["settings"]["auto_reply"] = True
+                sess["settings"]["auto_reply_mode"] = "single"
                 database.save_session(sess)
                 userbot_manager.reload_bot_settings(phone)
+                userbot_manager.reload_bot_settings(sess.get("session_id", phone))
                 flash = "<blockquote><b>» 💬 sɪɴɢʟᴇ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴍᴇssᴀɢᴇ ᴜᴘᴅᴀᴛᴇᴅ!</b></blockquote>"
             else:
                 await event.reply("<blockquote><b>» ❌ ᴍᴇssᴀɢᴇ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
@@ -3755,12 +3766,20 @@ def register_handlers(client):
         # 5.6.5 Auto Reply Messages
         elif action == "WAITING_FOR_AUTO_REPLY_MSGS":
             raw_text = event.text
-            msgs = [m.strip() for m in raw_text.split(",") if m.strip()]
+            if "\n" in raw_text and "," not in raw_text:
+                raw_msgs = raw_text.split("\n")
+            elif "|" in raw_text and "," not in raw_text:
+                raw_msgs = raw_text.split("|")
+            else:
+                raw_msgs = raw_text.split(",")
+            msgs = [m.strip() for m in raw_msgs if m.strip()]
             if msgs:
                 sess.setdefault("settings", {})["auto_reply_messages"] = msgs
                 sess["settings"]["auto_reply"] = True  # Auto-enable when messages are set
+                sess["settings"]["auto_reply_mode"] = "multiple"
                 database.save_session(sess)
                 userbot_manager.reload_bot_settings(phone)
+                userbot_manager.reload_bot_settings(sess.get("session_id", phone))
                 flash = f"<blockquote><b>» ✅ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴍᴇssᴀɢᴇs ᴜᴘᴅᴀᴛᴇᴅ ({len(msgs)} ᴍsɢs)!</b></blockquote>"
             else:
                 await event.reply(utils.get_text("auto_reply_invalid", lang))
