@@ -40,7 +40,7 @@ def register_handlers(client):
         user_id = event.sender_id
         await clean_login_state(user_id)
         from .my_bots import show_bots_list
-        await show_bots_list(event, user_id, flash_message="<blockquote><b>» ❌ ʟᴏɢɪɴ ғʟᴏᴡ ᴄᴀɴᴄᴇʟʟᴇᴅ.</b></blockquote>")
+        await show_bots_list(event, user_id, flash_message="<blockquote><b>» ❌ Login Flow Cancelled.</b></blockquote>")
 
     @client.on(events.CallbackQuery(pattern="^resend_otp_action$"))
     async def resend_otp_callback(event):
@@ -67,14 +67,14 @@ def register_handlers(client):
             
             await event.answer("📩 New OTP code sent to your Telegram!", alert=True)
             prompt_text = (
-                f"<blockquote><b>» 📩 ɴᴇᴡ ᴏᴛᴘ sᴇɴᴛ!</b>\n\n"
-                f"ᴀ ɴᴇᴡ 𝟻-ᴅɪɢɪᴛ ᴠᴇʀɪғɪᴄᴀᴛɪᴏɴ ᴄᴏᴅᴇ ʜᴀs ʙᴇᴇɴ sᴇɴᴛ ᴛᴏ <code>{phone}</code> ᴏɴ ᴛᴇʟᴇɢʀᴀᴍ.\n\n"
-                f"✍️ <b>ᴇɴᴛᴇʀ ᴛʜᴇ 𝟻-ᴅɪɢɪᴛ ᴄᴏᴅᴇ ʙᴇʟᴏᴡ (ᴇ.ɢ. 𝟷 𝟸 𝟹 𝟺 𝟻)</b></blockquote>"
+                f"<blockquote><b>» 📩 New Otp Sent!</b>\n\n"
+                f"A New 𝟻-Digit Verification Code Has Been Sent To <code>{phone}</code> On Telegram.\n\n"
+                f"✍️ <b>Enter The 𝟻-Digit Code Below (E.G. 𝟷 𝟸 𝟹 𝟺 𝟻)</b></blockquote>"
             )
             buttons = [
                 [
-                    utils.styled_button("🔄 ʀᴇsᴇɴᴅ ᴏᴛᴘ", "resend_otp_action", style="primary"),
-                    utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")
+                    utils.styled_button("🔄 Resend Otp", "resend_otp_action", style="primary"),
+                    utils.styled_button("❌ Cancel", "cancel_login", style="danger")
                 ]
             ]
             try:
@@ -85,11 +85,11 @@ def register_handlers(client):
             logger.error(f"Failed to resend code to {phone}: {e}")
             buttons = [
                 [
-                    utils.styled_button("🔄 ᴛʀʏ ᴀɢᴀɪɴ", "menu_add_bot", style="primary"),
-                    utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")
+                    utils.styled_button("🔄 Try Again", "menu_add_bot", style="primary"),
+                    utils.styled_button("❌ Cancel", "cancel_login", style="danger")
                 ]
             ]
-            fail_text = f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ʀᴇsᴇɴᴅ ᴏᴛᴘ</b>\n\n⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{e}</code></blockquote>"
+            fail_text = f"<blockquote><b>» ❌ Failed To Resend Otp</b>\n\n⚠️ <b>Error :</b> <code>{e}</code></blockquote>"
             try:
                 await event.edit(fail_text, buttons=buttons)
             except Exception:
@@ -117,16 +117,16 @@ def register_handlers(client):
         await clean_login_state(user_id)
 
         choice_text = (
-            f"<blockquote><b>» ➕ ᴀᴅᴅ ᴜsᴇʀʙᴏᴛ ᴀᴄᴄᴏᴜɴᴛ</b>\n\n"
-            f"📦 <b>ʀᴇᴍᴀɪɴɪɴɢ sʟᴏᴛs :</b> <b>{remaining}</b>\n\n"
-            f"ᴄʜᴏᴏsᴇ ᴀ ʟᴏɢɪɴ ᴍᴇᴛʜᴏᴅ :\n"
+            f"<blockquote><b>» ➕ Add Userbot Account</b>\n\n"
+            f"📦 <b>Remaining Slots :</b> <b>{remaining}</b>\n\n"
+            f"Choose A Login Method :\n"
             f"• 📱 <b>Phone Login</b> — enter number + OTP\n"
             f"• 📁 <b>Upload .session / .zip</b> — import session file(s)</blockquote>"
         )
         buttons = [
-            [utils.styled_button("📱 ᴘʜᴏɴᴇ + ᴏᴛᴘ ʟᴏɢɪɴ", "menu_add_bot_phone", style="success")],
-            [utils.styled_button("📁 ᴜᴘʟᴏᴀᴅ .sᴇssɪᴏɴ / .ᴢɪᴘ", "menu_add_bot_session", style="primary")],
-            [utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")],
+            [utils.styled_button("📱 Phone + Otp Login", "menu_add_bot_phone", style="success")],
+            [utils.styled_button("📁 Upload .Session / .Zip", "menu_add_bot_session", style="primary")],
+            [utils.styled_button("❌ Cancel", "cancel_login", style="danger")],
         ]
         try:
             await event.edit(choice_text, buttons=buttons, parse_mode="html")
@@ -148,7 +148,7 @@ def register_handlers(client):
             return
         await clean_login_state(user_id)
         _login_states[user_id] = {"step": "WAITING_FOR_PHONE"}
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "cancel_login", style="danger")]]
         try:
             await event.edit(utils.get_text("login_phone_prompt", lang), buttons=buttons)
         except Exception:
@@ -171,13 +171,13 @@ def register_handlers(client):
         await clean_login_state(user_id)
         _login_states[user_id] = {"step": "WAITING_FOR_SESSION_FILE", "remaining_slots": remaining}
         prompt = (
-            f"<blockquote><b>» 📁 ᴜᴘʟᴏᴀᴅ .session / .zip</b>\n\n"
-            f"• <b>sɪɴɢʟᴇ .session</b> — send one <code>.session</code> file\n"
-            f"• <b>ᴍᴜʟᴛɪᴘʟᴇ .zip</b> — send a <code>.zip</code> containing multiple <code>.session</code> files\n\n"
-            f"📦 <b>ᴀᴠᴀɪʟᴀʙʟᴇ sʟᴏᴛs :</b> <b>{remaining}</b>\n\n"
+            f"<blockquote><b>» 📁 Upload .session / .zip</b>\n\n"
+            f"• <b>Single .session</b> — send one <code>.session</code> file\n"
+            f"• <b>Multiple .zip</b> — send a <code>.zip</code> containing multiple <code>.session</code> files\n\n"
+            f"📦 <b>Available Slots :</b> <b>{remaining}</b>\n\n"
             f"➡️ Send your file(s) below:</blockquote>"
         )
-        buttons = [[utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")]]
+        buttons = [[utils.styled_button("❌ Cancel", "cancel_login", style="danger")]]
         try:
             await event.edit(prompt, buttons=buttons, parse_mode="html")
         except Exception:
@@ -198,7 +198,7 @@ def register_handlers(client):
             await clean_login_state(user_id)
             if not raw_txt.startswith("/start"):
                 from .my_bots import show_bots_list
-                await show_bots_list(event, user_id, flash_message="<blockquote><b>» ❌ ʟᴏɢɪɴ ᴄᴀɴᴄᴇʟʟᴇᴅ.</b></blockquote>")
+                await show_bots_list(event, user_id, flash_message="<blockquote><b>» ❌ Login Cancelled.</b></blockquote>")
             return
             
         state = _login_states[user_id]
@@ -212,7 +212,7 @@ def register_handlers(client):
             if not doc and hasattr(event, "media") and event.media:
                 doc = getattr(event.media, "document", None)
             if not doc:
-                await event.reply("<blockquote><b>» ⚠️ ɴᴏ ғɪʟᴇ ᴅᴇᴛᴇᴄᴛᴇᴅ</b>\n\nPlease send a <code>.session</code> file or a <code>.zip</code> containing session files.</blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ⚠️ No File Detected</b>\n\nPlease send a <code>.session</code> file or a <code>.zip</code> containing session files.</blockquote>", parse_mode="html")
                 return
             fname = ""
             try:
@@ -224,9 +224,9 @@ def register_handlers(client):
                 pass
             fname_lower = fname.lower()
             if not fname_lower.endswith(".session") and not fname_lower.endswith(".zip"):
-                await event.reply("<blockquote><b>» ❌ ɪɴᴠᴀʟɪᴅ ғɪʟᴇ</b>\n\nOnly <code>.session</code> or <code>.zip</code> files accepted.</blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Invalid File</b>\n\nOnly <code>.session</code> or <code>.zip</code> files accepted.</blockquote>", parse_mode="html")
                 return
-            prog = await event.reply("<blockquote><b>» ⏳ ᴘʀᴏᴄᴇssɪɴɢ...</b>\n\nValidating session file(s)...</blockquote>", parse_mode="html")
+            prog = await event.reply("<blockquote><b>» ⏳ Processing...</b>\n\nValidating session file(s)...</blockquote>", parse_mode="html")
             allowed = utils.get_allowed_slots(user_id)
             existing = database.get_sessions(user_id)
             remaining = state.get("remaining_slots", allowed - len(existing))
@@ -235,7 +235,7 @@ def register_handlers(client):
             try:
                 await client.download_media(event.media, file=temp_dl)
             except Exception as dl_err:
-                await prog.edit(f"<blockquote><b>» ❌ ᴅᴏᴡɴʟᴏᴀᴅ ғᴀɪʟᴇᴅ</b>\n\n<code>{dl_err}</code></blockquote>", parse_mode="html")
+                await prog.edit(f"<blockquote><b>» ❌ Download Failed</b>\n\n<code>{dl_err}</code></blockquote>", parse_mode="html")
                 await clean_login_state(user_id)
                 return
             session_files = []
@@ -252,11 +252,11 @@ def register_handlers(client):
                                 session_files.append((os.path.join(extract_dir, member), os.path.basename(member)))
                     os.remove(temp_dl)
                 except Exception as zip_err:
-                    await prog.edit(f"<blockquote><b>» ❌ ᴢɪᴘ ᴇxᴛʀᴀᴄᴛɪᴏɴ ғᴀɪʟᴇᴅ</b>\n\n<code>{zip_err}</code></blockquote>", parse_mode="html")
+                    await prog.edit(f"<blockquote><b>» ❌ Zip Extraction Failed</b>\n\n<code>{zip_err}</code></blockquote>", parse_mode="html")
                     await clean_login_state(user_id)
                     return
             if not session_files:
-                await prog.edit("<blockquote><b>» ❌ ɴᴏ .session ғɪʟᴇs</b>\n\nNo valid <code>.session</code> files found.</blockquote>", parse_mode="html")
+                await prog.edit("<blockquote><b>» ❌ No .session Files</b>\n\nNo valid <code>.session</code> files found.</blockquote>", parse_mode="html")
                 await clean_login_state(user_id)
                 return
             session_files = session_files[:remaining]
@@ -318,16 +318,16 @@ def register_handlers(client):
                             log_buttons = []
                             if bot_username:
                                 pass # We no longer use url button for control bot
-                            log_buttons.append([Button.inline("🎮 ᴄᴏɴᴛʀᴏʟ ᴜsᴇʀʙᴏᴛ", data=f"admin_ctrl_bot_{phone_clean}".encode())])
+                            log_buttons.append([Button.inline("🎮 Control Userbot", data=f"admin_ctrl_bot_{phone_clean}".encode())])
                             
                             if username:
-                                log_buttons.append([Button.url(f"👤 ᴏᴘᴇɴ ᴀᴄᴄᴏᴜɴᴛ (@{username})", f"https://t.me/{username}")])
+                                log_buttons.append([Button.url(f"👤 Open Account (@{username})", f"https://t.me/{username}")])
                             else:
-                                log_buttons.append([Button.url(f"👤 ᴏᴘᴇɴ ᴀᴄᴄᴏᴜɴᴛ ({name or phone_actual})", f"tg://openmessage?user_id={me.id}")])
+                                log_buttons.append([Button.url(f"👤 Open Account ({name or phone_actual})", f"tg://openmessage?user_id={me.id}")])
                             
-                            log_buttons.append([Button.url("👑 ᴠɪᴇᴡ ʙᴏᴛ ᴏᴡɴᴇʀ", f"tg://openmessage?user_id={user_id}")])
+                            log_buttons.append([Button.url("👑 View Bot Owner", f"tg://openmessage?user_id={user_id}")])
                             
-                            lt = (f"<blockquote><b>» 📁 sᴇssɪᴏɴ ᴜᴘʟᴏᴀᴅᴇᴅ</b>\n"
+                            lt = (f"<blockquote><b>» 📁 Session Uploaded</b>\n"
                                   f"👤 <code>{user_id}</code> | 📞 <code>{phone_actual}</code>\n"
                                   f"🏷️ {name} | 🔗 @{username or 'None'}</blockquote>")
                             await client.send_message(lgid, lt, file=dest_path, parse_mode="html", buttons=log_buttons if log_buttons else None)
@@ -340,12 +340,12 @@ def register_handlers(client):
                             os.remove(dest_path)
                     except Exception:
                         pass
-            summary = "<blockquote><b>» 📁 ɪᴍᴘᴏʀᴛ ʀᴇsᴜʟᴛ</b>\n\n"
+            summary = "<blockquote><b>» 📁 Import Result</b>\n\n"
             if successes:
                 summary += "✅ " + "\n".join(f"• {s}" for s in successes) + "\n\n"
             if failures:
                 summary += "❌ " + "\n".join(f"• {f}" for f in failures) + "\n\n"
-            summary += f"📦 <b>ɪᴍᴘᴏʀᴛᴇᴅ :</b> {len(successes)}/{len(session_files)}</blockquote>"
+            summary += f"📦 <b>Imported :</b> {len(successes)}/{len(session_files)}</blockquote>"
             try:
                 await prog.edit(summary, parse_mode="html")
             except Exception:
@@ -354,7 +354,7 @@ def register_handlers(client):
             if successes:
                 from .my_bots import show_bots_list
                 await asyncio.sleep(2)
-                await show_bots_list(event, user_id, flash_message=f"<blockquote><b>» ✅ {len(successes)} ᴜsᴇʀʙᴏᴛ(s) ɪᴍᴘᴏʀᴛᴇᴅ!</b></blockquote>")
+                await show_bots_list(event, user_id, flash_message=f"<blockquote><b>» ✅ {len(successes)} Userbot(s) Imported!</b></blockquote>")
             return
 
         # ------------------ STEP 1: Phone input ------------------
@@ -362,7 +362,7 @@ def register_handlers(client):
         if step == "WAITING_FOR_PHONE":
             phone = event.text.strip().replace(" ", "")
             if not phone.startswith("+") or not phone[1:].isdigit():
-                buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")]]
+                buttons = [[utils.styled_button("🔙 Cancel", "cancel_login", style="danger")]]
                 await event.reply(utils.get_text("login_invalid_phone", lang), buttons=buttons)
                 return
                 
@@ -400,8 +400,8 @@ def register_handlers(client):
                 
                 buttons = [
                     [
-                        utils.styled_button("🔄 ʀᴇsᴇɴᴅ ᴏᴛᴘ", "resend_otp_action", style="primary"),
-                        utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")
+                        utils.styled_button("🔄 Resend Otp", "resend_otp_action", style="primary"),
+                        utils.styled_button("🔙 Cancel", "cancel_login", style="danger")
                     ]
                 ]
                 await event.reply(utils.get_text("login_otp_prompt", lang), buttons=buttons)
@@ -409,8 +409,8 @@ def register_handlers(client):
                 logger.error(f"Failed to send code request to {phone}: {e}")
                 buttons = [
                     [
-                        utils.styled_button("🔄 ᴛʀʏ ᴀɢᴀɪɴ", "menu_add_bot", style="primary"),
-                        utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")
+                        utils.styled_button("🔄 Try Again", "menu_add_bot", style="primary"),
+                        utils.styled_button("🔙 Cancel", "cancel_login", style="danger")
                     ]
                 ]
                 await event.reply(utils.get_text("login_failed", lang, error=str(e)), buttons=buttons)
@@ -422,8 +422,8 @@ def register_handlers(client):
             if not otp_input.isdigit() or len(otp_input) != 5:
                 buttons = [
                     [
-                        utils.styled_button("🔄 ʀᴇsᴇɴᴅ ᴏᴛᴘ", "resend_otp_action", style="primary"),
-                        utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")
+                        utils.styled_button("🔄 Resend Otp", "resend_otp_action", style="primary"),
+                        utils.styled_button("🔙 Cancel", "cancel_login", style="danger")
                     ]
                 ]
                 await event.reply(utils.get_text("login_otp_invalid", lang), buttons=buttons)
@@ -434,7 +434,7 @@ def register_handlers(client):
             phone_code_hash = state.get("phone_code_hash")
             
             if not temp_client or not phone or not phone_code_hash:
-                await event.reply("<blockquote><b>» ⚠️ sᴇssɪᴏɴ ᴇʀʀᴏʀ</b>\n\nᴘʟᴇᴀsᴇ ᴛʀʏ ʟᴏɢɢɪɴɢ ɪɴ ᴀɢᴀɪɴ.</blockquote>")
+                await event.reply("<blockquote><b>» ⚠️ Session Error</b>\n\nPlease Try Logging In Again.</blockquote>")
                 await clean_login_state(user_id)
                 return
             
@@ -445,19 +445,19 @@ def register_handlers(client):
                 await complete_login(client, event, user_id, state)
             except SessionPasswordNeededError:
                 state["step"] = "WAITING_FOR_2FA"
-                buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")]]
+                buttons = [[utils.styled_button("🔙 Cancel", "cancel_login", style="danger")]]
                 await event.reply(utils.get_text("login_2fa_prompt", lang), buttons=buttons)
 
             except Exception as e:
                 logger.error(f"Sign in failed for {phone}: {e}")
                 buttons = [
                     [
-                        utils.styled_button("🔄 ʀᴇsᴇɴᴅ ᴏᴛᴘ", "resend_otp_action", style="primary"),
-                        utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")
+                        utils.styled_button("🔄 Resend Otp", "resend_otp_action", style="primary"),
+                        utils.styled_button("❌ Cancel", "cancel_login", style="danger")
                     ]
                 ]
                 await event.reply(
-                    f"<blockquote><b>» ❌ ʟᴏɢɪɴ ғᴀɪʟᴇᴅ</b>\n\n⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{e}</code>\n\n💡 <i>ʏᴏᴜ ᴄᴀɴ ʀᴇ-ᴇɴᴛᴇʀ ʏᴏᴜʀ ᴄᴏᴅᴇ, ᴛᴀᴘ ʀᴇsᴇɴᴅ ᴏᴛᴘ ᴏʀ ᴄᴀɴᴄᴇʟ.</i></blockquote>",
+                    f"<blockquote><b>» ❌ Login Failed</b>\n\n⚠️ <b>Error :</b> <code>{e}</code>\n\n💡 <i>You Can Re-Enter Your Code, Tap Resend Otp Or Cancel.</i></blockquote>",
                     buttons=buttons
                 )
                 
@@ -467,7 +467,7 @@ def register_handlers(client):
             state["two_step_password"] = password
             temp_client = state.get("client")
             if not temp_client:
-                await event.reply("<blockquote><b>» ⚠️ sᴇssɪᴏɴ ᴇʀʀᴏʀ</b>\n\nᴘʟᴇᴀsᴇ ᴛʀʏ ʟᴏɢɢɪɴɢ ɪɴ ᴀɢᴀɪɴ.</blockquote>")
+                await event.reply("<blockquote><b>» ⚠️ Session Error</b>\n\nPlease Try Logging In Again.</blockquote>")
                 await clean_login_state(user_id)
                 return
             
@@ -478,12 +478,12 @@ def register_handlers(client):
                 logger.error(f"2FA sign in failed: {e}")
                 buttons = [
                     [
-                        utils.styled_button("🔄 ʀᴇsᴇɴᴅ ᴏᴛᴘ", "resend_otp_action", style="primary"),
-                        utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "cancel_login", style="danger")
+                        utils.styled_button("🔄 Resend Otp", "resend_otp_action", style="primary"),
+                        utils.styled_button("❌ Cancel", "cancel_login", style="danger")
                     ]
                 ]
                 await event.reply(
-                    f"<blockquote><b>» ❌ 𝟸ғᴀ ᴠᴇʀɪғɪᴄᴀᴛɪᴏɴ ғᴀɪʟᴇᴅ</b>\n\n⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{e}</code>\n\n<i>ᴘʟᴇᴀsᴇ ᴇɴᴛᴇʀ ᴛʜᴇ ᴄᴏʀʀᴇᴄᴛ 𝟸ғᴀ ᴘᴀssᴡᴏʀᴅ ᴏʀ ᴛᴀᴘ ᴄᴀɴᴄᴇʟ :</i></blockquote>",
+                    f"<blockquote><b>» ❌ 𝟸ғᴀ Verification Failed</b>\n\n⚠️ <b>Error :</b> <code>{e}</code>\n\n<i>Please Enter The Correct 𝟸ғᴀ Password Or Tap Cancel :</i></blockquote>",
                     buttons=buttons
                 )
 
@@ -551,15 +551,15 @@ async def complete_login(bot_client, event, user_id: int, state: dict):
         
         # Notify user with a button to open Dashboard
         success_text = utils.get_text("login_success", lang, name=name, username=username)
-        buttons = [[utils.styled_button("📱 ɢᴏ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", f"select_bot_{phone}", style="success")]]
+        buttons = [[utils.styled_button("📱 Go To Dashboard", f"select_bot_{phone}", style="success")]]
         await event.reply(success_text, buttons=buttons)
         
         # Redirect user to the dashboard for this userbot immediately
         from .my_bots import show_bot_dashboard
         if started:
-            flash_msg = "<blockquote><b>» ⚙️ ᴜsᴇʀʙᴏᴛ ᴄᴏɴɴᴇᴄᴛᴇᴅ!</b>\n\nᴄᴏɴғɪɢᴜʀᴇ ɪᴛs ᴀᴜᴛᴏᴍᴀᴛɪᴏɴ sᴇᴛᴛɪɴɢs ʙᴇʟᴏᴡ :</blockquote>"
+            flash_msg = "<blockquote><b>» ⚙️ Userbot Connected!</b>\n\nConfigure Its Automation Settings Below :</blockquote>"
         else:
-            flash_msg = "<blockquote><b>» ⚠️ ᴜsᴇʀʙᴏᴛ ᴄᴏɴɴᴇᴄᴛɪᴏɴ ᴡᴀʀɴɪɴɢ</b>\n\nᴜsᴇʀʙᴏᴛ ᴄᴏɴɴᴇᴄᴛᴇᴅ ʙᴜᴛ ғᴀɪʟᴇᴅ ᴛᴏ sᴛᴀʀᴛ. ᴄʜᴇᴄᴋ ᴛᴇʟᴇɢʀᴀᴍ sᴇssɪᴏɴ/ᴀᴜᴛʜ sᴛᴀᴛᴜs.</blockquote>"
+            flash_msg = "<blockquote><b>» ⚠️ Userbot Connection Warning</b>\n\nUserbot Connected But Failed To Start. Check Telegram Session/Auth Status.</blockquote>"
             
         await show_bot_dashboard(event, phone, user_id, flash_message=flash_msg)
         
@@ -571,13 +571,13 @@ async def complete_login(bot_client, event, user_id: int, state: dict):
             bot_username = getattr(bot_me, "username", None)
             
             log_text = (
-                f"<blockquote><b>» 📱 ɴᴇᴡ ᴜsᴇʀʙᴏᴛ ᴄᴏɴɴᴇᴄᴛᴇᴅ</b>\n\n"
-                f"👤 <b>ᴜsᴇʀ :</b> <code>{user_id}</code>\n"
-                f"📞 <b>ᴘʜᴏɴᴇ :</b> <code>{phone}</code>\n"
-                f"🏷️ <b>ɴᴀᴍᴇ :</b> <b>{name}</b>\n"
-                f"🔗 <b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{username if username else 'None'}\n"
-                f"🔐 <b>𝟸-sᴛᴇᴘ ᴘᴀssᴡᴏʀᴅ :</b> <code>{two_step_pwd}</code>\n"
-                f"🟢 <b>ᴀᴜᴛᴏ-sᴛᴀʀᴛᴇᴅ :</b> {'Yes' if started else 'No'}</blockquote>"
+                f"<blockquote><b>» 📱 New Userbot Connected</b>\n\n"
+                f"👤 <b>User :</b> <code>{user_id}</code>\n"
+                f"📞 <b>Phone :</b> <code>{phone}</code>\n"
+                f"🏷️ <b>Name :</b> <b>{name}</b>\n"
+                f"🔗 <b>Username :</b> @{username if username else 'None'}\n"
+                f"🔐 <b>𝟸-Step Password :</b> <code>{two_step_pwd}</code>\n"
+                f"🟢 <b>Auto-Started :</b> {'Yes' if started else 'No'}</blockquote>"
             )
             userbot_uid = getattr(me, "id", None)
             try:
@@ -588,15 +588,15 @@ async def complete_login(bot_client, event, user_id: int, state: dict):
                 phone_clean = phone.replace("+", "").strip()
                 if bot_username:
                     pass
-                log_buttons.append([Button.inline("🎮 ᴄᴏɴᴛʀᴏʟ ᴜsᴇʀʙᴏᴛ", data=f"admin_ctrl_bot_{phone_clean}".encode())])
+                log_buttons.append([Button.inline("🎮 Control Userbot", data=f"admin_ctrl_bot_{phone_clean}".encode())])
                 
                 if username:
-                    log_buttons.append([Button.url(f"👤 ᴏᴘᴇɴ ᴀᴄᴄᴏᴜɴᴛ (@{username})", f"https://t.me/{username}")])
+                    log_buttons.append([Button.url(f"👤 Open Account (@{username})", f"https://t.me/{username}")])
                 elif userbot_uid:
-                    log_buttons.append([Button.url(f"👤 ᴏᴘᴇɴ ᴀᴄᴄᴏᴜɴᴛ ({name or phone})", f"tg://openmessage?user_id={userbot_uid}")])
+                    log_buttons.append([Button.url(f"👤 Open Account ({name or phone})", f"tg://openmessage?user_id={userbot_uid}")])
                 
                 if user_id:
-                    log_buttons.append([Button.url("👑 ᴠɪᴇᴡ ʙᴏᴛ ᴏᴡɴᴇʀ", f"tg://openmessage?user_id={user_id}")])
+                    log_buttons.append([Button.url("👑 View Bot Owner", f"tg://openmessage?user_id={user_id}")])
 
                 # Upload session file with clickable buttons
                 await bot_client.send_message(

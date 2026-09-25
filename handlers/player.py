@@ -50,8 +50,8 @@ def download_progress_sync(current, total, msg_to_edit, operation_name="DOWNLOAD
     
     txt = (
         f"<blockquote><b>» 📥 {operation_name}</b>\n\n"
-        f"📊 <b>ᴘʀᴏɢʀᴇss :</b> <code>[{bar}] {percent:.1f}%</code>\n"
-        f"💾 <b>sɪᴢᴇ :</b> <code>{mb_curr:.2f} MB / {mb_tot:.2f} MB</code></blockquote>"
+        f"📊 <b>Progress :</b> <code>[{bar}] {percent:.1f}%</code>\n"
+        f"💾 <b>Size :</b> <code>{mb_curr:.2f} MB / {mb_tot:.2f} MB</code></blockquote>"
     )
     try:
         asyncio.create_task(msg_to_edit.edit(txt))
@@ -98,9 +98,9 @@ async def get_or_start_userbot_for_chat(user_id: int, chat_id: Optional[int] = N
                 return bot, ""
 
     err_txt = utils.format_html_message(
-        "<blockquote><b>» ⚠️ ɴᴏ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴜsᴇʀʙᴏᴛ ғᴏᴜɴᴅ</b>\n\n"
-        "ʏᴏᴜ ʜᴀᴠᴇ ɴᴏᴛ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴀ ᴜsᴇʀʙᴏᴛ ᴛᴏ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ.\n\n"
-        "💡 <b>ᴀᴄᴛɪᴏɴ :</b> ᴘʟᴇᴀsᴇ ᴄᴏɴɴᴇᴄᴛ ʏᴏᴜʀ ᴏᴡɴ ᴜsᴇʀʙᴏᴛ ᴜsɪɴɢ /start ɪɴ ᴘʀɪᴠᴀᴛᴇ ᴄʜᴀᴛ ᴛᴏ ᴘʟᴀʏ sᴏɴɢs!</blockquote>"
+        "<blockquote><b>» ⚠️ No Connected Userbot Found</b>\n\n"
+        "You Have Not Connected A Userbot To Your Account.\n\n"
+        "💡 <b>Action :</b> Please Connect Your Own Userbot Using /start In Private Chat To Play Songs!</blockquote>"
     )
     return None, err_txt
 
@@ -109,19 +109,19 @@ def build_now_playing_markup(chat_id: int, is_paused: bool = False, is_muted: bo
     """
     Generates inline control buttons for Now Playing cards.
     """
-    pause_btn = utils.styled_button("▶️ ʀᴇsᴜᴍᴇ", f"player_resume_{chat_id}", style="success") if is_paused else utils.styled_button("⏸️ ᴘᴀᴜsᴇ", f"player_pause_{chat_id}", style="primary")
-    mute_btn = utils.styled_button("🔊 ᴜɴᴍᴜᴛᴇ", f"player_unmute_{chat_id}", style="success") if is_muted else utils.styled_button("🔇 ᴍᴜᴛᴇ", f"player_mute_{chat_id}", style="primary")
+    pause_btn = utils.styled_button("▶️ Resume", f"player_resume_{chat_id}", style="success") if is_paused else utils.styled_button("⏸️ Pause", f"player_pause_{chat_id}", style="primary")
+    mute_btn = utils.styled_button("🔊 Unmute", f"player_unmute_{chat_id}", style="success") if is_muted else utils.styled_button("🔇 Mute", f"player_mute_{chat_id}", style="primary")
     
     return [
         [
             pause_btn,
-            utils.styled_button("⏹️ sᴛᴏᴘ", f"player_stop_{chat_id}", style="danger"),
+            utils.styled_button("⏹️ Stop", f"player_stop_{chat_id}", style="danger"),
             mute_btn
         ],
         [
-            utils.styled_button("⏭️ sᴋɪᴘ", f"player_skip_{chat_id}", style="primary"),
-            utils.styled_button("📜 ǫᴜᴇᴜᴇ", f"player_queue_{chat_id}", style="primary"),
-            utils.styled_button("🖼️ ᴛʜᴜᴍʙ", f"player_thumb_toggle_{chat_id}", style="primary")
+            utils.styled_button("⏭️ Skip", f"player_skip_{chat_id}", style="primary"),
+            utils.styled_button("📜 Queue", f"player_queue_{chat_id}", style="primary"),
+            utils.styled_button("🖼️ Thumb", f"player_thumb_toggle_{chat_id}", style="primary")
         ]
     ]
 
@@ -140,16 +140,16 @@ def format_now_playing_text(song_info: dict, requester_name: str, requester_id: 
     ub_username = song_info.get("username")
     ub_display = f"@{ub_username}" if ub_username else f"`{song_info.get('userbot_id', '')}`"
     
-    mode_emoji = "🎬 ᴠɪᴅᴇᴏ sᴛʀᴇᴀᴍ" if stream_type.lower() == "video" else "🎙️ ᴀᴜᴅɪᴏ sᴛʀᴇᴀᴍ"
+    mode_emoji = "🎬 Video Stream" if stream_type.lower() == "video" else "🎙️ Audio Stream"
     
     req_name_safe = html.escape(requester_name)
     text = (
-        f"<blockquote><b>» 🎵 ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ</b>\n\n"
-        f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{title_safe}</b>\n"
-        f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
-        f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
-        f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{req_name_safe}</a>\n"
-        f"<b>🤖 sᴛʀᴇᴀᴍ sᴏᴜʀᴄᴇ :</b> <b>{ub_name}</b> ({ub_display})</blockquote>"
+        f"<blockquote><b>» 🎵 Now Streaming</b>\n\n"
+        f"<b>📌 Title :</b> <b>{title_safe}</b>\n"
+        f"<b>⏱️ Duration :</b> <code>{dur_str}</code>\n"
+        f"<b>🎧 Mode :</b> <b>{mode_emoji}</b>\n"
+        f"<b>👤 Requested By :</b> <a href=\"tg://user?id={requester_id}\">{req_name_safe}</a>\n"
+        f"<b>🤖 Stream Source :</b> <b>{ub_name}</b> ({ub_display})</blockquote>"
     )
     import utils
     return utils.format_html_message(text)
@@ -302,9 +302,9 @@ def register_handlers(client):
         display_query = audio_title or query or "Replied Media"
         progress_msg = await event.respond(
             utils.format_html_message(
-                f"<blockquote><b>» 🎧 ᴘʟᴀʏɪɴɢ ɪɴǫᴜɪʀʏ...</b>\n\n"
+                f"<blockquote><b>» 🎧 Playing Inquiry...</b>\n\n"
                 f"🔍 <i>{display_query}</i>\n"
-                f"⏳ <b>sᴛᴀᴛᴜs :</b> ᴘʀᴇᴘᴀʀɪɴɢ {play_type} sᴛʀᴇᴀᴍ... 🎶</blockquote>"
+                f"⏳ <b>Status :</b> Preparing {play_type} Stream... 🎶</blockquote>"
             )
         )
         
@@ -323,22 +323,22 @@ def register_handlers(client):
                     logger.error(f"Failed to download replied media: {dl_err}")
                     await progress_msg.edit(
                         utils.format_html_message(
-                            f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ᴍᴇᴅɪᴀ</b>\n\n"
-                            f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{dl_err}</code></blockquote>"
+                            f"<blockquote><b>» ❌ Failed To Download Media</b>\n\n"
+                            f"⚠️ <b>Error :</b> <code>{dl_err}</code></blockquote>"
                         )
                     )
                     return
         elif not query:
             await progress_msg.edit(
                 utils.format_html_message(
-                    f"<blockquote><b>» 💡 ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ᴜsᴀɢᴇ ɢᴜɪᴅᴇ</b>\n\n"
-                    f"• <code>.{cmd} &lt;song name&gt;</code> (ᴇ.ɢ. <code>.{cmd} Faded Alan Walker</code>)\n"
+                    f"<blockquote><b>» 💡 Music Player Usage Guide</b>\n\n"
+                    f"• <code>.{cmd} &lt;song name&gt;</code> (E.G. <code>.{cmd} Faded Alan Walker</code>)\n"
                     f"• <code>/{cmd} &lt;song name&gt;</code>\n"
-                    f"• <code>.playforce &lt;song name&gt;</code> (ғᴏʀᴄᴇ ᴘʟᴀʏ ɴᴏᴡ)\n"
+                    f"• <code>.playforce &lt;song name&gt;</code> (Force Play Now)\n"
                     f"• <code>.queue</code> / <code>.skip</code>\n"
-                    f"• <b>ᴛʜᴜᴍʙɴᴀɪʟ ᴍᴏᴅᴇ :</b> <code>.thumb on</code> ᴏʀ <code>.thumb off</code>\n"
-                    f"• ʀᴇᴘʟʏ ᴛᴏ ᴀɴʏ ᴀᴜᴅɪᴏ/ᴠɪᴅᴇᴏ ғɪʟᴇ ᴡɪᴛʜ <code>.{cmd}</code>\n\n"
-                    f"⚡ <i>sᴛᴀʀᴛ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ʙᴇғᴏʀᴇ sᴛʀᴇᴀᴍɪɴɢ.</i></blockquote>"
+                    f"• <b>Thumbnail Mode :</b> <code>.thumb on</code> Or <code>.thumb off</code>\n"
+                    f"• Reply To Any Audio/Video File With <code>.{cmd}</code>\n\n"
+                    f"⚡ <i>Start Group Voice Chat Before Streaming.</i></blockquote>"
                 )
             )
             return
@@ -385,16 +385,16 @@ def register_handlers(client):
                 pos = len(_chat_queues[chat_id])
                 mins, secs = divmod(audio_duration or 0, 60)
                 dur_str = f"{mins:02d}:{secs:02d}" if audio_duration else "03:00"
-                mode_emoji = "🎬 ᴠɪᴅᴇᴏ" if play_type == "video" else "🎙️ ᴀᴜᴅɪᴏ"
+                mode_emoji = "🎬 Video" if play_type == "video" else "🎙️ Audio"
                 
                 await progress_msg.edit(
                     utils.format_html_message(
-                        f"<blockquote><b>» 📋 ᴀᴅᴅᴇᴅ ᴛᴏ ǫᴜᴇᴜᴇ : #{pos}</b>\n\n"
-                        f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{audio_title or query}</b>\n"
-                        f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
-                        f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
-                        f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={user_id}\">{requester_name}</a>\n\n"
-                        f"💡 <i>ᴛʀᴀᴄᴋ ᴡɪʟʟ ᴘʟᴀʏ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀғᴛᴇʀ ᴄᴜʀʀᴇɴᴛ sᴏɴɢ ғɪɴɪsʜᴇs.</i></blockquote>"
+                        f"<blockquote><b>» 📋 Added To Queue : #{pos}</b>\n\n"
+                        f"<b>📌 Title :</b> <b>{audio_title or query}</b>\n"
+                        f"<b>⏱️ Duration :</b> <code>{dur_str}</code>\n"
+                        f"<b>🎧 Mode :</b> <b>{mode_emoji}</b>\n"
+                        f"<b>👤 Requested By :</b> <a href=\"tg://user?id={user_id}\">{requester_name}</a>\n\n"
+                        f"💡 <i>Track Will Play Automatically After Current Song Finishes.</i></blockquote>"
                     )
                 )
                 return
@@ -441,9 +441,9 @@ def register_handlers(client):
                 ub_handle = f"@{bot_obj.username}" if bot_obj.username else bot_obj.name
                 await progress_msg.edit(
                     utils.format_html_message(
-                        f"<blockquote><b>» ❌ ᴘʟᴀʏʙᴀᴄᴋ ғᴀɪʟᴇᴅ</b>\n\n"
-                        f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{msg}</code>\n\n"
-                        f"💡 <b>ᴛɪᴘ :</b> ᴍᴀᴋᴇ sᴜʀᴇ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ɪs sᴛᴀʀᴛᴇᴅ ᴀɴᴅ ᴜsᴇʀʙᴏᴛ (<b>{ub_handle}</b>) ʜᴀs ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ sᴘᴇᴀᴋ.</blockquote>"
+                        f"<blockquote><b>» ❌ Playback Failed</b>\n\n"
+                        f"⚠️ <b>Error :</b> <code>{msg}</code>\n\n"
+                        f"💡 <b>Tip :</b> Make Sure Group Voice Chat Is Started And Userbot (<b>{ub_handle}</b>) Has Permission To Speak.</blockquote>"
                     )
                 )
                 return
@@ -520,16 +520,16 @@ def register_handlers(client):
             
             await event.respond(
                 utils.format_html_message(
-                    "<blockquote><b>» ⏭️ ǫᴜᴇᴜᴇ ᴇᴍᴘᴛʏ</b>\n\n"
-                    "ɴᴏ ᴍᴏʀᴇ sᴏɴɢs ɪɴ ǫᴜᴇᴜᴇ. sᴛʀᴇᴀᴍ ʜᴀs ʙᴇᴇɴ sᴛᴏᴘᴘᴇᴅ.</blockquote>"
+                    "<blockquote><b>» ⏭️ Queue Empty</b>\n\n"
+                    "No More Songs In Queue. Stream Has Been Stopped.</blockquote>"
                 )
             )
             return
             
         prog = await event.respond(
             utils.format_html_message(
-                "<blockquote><b>» ⏭️ sᴋɪᴘᴘɪɴɢ ᴛʀᴀᴄᴋ</b>\n\n"
-                "sᴋɪᴘᴘɪɴɢ ᴛᴏ ɴᴇxᴛ sᴏɴɢ ɪɴ ǫᴜᴇᴜᴇ...</blockquote>"
+                "<blockquote><b>» ⏭️ Skipping Track</b>\n\n"
+                "Skipping To Next Song In Queue...</blockquote>"
             )
         )
         await play_next_in_queue(chat_id, client)
@@ -552,8 +552,8 @@ def register_handlers(client):
         if not active and not queue:
             await event.respond(
                 utils.format_html_message(
-                    "<blockquote><b>» 📜 ǫᴜᴇᴜᴇ ᴘʟᴀʏʟɪsᴛ</b>\n\n"
-                    "<i>ǫᴜᴇᴜᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ ᴇᴍᴘᴛʏ. ᴜsᴇ <code>.play &lt;song&gt;</code> ᴛᴏ ᴀᴅᴅ ᴛʀᴀᴄᴋs!</i></blockquote>"
+                    "<blockquote><b>» 📜 Queue Playlist</b>\n\n"
+                    "<i>Queue Is Currently Empty. Use <code>.play &lt;song&gt;</code> To Add Tracks!</i></blockquote>"
                 )
             )
             return
@@ -565,13 +565,13 @@ def register_handlers(client):
         np_dur_str = f"{mins:02d}:{secs:02d}" if np_dur else "Live"
         
         text = (
-            "<blockquote><b>» 📜 ǫᴜᴇᴜᴇ ᴘʟᴀʏʟɪsᴛ</b>\n\n"
-            f"🎵 <b>ɴᴏᴡ ᴘʟᴀʏɪɴɢ :</b>\n"
+            "<blockquote><b>» 📜 Queue Playlist</b>\n\n"
+            f"🎵 <b>Now Playing :</b>\n"
             f"• <b>{np_title}</b> (<code>{np_dur_str}</code>)\n\n"
         )
         
         if queue:
-            text += "📋 <b>ᴜᴘᴄᴏᴍɪɴɢ ǫᴜᴇᴜᴇ :</b>\n"
+            text += "📋 <b>Upcoming Queue :</b>\n"
             for idx, item in enumerate(queue[:10], 1):
                 item_title = item.get("title") or item.get("query") or "Unknown"
                 item_dur = item.get("duration", 0)
@@ -581,11 +581,11 @@ def register_handlers(client):
                 text += f"{idx}. <b>{item_title}</b> (<code>{d_str}</code>) | <i>{req}</i>\n"
                 
             if len(queue) > 10:
-                text += f"\n<i>...ᴀɴᴅ {len(queue) - 10} ᴍᴏʀᴇ ᴛʀᴀᴄᴋs</i>\n"
+                text += f"\n<i>...And {len(queue) - 10} More Tracks</i>\n"
         else:
-            text += "📋 <b>ᴜᴘᴄᴏᴍɪɴɢ ǫᴜᴇᴜᴇ :</b>\n<i>ɴᴏ ᴛʀᴀᴄᴋs ɪɴ ǫᴜᴇᴜᴇ.</i>\n"
+            text += "📋 <b>Upcoming Queue :</b>\n<i>No Tracks In Queue.</i>\n"
             
-        text += "\n💡 <i>ᴜsᴇ <code>.skip</code> ᴏʀ <code>/skip</code> ᴛᴏ ᴘʟᴀʏ ɴᴇxᴛ ᴛʀᴀᴄᴋ.</i></blockquote>"
+        text += "\n💡 <i>Use <code>.skip</code> Or <code>/skip</code> To Play Next Track.</i></blockquote>"
         await event.reply(utils.format_html_message(text))
 
     # ------------------ Playback Control Commands (.pause, /pause, .resume, /resume, .stop, /stop, etc.) ------------------
@@ -607,8 +607,8 @@ def register_handlers(client):
         if not bot_obj:
             await event.respond(
                 utils.format_html_message(
-                    "<blockquote><b>» ⚠️ ɴᴏ ᴜsᴇʀʙᴏᴛ ғᴏᴜɴᴅ</b>\n\n"
-                    "ɴᴏ ᴀᴄᴛɪᴠᴇ ᴜsᴇʀʙᴏᴛ ғᴏᴜɴᴅ ɪɴ ᴛʜɪs ᴄʜᴀᴛ sᴇssɪᴏɴ.</blockquote>"
+                    "<blockquote><b>» ⚠️ No Userbot Found</b>\n\n"
+                    "No Active Userbot Found In This Chat Session.</blockquote>"
                 )
             )
             return
@@ -619,12 +619,12 @@ def register_handlers(client):
                 await pytg.pause_stream(chat_id)
                 await event.respond(
                     utils.format_html_message(
-                        "<blockquote><b>» ⏸️ ᴘʟᴀʏʙᴀᴄᴋ ᴘᴀᴜsᴇᴅ</b>\n\n"
-                        "sᴛʀᴇᴀᴍ ɪs ᴘᴀᴜsᴇᴅ. ᴜsᴇ <code>.resume</code> ᴏʀ <code>/resume</code> ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ ᴘʟᴀʏɪɴɢ.</blockquote>"
+                        "<blockquote><b>» ⏸️ Playback Paused</b>\n\n"
+                        "Stream Is Paused. Use <code>.resume</code> Or <code>/resume</code> To Continue Playing.</blockquote>"
                     )
                 )
             except Exception as e:
-                await event.respond(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ᴘᴀᴜsɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
+                await event.respond(utils.format_html_message(f"<blockquote><b>» ❌ Error Pausing</b>\n\n⚠️ <code>{e}</code></blockquote>"))
 
         elif cmd == "resume":
             try:
@@ -632,12 +632,12 @@ def register_handlers(client):
                 await pytg.resume_stream(chat_id)
                 await event.respond(
                     utils.format_html_message(
-                        "<blockquote><b>» ▶️ ᴘʟᴀʏʙᴀᴄᴋ ʀᴇsᴜᴍᴇᴅ</b>\n\n"
-                        "sᴛʀᴇᴀᴍ ʀᴇsᴜᴍᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ.</blockquote>"
+                        "<blockquote><b>» ▶️ Playback Resumed</b>\n\n"
+                        "Stream Resumed Successfully.</blockquote>"
                     )
                 )
             except Exception as e:
-                await event.respond(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ʀᴇsᴜᴍɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
+                await event.respond(utils.format_html_message(f"<blockquote><b>» ❌ Error Resuming</b>\n\n⚠️ <code>{e}</code></blockquote>"))
 
         elif cmd in ("stop", "end"):
             _chat_queues.pop(chat_id, None)
@@ -650,7 +650,7 @@ def register_handlers(client):
 
             prog = await event.respond(
                 utils.format_html_message(
-                    "<blockquote><b>» ⏳ sᴛᴏᴘᴘɪɴɢ ᴘʟᴀʏʙᴀᴄᴋ...</b></blockquote>"
+                    "<blockquote><b>» ⏳ Stopping Playback...</b></blockquote>"
                 )
             )
             success, msg = await bot_obj.stop_song(chat_id)
@@ -658,8 +658,8 @@ def register_handlers(client):
                 try:
                     await prog.edit(
                         utils.format_html_message(
-                            "<blockquote><b>» ⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ</b>\n\n"
-                            "ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ sᴛᴏᴘᴘᴇᴅ, ᴜʙ ʟᴇғᴛ ᴠᴄ & ǫᴜᴇᴜᴇ ᴄʟᴇᴀʀᴇᴅ.</blockquote>"
+                            "<blockquote><b>» ⏹️ Playback Stopped</b>\n\n"
+                            "Voice Chat Stream Stopped, Ub Left Vc & Queue Cleared.</blockquote>"
                         )
                     )
                 except Exception:
@@ -673,7 +673,7 @@ def register_handlers(client):
                 try:
                     await prog.edit(
                         utils.format_html_message(
-                            f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ sᴛᴏᴘ</b>\n\n⚠️ <code>{msg}</code></blockquote>"
+                            f"<blockquote><b>» ❌ Failed To Stop</b>\n\n⚠️ <code>{msg}</code></blockquote>"
                         )
                     )
                 except Exception:
@@ -683,8 +683,8 @@ def register_handlers(client):
             success, msg = await bot_obj.mute_mic(chat_id)
             await event.respond(
                 utils.format_html_message(
-                    "<blockquote><b>» 🔇 ᴍɪᴄ ᴍᴜᴛᴇᴅ</b>\n\n"
-                    "ᴜsᴇʀʙᴏᴛ ᴍɪᴄʀᴏᴘʜᴏɴᴇ ʜᴀs ʙᴇᴇɴ ᴛᴜʀɴᴇᴅ <b>ᴏғғ</b>.</blockquote>"
+                    "<blockquote><b>» 🔇 Mic Muted</b>\n\n"
+                    "Userbot Microphone Has Been Turned <b>Off</b>.</blockquote>"
                 )
             )
 
@@ -692,8 +692,8 @@ def register_handlers(client):
             success, msg = await bot_obj.unmute_mic(chat_id)
             await event.respond(
                 utils.format_html_message(
-                    "<blockquote><b>» 🔊 ᴍɪᴄ ᴜɴᴍᴜᴛᴇᴅ</b>\n\n"
-                    "ᴜsᴇʀʙᴏᴛ ᴍɪᴄʀᴏᴘʜᴏɴᴇ ʜᴀs ʙᴇᴇɴ ᴛᴜʀɴᴇᴅ <b>ᴏɴ</b>.</blockquote>"
+                    "<blockquote><b>» 🔊 Mic Unmuted</b>\n\n"
+                    "Userbot Microphone Has Been Turned <b>On</b>.</blockquote>"
                 )
             )
 
@@ -720,8 +720,8 @@ def register_handlers(client):
         if cmd in ("vc", "joinvc"):
             prog = await event.respond(
                 utils.format_html_message(
-                    "<blockquote><b>» ⏳ ᴊᴏɪɴɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
-                    "ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ᴛᴏ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                    "<blockquote><b>» ⏳ Joining Voice Chat</b>\n\n"
+                    "Connecting Userbot To Group Voice Chat...</blockquote>"
                 )
             )
             success, msg = await bot_obj.join_voice_chat(str(chat_id))
@@ -732,23 +732,23 @@ def register_handlers(client):
             if success:
                 await event.respond(
                     utils.format_html_message(
-                        "<blockquote><b>» 🎙️ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
-                        "ᴜsᴇʀʙᴏᴛ sᴜᴄᴄᴇssғᴜʟʟʏ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ!\n\n"
-                        "💡 <i>ᴜsᴇ <code>.play &lt;song&gt;</code> ᴏʀ <code>.vplay &lt;video&gt;</code> ᴛᴏ sᴛʀᴇᴀᴍ ᴍᴇᴅɪᴀ.</i></blockquote>"
+                        "<blockquote><b>» 🎙️ Connected To Voice Chat</b>\n\n"
+                        "Userbot Successfully Connected To Voice Chat!\n\n"
+                        "💡 <i>Use <code>.play &lt;song&gt;</code> Or <code>.vplay &lt;video&gt;</code> To Stream Media.</i></blockquote>"
                     )
                 )
             else:
                 await event.respond(
                     utils.format_html_message(
-                        f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"
+                        f"<blockquote><b>» ❌ Failed To Join Vc</b>\n\n⚠️ <code>{msg}</code></blockquote>"
                     )
                 )
 
         elif cmd in ("leavevc", "vcleft"):
             prog = await event.respond(
                 utils.format_html_message(
-                    "<blockquote><b>» ⏳ ʟᴇᴀᴠɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
-                    "ᴅɪsᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ғʀᴏᴍ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                    "<blockquote><b>» ⏳ Leaving Voice Chat</b>\n\n"
+                    "Disconnecting Userbot From Voice Chat...</blockquote>"
                 )
             )
             success, msg = await bot_obj.leave_voice_chat(chat_id)
@@ -759,12 +759,12 @@ def register_handlers(client):
             if success:
                 await event.respond(
                     utils.format_html_message(
-                        "<blockquote><b>» 👋 ʟᴇғᴛ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
-                        "ᴜsᴇʀʙᴏᴛ ʜᴀs ᴅɪsᴄᴏɴɴᴇᴄᴛᴇᴅ ғʀᴏᴍ ᴛʜᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.</blockquote>"
+                        "<blockquote><b>» 👋 Left Voice Chat</b>\n\n"
+                        "Userbot Has Disconnected From The Voice Chat.</blockquote>"
                     )
                 )
             else:
-                await event.respond(utils.format_html_message(f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴇᴀᴠᴇ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
+                await event.respond(utils.format_html_message(f"<blockquote><b>» ❌ Failed To Leave Vc</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
 
     # ------------------ /thumb, .thumb toggle command ------------------
     @client.on(events.NewMessage(pattern=r"(?i)^[./!?](thumb|thumbnail)(?:@\w+)?(?:\s+(on|off))?$"))
@@ -782,14 +782,14 @@ def register_handlers(client):
             new_state = not current
             
         database.set_thumbnail_setting(chat_id, new_state)
-        status_text = "🟢 <b>ᴇɴᴀʙʟᴇᴅ</b>" if new_state else "🔴 <b>ᴅɪsᴀʙʟᴇᴅ</b>"
-        mode_desc = "ᴀʀᴛᴡᴏʀᴋ ᴛʜᴜᴍʙɴᴀɪʟ ʙᴀɴɴᴇʀ ᴡɪʟʟ ʙᴇ ᴅɪsᴘʟᴀʏᴇᴅ." if new_state else "ᴄʟᴇᴀɴ ᴛᴇxᴛ-ᴏɴʟʏ ᴍᴏᴅᴇ ᴀᴄᴛɪᴠᴇ (ɴᴏ ᴛʜᴜᴍʙɴᴀɪʟ)."
+        status_text = "🟢 <b>Enabled</b>" if new_state else "🔴 <b>Disabled</b>"
+        mode_desc = "Artwork Thumbnail Banner Will Be Displayed." if new_state else "Clean Text-Only Mode Active (No Thumbnail)."
         
         await event.reply(
             utils.format_html_message(
-                f"<blockquote><b>» 🖼️ ᴛʜᴜᴍʙɴᴀɪʟ sᴇᴛᴛɪɴɢ ᴜᴘᴅᴀᴛᴇᴅ</b>\n\n"
-                f"<b>• sᴛᴀᴛᴜs :</b> {status_text}\n"
-                f"<b>• ᴅɪsᴘʟᴀʏ ᴍᴏᴅᴇ :</b> <i>{mode_desc}</i></blockquote>"
+                f"<blockquote><b>» 🖼️ Thumbnail Setting Updated</b>\n\n"
+                f"<b>• Status :</b> {status_text}\n"
+                f"<b>• Display Mode :</b> <i>{mode_desc}</i></blockquote>"
             )
         )
 
@@ -808,14 +808,14 @@ def register_handlers(client):
         user_id = event.sender_id
         bot_obj, _ = await get_or_start_userbot_for_chat(user_id, chat_id)
         if not bot_obj:
-            await event.answer("⚠️ ɴᴏ ᴀᴄᴛɪᴠᴇ ᴜsᴇʀʙᴏᴛ ғᴏᴜɴᴅ ғᴏʀ ᴛʜɪs ᴠᴄ.", alert=True)
+            await event.answer("⚠️ No Active Userbot Found For This Vc.", alert=True)
             return
 
         if action == "pause":
             try:
                 pytg = await bot_obj.get_pytgcalls()
                 await pytg.pause_stream(chat_id)
-                await event.answer("⏸️ ᴘʟᴀʏʙᴀᴄᴋ ᴘᴀᴜsᴇᴅ.")
+                await event.answer("⏸️ Playback Paused.")
                 buttons = build_now_playing_markup(chat_id, is_paused=True, is_muted=bot_obj.is_muted)
                 await event.edit(buttons=buttons)
             except Exception as e:
@@ -825,7 +825,7 @@ def register_handlers(client):
             try:
                 pytg = await bot_obj.get_pytgcalls()
                 await pytg.resume_stream(chat_id)
-                await event.answer("▶️ ᴘʟᴀʏʙᴀᴄᴋ ʀᴇsᴜᴍᴇᴅ.")
+                await event.answer("▶️ Playback Resumed.")
                 buttons = build_now_playing_markup(chat_id, is_paused=False, is_muted=bot_obj.is_muted)
                 await event.edit(buttons=buttons)
             except Exception as e:
@@ -840,12 +840,12 @@ def register_handlers(client):
             _active_chat_players.pop(chat_id, None)
             success, msg = await bot_obj.stop_song(chat_id)
             if success:
-                await event.answer("⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ.")
+                await event.answer("⏹️ Playback Stopped.")
                 try:
                     await event.edit(
                         utils.format_html_message(
-                            "<blockquote><b>» ⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ</b>\n\n"
-                            "sᴛʀᴇᴀᴍ ᴇɴᴅᴇᴅ ʙʏ ᴜsᴇʀ ᴀɴᴅ ǫᴜᴇᴜᴇ ᴄʟᴇᴀʀᴇᴅ.</blockquote>"
+                            "<blockquote><b>» ⏹️ Playback Stopped</b>\n\n"
+                            "Stream Ended By User And Queue Cleared.</blockquote>"
                         ),
                         buttons=None
                     )

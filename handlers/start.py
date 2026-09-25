@@ -101,14 +101,14 @@ async def show_main_menu(event, user_id):
             styled_button(get_text("btn_status", lang), "menu_status", style="primary")
         ],
         [
-            styled_button("👫 ʀᴇғᴇʀ & ᴇᴀʀɴ", "settings_referrals", style="success")
+            styled_button("👫 Refer & Earn", "settings_referrals", style="success")
         ]
     ]
     
     buttons.append([Button.url(config.OWNER_NAME, config.OWNER_URL)])
     buttons.append([
-        Button.url("📢 sᴜᴘᴘᴏʀᴛ ᴄʜᴀɴɴᴇʟ", support_channel),
-        Button.url("💬 sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ", support_group)
+        Button.url("📢 Support Channel", support_channel),
+        Button.url("💬 Support Group", support_group)
     ])
     
     if is_admin:
@@ -141,11 +141,11 @@ def register_handlers(client):
                 me = await client.get_me()
                 bot_username = me.username
                 text = (
-                    f"<blockquote><b>» ⚡ {config.BOT_NAME.upper()} ᴍᴀɴᴀɢᴇʀ</b>\n\n"
-                    f"ᴄᴏɴғɪɢᴜʀᴇ ʏᴏᴜʀ ᴏᴡɴ ᴀᴜᴛᴏᴍᴀᴛᴇᴅ ᴜsᴇʀʙᴏᴛs, ɢʀᴏᴜᴘ ʙʀᴏᴀᴅᴄᴀsᴛs, ᴀᴜᴛᴏ-ᴡᴇʟᴄᴏᴍᴇ, ᴠᴄ sᴛʀᴇᴀᴍɪɴɢ, ᴀɴᴅ ᴀɪ ᴀᴜᴛᴏᴍᴀᴛɪᴏɴs!\n\n"
-                    f"ᴛᴀᴘ ʙᴇʟᴏᴡ ᴛᴏ ɢᴇᴛ ʜᴇʟᴘ ɪɴ ᴘᴍ ᴡɪᴛʜ ᴇᴠᴇʀʏᴛʜɪɴɢ ʏᴏᴜ ɴᴇᴇᴅ.</blockquote>"
+                    f"<blockquote><b>» ⚡ {config.BOT_NAME.upper()} Manager</b>\n\n"
+                    f"Configure Your Own Automated Userbots, Group Broadcasts, Auto-Welcome, Vc Streaming, And Ai Automations!\n\n"
+                    f"Tap Below To Get Help In Pm With Everything You Need.</blockquote>"
                 )
-                buttons = [[Button.url("🚀 sᴛᴀʀᴛ ɪɴ ᴘᴍ", url=f"https://t.me/{bot_username}?start=true")]]
+                buttons = [[Button.url("🚀 Start In Pm", url=f"https://t.me/{bot_username}?start=true")]]
                 await event.reply(text, buttons=buttons)
             except Exception as e:
                 logger.error(f"Failed to respond to start command in group: {e}")
@@ -193,9 +193,9 @@ def register_handlers(client):
                             
                         await client.send_message(
                             ref_id,
-                            f"<blockquote><b>» 🎁 ɴᴇᴡ ʀᴇғᴇʀʀᴀʟ!</b>\n\n"
-                            f"👤 <b>{name_str}</b> ᴊᴏɪɴᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴜsɪɴɢ ʏᴏᴜʀ ʟɪɴᴋ.\n"
-                            f"💰 ʏᴏᴜʀ ʀᴇᴡᴀʀᴅ <b>₹1.00</b> ʜᴀs ʙᴇᴇɴ ᴄʀᴇᴅɪᴛᴇᴅ ᴛᴏ ʏᴏᴜʀ ᴡᴀʟʟᴇᴛ.</blockquote>"
+                            f"<blockquote><b>» 🎁 New Referral!</b>\n\n"
+                            f"👤 <b>{name_str}</b> Joined The Bot Using Your Link.\n"
+                            f"💰 Your Reward <b>₹1.00</b> Has Been Credited To Your Wallet.</blockquote>"
                         )
                     except Exception as ref_err:
                         logger.warning(f"Could not notify referrer {ref_id}: {ref_err}")
@@ -223,12 +223,12 @@ def register_handlers(client):
                 is_admin = user_id in admins_list or user_id in config.ORIGINAL_ADMIN_IDS
                 
                 if not is_admin:
-                    await event.reply("<blockquote><b>» ⚠️ ᴀᴄᴄᴇss ᴅᴇɴɪᴇᴅ</b>\n\nᴏɴʟʏ ᴛʜᴇ ʙᴏᴛ ᴏᴡɴᴇʀ ᴄᴀɴ ᴄᴏɴᴛʀᴏʟ ᴛʜɪs ᴜsᴇʀʙᴏᴛ.</blockquote>", parse_mode="html")
+                    await event.reply("<blockquote><b>» ⚠️ Access Denied</b>\n\nOnly The Bot Owner Can Control This Userbot.</blockquote>", parse_mode="html")
                     return
                     
                 sess = database.get_session(phone_target)
                 if not sess:
-                    await event.reply(f"<blockquote><b>» ❌ ᴜsᴇʀʙᴏᴛ sᴇssɪᴏɴ ɴᴏᴛ ғᴏᴜɴᴅ :</b> <code>{phone_target}</code></blockquote>", parse_mode="html")
+                    await event.reply(f"<blockquote><b>» ❌ Userbot Session Not Found :</b> <code>{phone_target}</code></blockquote>", parse_mode="html")
                     return
                     
                 target_user_id = sess.get("user_id")
@@ -238,7 +238,7 @@ def register_handlers(client):
                     event, 
                     sess.get("phone", phone_target), 
                     user_id, 
-                    flash_message=f"<blockquote><b>» 👑 ᴏᴡɴᴇʀ ᴀᴄᴄᴇss :</b> ᴄᴏɴᴛʀᴏʟʟɪɴɢ ᴜsᴇʀʙᴏᴛ <code>{sess.get('phone', phone_target)}</code> (ᴜsᴇʀ: <code>{target_user_id}</code>)</blockquote>"
+                    flash_message=f"<blockquote><b>» 👑 Owner Access :</b> Controlling Userbot <code>{sess.get('phone', phone_target)}</code> (User: <code>{target_user_id}</code>)</blockquote>"
                 )
                 return
 

@@ -70,7 +70,7 @@ async def show_purchase_menu(event, user_id: int):
     plans = global_settings.get("subscription_plans", [])
     
     if not plans:
-        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_settings", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Back", "menu_settings", style="primary")]]
         text = (
             f"> ❌ <b>NO PLANS AVAILABLE</b>\n"
             f"> ━━━━━━━━━━━━━━━━━━━━\n"

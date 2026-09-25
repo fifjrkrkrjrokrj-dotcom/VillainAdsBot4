@@ -155,16 +155,16 @@ async def show_mock_dashboard(event, user_id: int, flash_message: Optional[str] 
     
     text = f"{flash_message}\n\n" if flash_message else ""
     text += (
-        f"<blockquote><b>» 🤖 ᴜsᴇʀʙᴏᴛ ᴄᴏɴᴛʀᴏʟ ᴘᴀɴᴇʟ</b>\n\n"
-        f"⚡ <b>ᴍᴏᴅᴇ :</b> <b>ᴅᴇᴍᴏ / ᴜɴʟɪɴᴋᴇᴅ ᴍᴏᴅᴇ</b>\n"
-        f"🔴 <b>sᴛᴀᴛᴜs :</b> <b>ɴᴏ ᴀᴄᴛɪᴠᴇ ᴀᴄᴄᴏᴜɴᴛ ʟɪɴᴋᴇᴅ</b>\n"
-        f"⚠️ <b>ɴᴏᴛɪᴄᴇ :</b> <i>{utils.get_text('account_login_first', lang)}</i>\n\n"
-        f"💡 <i>ᴛᴀᴘ <b>ᴀᴅᴅ / ʟᴏɢɪɴ ᴜsᴇʀʙᴏᴛ</b> ʙᴇʟᴏᴡ ᴛᴏ ᴄᴏɴɴᴇᴄᴛ ʏᴏᴜʀ ᴛᴇʟᴇɢʀᴀᴍ ᴀᴄᴄᴏᴜɴᴛ.</i></blockquote>"
+        f"<blockquote><b>» 🤖 Userbot Control Panel</b>\n\n"
+        f"⚡ <b>Mode :</b> <b>Demo / Unlinked Mode</b>\n"
+        f"🔴 <b>Status :</b> <b>No Active Account Linked</b>\n"
+        f"⚠️ <b>Notice :</b> <i>{utils.get_text('account_login_first', lang)}</i>\n\n"
+        f"💡 <i>Tap <b>Add / Login Userbot</b> Below To Connect Your Telegram Account.</i></blockquote>"
     )
     
     buttons = [
         [
-            utils.styled_button("➕ ᴀᴅᴅ / ʟᴏɢɪɴ ᴜsᴇʀʙᴏᴛ", "menu_add_bot", style="success")
+            utils.styled_button("➕ Add / Login Userbot", "menu_add_bot", style="success")
         ],
         [
             utils.styled_button(utils.get_text("btn_start_bot", lang), "no_login_start", style="success"),
@@ -175,8 +175,8 @@ async def show_mock_dashboard(event, user_id: int, flash_message: Optional[str] 
             utils.styled_button(utils.get_text("btn_set_welcome", lang), "no_login_welcome", style="primary")
         ],
         [
-            utils.styled_button(utils.get_text("btn_toggle_spam", lang, state="🔴 ᴏғғ"), "no_login_spam", style="primary"),
-            utils.styled_button(utils.get_text("btn_toggle_welcome", lang, state="🔴 ᴏғғ"), "no_login_welcome_toggle", style="primary")
+            utils.styled_button(utils.get_text("btn_toggle_spam", lang, state="🔴 Off"), "no_login_spam", style="primary"),
+            utils.styled_button(utils.get_text("btn_toggle_welcome", lang, state="🔴 Off"), "no_login_welcome_toggle", style="primary")
         ],
         [
             utils.styled_button(utils.get_text("btn_clone_profile", lang), "no_login_clone", style="primary")
@@ -194,7 +194,7 @@ async def show_mock_dashboard(event, user_id: int, flash_message: Optional[str] 
             utils.styled_button(utils.get_text("btn_delete_bot", lang), "no_login_delete", style="danger")
         ],
         [
-            utils.styled_button("🚪 ᴇxɪᴛ ᴀᴅᴍɪɴ ᴀᴄᴄᴇss", "admin_exit_impersonation", style="danger") if event.sender_id in _admin_impersonation else utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")
+            utils.styled_button("🚪 Exit Admin Access", "admin_exit_impersonation", style="danger") if event.sender_id in _admin_impersonation else utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")
         ]
     ]
     
@@ -229,7 +229,7 @@ async def show_bots_list(event, user_id: int, flash_message: Optional[str] = Non
     if flash_message:
         text += f"{flash_message}\n\n"
     text += (
-        "<blockquote><b>» 📱 ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴜsᴇʀʙᴏᴛs</b>\n\n"
+        "<blockquote><b>» 📱 Connected Userbots</b>\n\n"
     )
     buttons = [
         [
@@ -262,14 +262,14 @@ async def show_bots_list(event, user_id: int, flash_message: Optional[str] = Non
             )
         ])
     text += (
-        "\n💡 <i>sᴇʟᴇᴄᴛ ᴀ ʙᴏᴛ ʙᴇʟᴏᴡ ᴛᴏ ᴏᴘᴇɴ ɪᴛs ᴄᴏɴᴛʀᴏʟ ᴘᴀɴᴇʟ ᴏʀ ᴛᴀᴘ <b>ᴀʟʟ sʟᴏᴛs</b>.</i></blockquote>"
+        "\n💡 <i>Select A Bot Below To Open Its Control Panel Or Tap <b>All Slots</b>.</i></blockquote>"
     )
         
     is_managing_other = (str(user_id) != str(sender_id)) or (sender_id in _admin_impersonation)
     if is_managing_other:
         buttons.append([
-            utils.styled_button("🔙 ᴍʏ ᴜsᴇʀʙᴏᴛs", "menu_my_bots", style="primary"),
-            utils.styled_button("🚪 ᴇxɪᴛ ᴛᴏ ᴀᴅᴍɪɴ", "admin_exit_impersonation", style="danger")
+            utils.styled_button("🔙 My Userbots", "menu_my_bots", style="primary"),
+            utils.styled_button("🚪 Exit To Admin", "admin_exit_impersonation", style="danger")
         ])
     else:
         buttons.append([utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")])
@@ -307,30 +307,30 @@ async def show_bot_dashboard(event, phone: str, user_id: int, flash_message: Opt
             database.save_session(sess)
             
         status_emoji = "🟢" if status == "running" else "🔴"
-        status_text = "ᴏɴʟɪɴᴇ" if status == "running" else "ᴏғғʟɪɴᴇ"
+        status_text = "Online" if status == "running" else "Offline"
         
         name = sess.get("name") or "UserBot"
         username = sess.get("username") or "None"
         user_handle = f"@{username}" if username and username != "None" else f"`{phone}`"
         
         settings = sess.get("settings", {})
-        auto_spam = "🟢 ᴏɴ" if settings.get("auto_spam") else "🔴 ᴏғғ"
-        auto_welcome = "🟢 ᴏɴ" if settings.get("auto_welcome") else "🔴 ᴏғғ"
-        auto_reply = "🟢 ᴏɴ" if settings.get("auto_reply") else "🔴 ᴏғғ"
-        auto_add_contact = "🟢 ᴏɴ" if settings.get("auto_add_contact") else "🔴 ᴏғғ"
+        auto_spam = "🟢 On" if settings.get("auto_spam") else "🔴 Off"
+        auto_welcome = "🟢 On" if settings.get("auto_welcome") else "🔴 Off"
+        auto_reply = "🟢 On" if settings.get("auto_reply") else "🔴 Off"
+        auto_add_contact = "🟢 On" if settings.get("auto_add_contact") else "🔴 Off"
         
         text = ""
         if flash_message:
             text += f"{flash_message}\n\n"
             
         text += (
-            f"<blockquote><b>» 🤖 ᴜsᴇʀʙᴏᴛ ᴄᴏɴᴛʀᴏʟ ᴘᴀɴᴇʟ</b>\n\n"
-            f"👤 <b>ᴀᴄᴄᴏᴜɴᴛ :</b> <b>{name}</b>\n"
-            f"⚡ <b>sᴛᴀᴛᴜs :</b> {status_emoji} <b>{status_text}</b>\n"
-            f"🔄 <b>ᴀᴜᴛᴏ-sᴘᴀᴍ :</b> <b>{auto_spam}</b>\n"
-            f"👋 <b>ᴀᴜᴛᴏ-ᴡᴇʟᴄᴏᴍᴇ :</b> <b>{auto_welcome}</b>\n"
-            f"💬 <b>ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ :</b> <b>{auto_reply}</b>\n"
-            f"👥 <b>ᴀᴜᴛᴏ-ᴄᴏɴᴛᴀᴄᴛ :</b> <b>{auto_add_contact}</b></blockquote>"
+            f"<blockquote><b>» 🤖 Userbot Control Panel</b>\n\n"
+            f"👤 <b>Account :</b> <b>{name}</b>\n"
+            f"⚡ <b>Status :</b> {status_emoji} <b>{status_text}</b>\n"
+            f"🔄 <b>Auto-Spam :</b> <b>{auto_spam}</b>\n"
+            f"👋 <b>Auto-Welcome :</b> <b>{auto_welcome}</b>\n"
+            f"💬 <b>Tag Auto-Reply :</b> <b>{auto_reply}</b>\n"
+            f"👥 <b>Auto-Contact :</b> <b>{auto_add_contact}</b></blockquote>"
         )
         
         # Configure dashboard buttons (Large full-width layout)
@@ -365,7 +365,7 @@ async def show_bot_dashboard(event, phone: str, user_id: int, flash_message: Opt
         
         # Row 1.6: Set Run Timer (Full width)
         rows.append([
-            ("⏱️ sᴇᴛ ʀᴜɴ ᴛɪᴍᴇʀ", f"set_run_timer_{phone}")
+            ("⏱️ Set Run Timer", f"set_run_timer_{phone}")
         ])
         
         # Row 1.8: Voice Chat (VC) Menu & Music Commands Guide
@@ -415,8 +415,8 @@ async def show_bot_dashboard(event, phone: str, user_id: int, flash_message: Opt
         is_other_bot = sess and str(sess.get("user_id")) != str(sender_id)
         if is_other_bot:
             rows.append([
-                ("🔙 ᴍʏ ᴜsᴇʀʙᴏᴛs", "menu_my_bots", None, "primary"),
-                ("👑 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", None, "danger")
+                ("🔙 My Userbots", "menu_my_bots", None, "primary"),
+                ("👑 Admin Panel", "menu_admin", None, "danger")
             ])
         else:
             rows.append([
@@ -446,9 +446,9 @@ async def show_bot_dashboard(event, phone: str, user_id: int, flash_message: Opt
                     style = row_style
                     
                 if key == "btn_vc_menu":
-                    label = "🎙️ ᴠᴄ + ɢʀᴘ ᴊᴏɪɴɪɴɢ"
+                    label = "🎙️ Vc + Grp Joining"
                 elif key == "btn_music_guide":
-                    label = "🎵 ᴍᴜsɪᴄ ᴄᴏᴍᴍᴀɴᴅs"
+                    label = "🎵 Music Commands"
                 elif key.startswith("btn_"):
                     if state is not None:
                         label = utils.get_text(key, lang, state=state)
@@ -490,7 +490,7 @@ async def show_all_slots_dashboard(event, user_id: int, flash_message: Optional[
         
     if not sessions:
         text = "⚠️ <b>All Slots Dashboard</b>\n\nNo connected UserBots found in system." if is_sys_all else "⚠️ <b>All Slots Dashboard</b>\n\nNo connected UserBots found."
-        back_btn = [utils.styled_button("🚪 ᴇxɪᴛ ᴀᴅᴍɪɴ ᴀᴄᴄᴇss", "admin_exit_impersonation", style="danger")] if (sender_id in _admin_impersonation or is_sys_all) else [utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")]
+        back_btn = [utils.styled_button("🚪 Exit Admin Access", "admin_exit_impersonation", style="danger")] if (sender_id in _admin_impersonation or is_sys_all) else [utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")]
         buttons = [back_btn]
         try:
             if hasattr(event, "edit"):
@@ -519,68 +519,68 @@ async def show_all_slots_dashboard(event, user_id: int, flash_message: Optional[
     if flash_message:
         text += f"{flash_message}\n\n"
         
-    header_title = "» 👑 ᴀʟʟ sʏsᴛᴇᴍ ᴜsᴇʀʙᴏᴛs ᴄᴏɴᴛʀᴏʟ (ᴏᴡɴᴇʀ ᴍᴏᴅᴇ)" if is_sys_all else "» 👥 ᴀʟʟ sʟᴏᴛs ᴄᴏɴᴛʀᴏʟ ᴅᴀsʜʙᴏᴀʀᴅ"
-    desc_text = "⚡ <i>ᴄᴏɴᴛʀᴏʟ ᴀʟʟ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴜsᴇʀʙᴏᴛs ᴀᴄʀᴏss ᴛʜᴇ ᴇɴᴛɪʀᴇ sʏsᴛᴇᴍ sɪᴍᴜʟᴛᴀɴᴇᴏᴜsʟʏ.</i>" if is_sys_all else "⚡ <i>ᴄᴏɴᴛʀᴏʟ ᴀʟʟ ʏᴏᴜʀ ᴜsᴇʀʙᴏᴛs sɪᴍᴜʟᴛᴀɴᴇᴏᴜsʟʏ ғʀᴏᴍ ᴛʜɪs ᴘᴀɴᴇʟ.</i>"
+    header_title = "» 👑 All System Userbots Control (Owner Mode)" if is_sys_all else "» 👥 All Slots Control Dashboard"
+    desc_text = "⚡ <i>Control All Connected Userbots Across The Entire System Simultaneously.</i>" if is_sys_all else "⚡ <i>Control All Your Userbots Simultaneously From This Panel.</i>"
 
     text += (
         f"<blockquote><b>{header_title}</b>\n\n"
-        f"<b>📊 sʏsᴛᴇᴍ ᴏᴠᴇʀᴠɪᴇᴡ :</b>\n"
-        f"• ᴛᴏᴛᴀʟ ʟɪɴᴋᴇᴅ ʙᴏᴛs : <b>{total_slots}</b>\n"
-        f"• ᴀᴄᴛɪᴠᴇ : <b>🟢 {running_bots}</b> | sᴛᴏᴘᴘᴇᴅ : <b>🔴 {stopped_bots}</b>\n"
-        f"• ᴀᴜᴛᴏ-sᴘᴀᴍ (ᴀʟʟ) : <b>{spam_state_display}</b>\n"
-        f"• ᴀᴜᴛᴏ-ᴡᴇʟᴄᴏᴍᴇ (ᴀʟʟ) : <b>{welcome_state_display}</b>\n"
-        f"• ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ (ᴀʟʟ) : <b>{reply_state_display}</b>\n"
-        f"• ᴀᴜᴛᴏ-ᴄᴏɴᴛᴀᴄᴛ (ᴀʟʟ) : <b>{add_contact_state_display}</b>\n\n"
+        f"<b>📊 System Overview :</b>\n"
+        f"• Total Linked Bots : <b>{total_slots}</b>\n"
+        f"• Active : <b>🟢 {running_bots}</b> | Stopped : <b>🔴 {stopped_bots}</b>\n"
+        f"• Auto-Spam (All) : <b>{spam_state_display}</b>\n"
+        f"• Auto-Welcome (All) : <b>{welcome_state_display}</b>\n"
+        f"• Tag Auto-Reply (All) : <b>{reply_state_display}</b>\n"
+        f"• Auto-Contact (All) : <b>{add_contact_state_display}</b>\n\n"
         f"{desc_text}</blockquote>"
     )
     
     buttons = [
         # Row 0: Start All, Stop All
         [
-            utils.styled_button("🟢 sᴛᴀʀᴛ ᴀʟʟ", "all_slots_start", style="success"),
-            utils.styled_button("🔴 sᴛᴏᴘ ᴀʟʟ", "all_slots_stop", style="danger")
+            utils.styled_button("🟢 Start All", "all_slots_start", style="success"),
+            utils.styled_button("🔴 Stop All", "all_slots_stop", style="danger")
         ],
         # Row 0.5: Restart All
         [
-            utils.styled_button("🔄 ʀᴇsᴛᴀʀᴛ ᴀʟʟ ᴜsᴇʀʙᴏᴛs", "all_slots_restart", style="primary")
+            utils.styled_button("🔄 Restart All Userbots", "all_slots_restart", style="primary")
         ],
         # Row 1: Set All Broadcast
         [
-            utils.styled_button("✉️ sᴇᴛ ᴀʟʟ ʙʀᴏᴀᴅᴄᴀsᴛ ᴛᴇxᴛ", "all_slots_set_broadcast", style="primary")
+            utils.styled_button("✉️ Set All Broadcast Text", "all_slots_set_broadcast", style="primary")
         ],
         # Row 1.2: Set All Welcome
         [
-            utils.styled_button("👋 sᴇᴛ ᴀʟʟ ᴡᴇʟᴄᴏᴍᴇ", "all_slots_set_welcome", style="primary")
+            utils.styled_button("👋 Set All Welcome", "all_slots_set_welcome", style="primary")
         ],
         # Row 1.5: Set All Tag Auto-Reply
         [
-            utils.styled_button("💬 sᴇᴛ ᴀʟʟ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ", "all_slots_set_auto_reply", style="primary")
+            utils.styled_button("💬 Set All Tag Auto-Reply", "all_slots_set_auto_reply", style="primary")
         ],
         # Row 1.6: Set All Run Timer
         [
-            utils.styled_button("⏱️ sᴇᴛ ʀᴜɴ ᴛɪᴍᴇʀ (ᴀʟʟ)", "all_slots_set_run_timer", style="primary")
+            utils.styled_button("⏱️ Set Run Timer (All)", "all_slots_set_run_timer", style="primary")
         ],
         # Row 1.8: Voice Chat (VC) Menu (All)
         [
-            utils.styled_button("🎙️ ᴠᴄ + ɢʀᴘ ᴊᴏɪɴɪɴɢ (ᴀʟʟ)", "all_slots_vc_menu", style="success")
+            utils.styled_button("🎙️ Vc + Grp Joining (All)", "all_slots_vc_menu", style="success")
         ],
         # Row 2: Auto Feature Toggles (All)
         [
-            utils.styled_button(f"🔄 ᴀᴜᴛᴏ-sᴘᴀᴍ (ᴀʟʟ): {spam_state_display}", "all_slots_toggle_spam", style="primary"),
-            utils.styled_button(f"👋 ᴀᴜᴛᴏ-ᴡᴇʟᴄᴏᴍᴇ (ᴀʟʟ): {welcome_state_display}", "all_slots_toggle_welcome", style="primary")
+            utils.styled_button(f"🔄 Auto-Spam (All): {spam_state_display}", "all_slots_toggle_spam", style="primary"),
+            utils.styled_button(f"👋 Auto-Welcome (All): {welcome_state_display}", "all_slots_toggle_welcome", style="primary")
         ],
         [
-            utils.styled_button(f"💬 ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ (ᴀʟʟ): {reply_state_display}", "all_slots_toggle_reply", style="primary"),
-            utils.styled_button(f"👥 ᴀᴜᴛᴏ-ᴄᴏɴᴛᴀᴄᴛ (ᴀʟʟ): {add_contact_state_display}", "all_slots_toggle_add_contact", style="primary")
+            utils.styled_button(f"💬 Tag Auto-Reply (All): {reply_state_display}", "all_slots_toggle_reply", style="primary"),
+            utils.styled_button(f"👥 Auto-Contact (All): {add_contact_state_display}", "all_slots_toggle_add_contact", style="primary")
         ],
         # Row 3: Clone Profile (All)
         [
-            utils.styled_button("👤 ᴄʟᴏɴᴇ ᴘʀᴏғɪʟᴇ (ᴀʟʟ)", "all_slots_clone_profile", style="primary"),
-            utils.styled_button("✏️ ᴄʜᴀɴɢᴇ ɴᴀᴍᴇ (ᴀʟʟ)", "all_slots_change_name", style="primary")
+            utils.styled_button("👤 Clone Profile (All)", "all_slots_clone_profile", style="primary"),
+            utils.styled_button("✏️ Change Name (All)", "all_slots_change_name", style="primary")
         ],
         # Row 4: Timing & Help
         [
-            utils.styled_button("⏱️ sᴇᴛ ᴛɪᴍɪɴɢ & ᴅᴇʟᴀʏs (ᴀʟʟ)", "all_slots_set_interval", style="primary")
+            utils.styled_button("⏱️ Set Timing & Delays (All)", "all_slots_set_interval", style="primary")
         ],
         [
             utils.styled_button(utils.get_text("btn_help", lang), "all_slots_help", style="primary"),
@@ -588,14 +588,14 @@ async def show_all_slots_dashboard(event, user_id: int, flash_message: Optional[
         ],
         # Row 5: Refresh Stats & Delete
         [
-            utils.styled_button("🔄 ʀᴇғʀᴇsʜ sᴛᴀᴛs (ᴀʟʟ)", "all_slots_refresh_stats", style="primary")
+            utils.styled_button("🔄 Refresh Stats (All)", "all_slots_refresh_stats", style="primary")
         ],
         [
-            utils.styled_button("🗑️ ᴅᴇʟᴇᴛᴇ ᴀʟʟ ᴜsᴇʀʙᴏᴛs", "all_slots_delete", style="danger")
+            utils.styled_button("🗑️ Delete All Userbots", "all_slots_delete", style="danger")
         ],
         # Row 6: Back to Bots / Exit
         [
-            utils.styled_button("🚪 ᴇxɪᴛ ᴀᴅᴍɪɴ ᴀᴄᴄᴇss", "admin_exit_impersonation", style="danger") if event.sender_id in _admin_impersonation else utils.styled_button(utils.get_text("btn_back_to_bots", lang), "menu_my_bots", style="danger")
+            utils.styled_button("🚪 Exit Admin Access", "admin_exit_impersonation", style="danger") if event.sender_id in _admin_impersonation else utils.styled_button(utils.get_text("btn_back_to_bots", lang), "menu_my_bots", style="danger")
         ]
     ]
     
@@ -611,7 +611,7 @@ async def show_all_slots_dashboard(event, user_id: int, flash_message: Optional[
 async def render_broadcast_menu(event, phone: str, user_id: int):
     sess = database.get_session(phone)
     if not sess or not is_session_owner_or_admin(sess, getattr(event, "sender_id", user_id)):
-        await show_bot_dashboard(event, phone, user_id, flash_message="<blockquote><b>» ❌ sᴇssɪᴏɴ ɴᴏᴛ ғᴏᴜɴᴅ.</b></blockquote>")
+        await show_bot_dashboard(event, phone, user_id, flash_message="<blockquote><b>» ❌ Session Not Found.</b></blockquote>")
         return
         
     settings = sess.get("settings", {}) if sess else {}
@@ -620,29 +620,29 @@ async def render_broadcast_menu(event, phone: str, user_id: int):
     multi_msgs = settings.get("broadcast_messages", [])
     name = sess.get("name") or "UserBot"
     
-    mode_display = "📚 ᴍᴜʟᴛɪᴘʟᴇ (ʀᴏᴛᴀᴛɪᴏɴᴀʟ)" if mode == "multiple" else "✉️ sɪɴɢʟᴇ (ɴᴏʀᴍᴀʟ)"
-    single_status = "✅ <b>sᴇᴛ</b>" if single_msg else "❌ <b>ᴇᴍᴘᴛʏ</b>"
-    multiple_status = f"✅ <b>sᴇᴛ ({len(multi_msgs)} ᴍsɢs)</b>" if multi_msgs else "❌ <b>ᴇᴍᴘᴛʏ</b>"
+    mode_display = "📚 Multiple (Rotational)" if mode == "multiple" else "✉️ Single (Normal)"
+    single_status = "✅ <b>Set</b>" if single_msg else "❌ <b>Empty</b>"
+    multiple_status = f"✅ <b>Set ({len(multi_msgs)} Msgs)</b>" if multi_msgs else "❌ <b>Empty</b>"
     
     text = (
-        f"<blockquote><b>» ✉️ ʙʀᴏᴀᴅᴄᴀsᴛ ᴍᴇssᴀɢᴇ sᴇᴛᴛɪɴɢs</b>\n\n"
-        f"👤 <b>ᴜsᴇʀʙᴏᴛ :</b> <b>{name}</b>\n\n"
-        f"• <b>ᴄᴜʀʀᴇɴᴛ ᴍᴏᴅᴇ :</b> <b>{mode_display}</b>\n"
-        f"• <b>sɪɴɢʟᴇ ᴍsɢ :</b> {single_status}\n"
-        f"• <b>ᴍᴜʟᴛɪᴘʟᴇ ᴍsɢs :</b> {multiple_status}\n\n"
-        f"💡 <i>ʜᴏᴡ ᴛᴏ sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴍᴇssᴀɢᴇs : ᴄʟɪᴄᴋ 'sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴍᴇssᴀɢᴇs' ᴀɴᴅ sᴇɴᴅ ᴍᴇssᴀɢᴇs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs (<code>,</code>).</i></blockquote>"
+        f"<blockquote><b>» ✉️ Broadcast Message Settings</b>\n\n"
+        f"👤 <b>Userbot :</b> <b>{name}</b>\n\n"
+        f"• <b>Current Mode :</b> <b>{mode_display}</b>\n"
+        f"• <b>Single Msg :</b> {single_status}\n"
+        f"• <b>Multiple Msgs :</b> {multiple_status}\n\n"
+        f"💡 <i>How To Set Multiple Messages : Click 'Set Multiple Messages' And Send Messages Separated By Commas (<code>,</code>).</i></blockquote>"
     )
     
     buttons = [
         [
-            utils.styled_button("✉️ sᴇᴛ sɪɴɢʟᴇ ᴍᴇssᴀɢᴇ", f"set_single_msg_{phone}", style="primary"),
-            utils.styled_button("📚 sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴍᴇssᴀɢᴇs", f"set_multi_msg_{phone}", style="primary")
+            utils.styled_button("✉️ Set Single Message", f"set_single_msg_{phone}", style="primary"),
+            utils.styled_button("📚 Set Multiple Messages", f"set_multi_msg_{phone}", style="primary")
         ],
         [
-            utils.styled_button(f"🔄 ᴍᴏᴅᴇ : {mode.upper()}", f"toggle_broadcast_mode_{phone}", style="primary")
+            utils.styled_button(f"🔄 Mode : {mode.upper()}", f"toggle_broadcast_mode_{phone}", style="primary")
         ],
         [
-            utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", f"select_bot_{phone}", style="danger")
+            utils.styled_button("🔙 Back To Dashboard", f"select_bot_{phone}", style="danger")
         ]
     ]
     try:
@@ -654,7 +654,7 @@ async def render_broadcast_menu(event, phone: str, user_id: int):
 async def render_welcome_menu(event, phone: str, user_id: int):
     sess = database.get_session(phone)
     if not sess or not is_session_owner_or_admin(sess, getattr(event, "sender_id", user_id)):
-        await show_bot_dashboard(event, phone, user_id, flash_message="<blockquote><b>» ❌ sᴇssɪᴏɴ ɴᴏᴛ ғᴏᴜɴᴅ.</b></blockquote>")
+        await show_bot_dashboard(event, phone, user_id, flash_message="<blockquote><b>» ❌ Session Not Found.</b></blockquote>")
         return
         
     settings = sess.get("settings", {}) if sess else {}
@@ -663,29 +663,29 @@ async def render_welcome_menu(event, phone: str, user_id: int):
     multi_msgs = settings.get("welcome_messages", [])
     name = sess.get("name") or "UserBot"
     
-    mode_display = "📚 ᴍᴜʟᴛɪᴘʟᴇ (ʀᴏᴛᴀᴛɪᴏɴᴀʟ)" if mode == "multiple" else "👋 sɪɴɢʟᴇ (ɴᴏʀᴍᴀʟ)"
-    single_status = "✅ <b>sᴇᴛ</b>" if single_msg else "❌ <b>ᴇᴍᴘᴛʏ</b>"
-    multiple_status = f"✅ <b>sᴇᴛ ({len(multi_msgs)} ᴍsɢs)</b>" if multi_msgs else "❌ <b>ᴇᴍᴘᴛʏ</b>"
+    mode_display = "📚 Multiple (Rotational)" if mode == "multiple" else "👋 Single (Normal)"
+    single_status = "✅ <b>Set</b>" if single_msg else "❌ <b>Empty</b>"
+    multiple_status = f"✅ <b>Set ({len(multi_msgs)} Msgs)</b>" if multi_msgs else "❌ <b>Empty</b>"
     
     text = (
-        f"<blockquote><b>» 👋 ᴅᴍ ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇ sᴇᴛᴛɪɴɢs</b>\n\n"
-        f"👤 <b>ᴜsᴇʀʙᴏᴛ :</b> <b>{name}</b>\n\n"
-        f"• <b>ᴄᴜʀʀᴇɴᴛ ᴍᴏᴅᴇ :</b> <b>{mode_display}</b>\n"
-        f"• <b>sɪɴɢʟᴇ ᴡᴇʟᴄᴏᴍᴇ :</b> {single_status}\n"
-        f"• <b>ᴍᴜʟᴛɪᴘʟᴇ ᴡᴇʟᴄᴏᴍᴇs :</b> {multiple_status}\n\n"
-        f"💡 <i>ʜᴏᴡ ᴛᴏ sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴡᴇʟᴄᴏᴍᴇs : ᴄʟɪᴄᴋ 'sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴡᴇʟᴄᴏᴍᴇs' ᴀɴᴅ sᴇɴᴅ ᴍᴇssᴀɢᴇs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs (<code>,</code>).</i></blockquote>"
+        f"<blockquote><b>» 👋 Dm Welcome Message Settings</b>\n\n"
+        f"👤 <b>Userbot :</b> <b>{name}</b>\n\n"
+        f"• <b>Current Mode :</b> <b>{mode_display}</b>\n"
+        f"• <b>Single Welcome :</b> {single_status}\n"
+        f"• <b>Multiple Welcomes :</b> {multiple_status}\n\n"
+        f"💡 <i>How To Set Multiple Welcomes : Click 'Set Multiple Welcomes' And Send Messages Separated By Commas (<code>,</code>).</i></blockquote>"
     )
     
     buttons = [
         [
-            utils.styled_button("👋 sᴇᴛ sɪɴɢʟᴇ ᴡᴇʟᴄᴏᴍᴇ", f"set_single_welcome_{phone}", style="primary"),
-            utils.styled_button("📚 sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴡᴇʟᴄᴏᴍᴇs", f"set_multi_welcome_{phone}", style="primary")
+            utils.styled_button("👋 Set Single Welcome", f"set_single_welcome_{phone}", style="primary"),
+            utils.styled_button("📚 Set Multiple Welcomes", f"set_multi_welcome_{phone}", style="primary")
         ],
         [
-            utils.styled_button(f"🔄 ᴍᴏᴅᴇ : {mode.upper()}", f"toggle_welcome_mode_{phone}", style="primary")
+            utils.styled_button(f"🔄 Mode : {mode.upper()}", f"toggle_welcome_mode_{phone}", style="primary")
         ],
         [
-            utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", f"select_bot_{phone}", style="danger")
+            utils.styled_button("🔙 Back To Dashboard", f"select_bot_{phone}", style="danger")
         ]
     ]
     try:
@@ -697,7 +697,7 @@ async def render_welcome_menu(event, phone: str, user_id: int):
 async def render_auto_reply_menu(event, phone: str, user_id: int):
     sess = database.get_session(phone)
     if not sess or not is_session_owner_or_admin(sess, getattr(event, "sender_id", user_id)):
-        await show_bot_dashboard(event, phone, user_id, flash_message="<blockquote><b>» ❌ sᴇssɪᴏɴ ɴᴏᴛ ғᴏᴜɴᴅ.</b></blockquote>")
+        await show_bot_dashboard(event, phone, user_id, flash_message="<blockquote><b>» ❌ Session Not Found.</b></blockquote>")
         return
         
     settings = sess.get("settings", {}) if sess else {}
@@ -706,29 +706,29 @@ async def render_auto_reply_menu(event, phone: str, user_id: int):
     multi_msgs = settings.get("auto_reply_messages", [])
     name = sess.get("name") or "UserBot"
     
-    mode_display = "📚 ᴍᴜʟᴛɪᴘʟᴇ (ʀᴏᴛᴀᴛɪᴏɴᴀʟ)" if mode == "multiple" else "💬 sɪɴɢʟᴇ (ɴᴏʀᴍᴀʟ)"
-    single_status = "✅ <b>sᴇᴛ</b>" if single_msg else "❌ <b>ᴇᴍᴘᴛʏ</b>"
-    multiple_status = f"✅ <b>sᴇᴛ ({len(multi_msgs)} ᴍsɢs)</b>" if multi_msgs else "❌ <b>ᴇᴍᴘᴛʏ</b>"
+    mode_display = "📚 Multiple (Rotational)" if mode == "multiple" else "💬 Single (Normal)"
+    single_status = "✅ <b>Set</b>" if single_msg else "❌ <b>Empty</b>"
+    multiple_status = f"✅ <b>Set ({len(multi_msgs)} Msgs)</b>" if multi_msgs else "❌ <b>Empty</b>"
     
     text = (
-        f"<blockquote><b>» 💬 ɢʀᴏᴜᴘ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ sᴇᴛᴛɪɴɢs</b>\n\n"
-        f"👤 <b>ᴜsᴇʀʙᴏᴛ :</b> <b>{name}</b>\n\n"
-        f"• <b>ᴄᴜʀʀᴇɴᴛ ᴍᴏᴅᴇ :</b> <b>{mode_display}</b>\n"
-        f"• <b>sɪɴɢʟᴇ ʀᴇᴘʟʏ :</b> {single_status}\n"
-        f"• <b>ᴍᴜʟᴛɪᴘʟᴇ ʀᴇᴘʟɪᴇs :</b> {multiple_status}\n\n"
-        f"💡 <i>ʜᴏᴡ ᴛᴏ sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ʀᴇᴘʟɪᴇs : ᴄʟɪᴄᴋ 'sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ʀᴇᴘʟɪᴇs' ᴀɴᴅ sᴇɴᴅ ᴍᴇssᴀɢᴇs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs (<code>,</code>).</i></blockquote>"
+        f"<blockquote><b>» 💬 Group Tag Auto-Reply Settings</b>\n\n"
+        f"👤 <b>Userbot :</b> <b>{name}</b>\n\n"
+        f"• <b>Current Mode :</b> <b>{mode_display}</b>\n"
+        f"• <b>Single Reply :</b> {single_status}\n"
+        f"• <b>Multiple Replies :</b> {multiple_status}\n\n"
+        f"💡 <i>How To Set Multiple Replies : Click 'Set Multiple Replies' And Send Messages Separated By Commas (<code>,</code>).</i></blockquote>"
     )
     
     buttons = [
         [
-            utils.styled_button("💬 sᴇᴛ sɪɴɢʟᴇ ʀᴇᴘʟʏ", f"set_single_reply_{phone}", style="primary"),
-            utils.styled_button("📚 sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ʀᴇᴘʟɪᴇs", f"set_multi_reply_{phone}", style="primary")
+            utils.styled_button("💬 Set Single Reply", f"set_single_reply_{phone}", style="primary"),
+            utils.styled_button("📚 Set Multiple Replies", f"set_multi_reply_{phone}", style="primary")
         ],
         [
-            utils.styled_button(f"🔄 ᴍᴏᴅᴇ : {mode.upper()}", f"toggle_reply_mode_{phone}", style="primary")
+            utils.styled_button(f"🔄 Mode : {mode.upper()}", f"toggle_reply_mode_{phone}", style="primary")
         ],
         [
-            utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", f"select_bot_{phone}", style="danger")
+            utils.styled_button("🔙 Back To Dashboard", f"select_bot_{phone}", style="danger")
         ]
     ]
     try:
@@ -782,40 +782,40 @@ def register_handlers(client):
             return
             
         vc_chat_id = getattr(bot_obj, "current_vc_chat_id", None)
-        vc_status = "🟢 ᴄᴏɴɴᴇᴄᴛᴇᴅ" if vc_chat_id else "🔴 ᴅɪsᴄᴏɴɴᴇᴄᴛᴇᴅ"
+        vc_status = "🟢 Connected" if vc_chat_id else "🔴 Disconnected"
         
         text = (
-            f"<blockquote><b>» 🎙️ ᴠᴄ + ɢʀᴘ ᴊᴏɪɴɪɴɢ ᴍᴇɴᴜ</b>\n\n"
-            f"<b>📌 ᴄᴜʀʀᴇɴᴛ sᴛᴀᴛᴜs :</b> <b>{vc_status}</b>\n\n"
-            f"<b>👥 ɢʀᴏᴜᴘ ᴊᴏɪɴɪɴɢ ᴍᴏᴅᴜʟᴇ :</b>\n"
-            f"• ᴊᴏɪɴ ɢʀᴏᴜᴘ : ᴜsᴇʀʙᴏᴛ ᴊᴏɪɴs ᴀ ɢʀᴏᴜᴘ ᴠɪᴀ ɪɴᴠɪᴛᴇ ʟɪɴᴋ.\n"
-            f"• ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ : ᴜsᴇʀʙᴏᴛ ʟᴇᴀᴠᴇs ᴀ ɢʀᴏᴜᴘ/ᴄʜᴀɴɴᴇʟ.\n\n"
-            f"<b>🎙️ ᴠᴄ ᴍᴏᴅᴜʟᴇ :</b>\n"
-            f"• ᴊᴏɪɴ ᴠᴄ : ᴄᴏɴɴᴇᴄᴛs ᴜsᴇʀʙᴏᴛ ᴛᴏ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.\n"
-            f"• ʟᴇᴀᴠᴇ ᴠᴄ : ᴅɪsᴄᴏɴɴᴇᴄᴛs ᴜsᴇʀʙᴏᴛ ғʀᴏᴍ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.\n\n"
-            f"<b>🎵 ᴘʟᴀʏɪɴɢ ᴍᴏᴅᴜʟᴇ :</b>\n"
-            f"• ᴘʟᴀʏ sᴏɴɢ : sᴛʀᴇᴀᴍ ᴀᴜᴅɪᴏ/ᴠɪᴅᴇᴏ ᴏʀ ᴘʟᴀʏ ᴜᴘʟᴏᴀᴅᴇᴅ ғɪʟᴇs.</blockquote>"
+            f"<blockquote><b>» 🎙️ Vc + Grp Joining Menu</b>\n\n"
+            f"<b>📌 Current Status :</b> <b>{vc_status}</b>\n\n"
+            f"<b>👥 Group Joining Module :</b>\n"
+            f"• Join Group : Userbot Joins A Group Via Invite Link.\n"
+            f"• Leave Group : Userbot Leaves A Group/Channel.\n\n"
+            f"<b>🎙️ Vc Module :</b>\n"
+            f"• Join Vc : Connects Userbot To Group Voice Chat.\n"
+            f"• Leave Vc : Disconnects Userbot From Group Voice Chat.\n\n"
+            f"<b>🎵 Playing Module :</b>\n"
+            f"• Play Song : Stream Audio/Video Or Play Uploaded Files.</blockquote>"
         )
         
         buttons = [
             [
-                utils.styled_button("🔗 ᴊᴏɪɴ ɢʀᴏᴜᴘ", f"vc_join_grp_{phone}", style="success"),
-                utils.styled_button("📚 ᴊᴏɪɴ ᴍᴜʟᴛɪ ɢʀᴏᴜᴘs", f"vc_join_multi_grp_{phone}", style="success")
+                utils.styled_button("🔗 Join Group", f"vc_join_grp_{phone}", style="success"),
+                utils.styled_button("📚 Join Multi Groups", f"vc_join_multi_grp_{phone}", style="success")
             ],
             [
-                utils.styled_button("🎙️ ᴊᴏɪɴ ᴠᴄ", f"vc_join_{phone}", style="success"),
-                utils.styled_button("🔴 ʟᴇᴀᴠᴇ ᴠᴄ", f"vc_leave_{phone}", style="danger")
+                utils.styled_button("🎙️ Join Vc", f"vc_join_{phone}", style="success"),
+                utils.styled_button("🔴 Leave Vc", f"vc_leave_{phone}", style="danger")
             ],
             [
-                utils.styled_button("🎙️ ᴊᴏɪɴ ᴀʟʟ ɢʀᴏᴜᴘ ᴠᴄs", f"vc_join_all_{phone}", style="primary"),
-                utils.styled_button("🔴 ʟᴇᴀᴠᴇ ᴀʟʟ ɢʀᴏᴜᴘ ᴠᴄs", f"vc_leave_all_{phone}", style="danger")
+                utils.styled_button("🎙️ Join All Group Vcs", f"vc_join_all_{phone}", style="primary"),
+                utils.styled_button("🔴 Leave All Group Vcs", f"vc_leave_all_{phone}", style="danger")
             ],
             [
-                utils.styled_button("❌ ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ", f"vc_leave_grp_{phone}", style="danger"),
-                utils.styled_button("🎵 ᴘʟᴀʏ sᴏɴɢ", f"play_song_{phone}", style="primary")
+                utils.styled_button("❌ Leave Group", f"vc_leave_grp_{phone}", style="danger"),
+                utils.styled_button("🎵 Play Song", f"play_song_{phone}", style="primary")
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", f"select_bot_{phone}", style="primary")
+                utils.styled_button("🔙 Back To Dashboard", f"select_bot_{phone}", style="primary")
             ]
         ]
         try:
@@ -827,27 +827,27 @@ def register_handlers(client):
     async def music_guide_callback(event):
         phone = event.pattern_match.group(1).strip()
         guide_text = (
-            f"<blockquote><b>» 🎵 ᴄᴏᴍᴘʟᴇᴛᴇ ɢʀᴏᴜᴘ ᴍᴜsɪᴄ ᴄᴏᴍᴍᴀɴᴅs ɢᴜɪᴅᴇ</b>\n\n"
-            f"<b>𝟷. ᴀᴜᴅɪᴏ / ᴠɪᴅᴇᴏ sᴛʀᴇᴀᴍɪɴɢ :</b>\n"
-            f"• <code>.play &lt;song name&gt;</code> ᴏʀ <code>/play &lt;song name&gt;</code>\n"
-            f"• <code>.vplay &lt;song name&gt;</code> ᴏʀ <code>/vplay &lt;song name&gt;</code>\n"
+            f"<blockquote><b>» 🎵 Complete Group Music Commands Guide</b>\n\n"
+            f"<b>𝟷. Audio / Video Streaming :</b>\n"
+            f"• <code>.play &lt;song name&gt;</code> Or <code>/play &lt;song name&gt;</code>\n"
+            f"• <code>.vplay &lt;song name&gt;</code> Or <code>/vplay &lt;song name&gt;</code>\n"
             f"• <code>.play &lt;youtube link&gt;</code>\n"
-            f"• ʀᴇᴘʟʏ ᴛᴏ ᴀɴʏ ᴀᴜᴅɪᴏ/ᴠɪᴅᴇᴏ ғɪʟᴇ ᴡɪᴛʜ <code>.play</code> ᴏʀ <code>/play</code>\n\n"
-            f"<b>𝟸. ᴘʟᴀʏʙᴀᴄᴋ ᴄᴏɴᴛʀᴏʟs :</b>\n"
-            f"• <code>.pause</code> / <code>/pause</code> — ᴘᴀᴜsᴇ ᴀᴄᴛɪᴠᴇ sᴛʀᴇᴀᴍ\n"
-            f"• <code>.resume</code> / <code>/resume</code> — ʀᴇsᴜᴍᴇ ᴘᴀᴜsᴇᴅ sᴛʀᴇᴀᴍ\n"
-            f"• <code>.stop</code> / <code>.end</code> — sᴛᴏᴘ sᴛʀᴇᴀᴍ ᴀɴᴅ ᴄʟᴇᴀʀ\n"
-            f"• <code>.mute</code> / <code>.unmute</code> — ᴍᴜᴛᴇ / ᴜɴᴍᴜᴛᴇ ʙᴏᴛ ᴍɪᴄ ɪɴ ᴠᴄ\n\n"
-            f"<b>𝟹. ᴠᴏɪᴄᴇ ᴄʜᴀᴛ & ᴄʜᴀɴɴᴇʟ :</b>\n"
-            f"• <code>.vc</code> / <code>.joinvc</code> — ᴄᴏɴɴᴇᴄᴛ ᴜsᴇʀʙᴏᴛ ᴛᴏ ᴠᴄ\n"
-            f"• <code>.leavevc</code> / <code>.vcleft</code> — ᴅɪsᴄᴏɴɴᴇᴄᴛ ғʀᴏᴍ ᴠᴄ\n\n"
-            f"<b>𝟺. ᴛʜᴜᴍʙɴᴀɪʟ & ᴅᴏᴡɴʟᴏᴀᴅ :</b>\n"
-            f"• <code>.thumb on</code> — sʜᴏᴡ sᴏɴɢ ᴀʀᴛᴡᴏʀᴋ ʙᴀɴɴᴇʀ\n"
-            f"• <code>.thumb off</code> — ᴄʟᴇᴀɴ ᴛᴇxᴛ-ᴏɴʟʏ sᴛʀᴇᴀᴍ ᴄᴀʀᴅ (ɴᴏ ɪᴍᴀɢᴇ)\n"
-            f"• <code>.song &lt;song name&gt;</code> — ᴅᴏᴡɴʟᴏᴀᴅ ᴍᴘ𝟹 ғɪʟᴇ ᴅɪʀᴇᴄᴛʟʏ ᴛᴏ ᴛᴇʟᴇɢʀᴀᴍ\n\n"
-            f"💡 <i>ᴛɪᴘ : ʀᴜɴ ᴀɴʏ ᴏғ ᴛʜᴇsᴇ ᴄᴏᴍᴍᴀɴᴅs ᴅɪʀᴇᴄᴛʟʏ ɪɴ ᴛʜᴇ ɢʀᴏᴜᴘ ᴡʜᴇʀᴇ ʏᴏᴜʀ ᴜsᴇʀʙᴏᴛ ɪs ᴀᴅᴅᴇᴅ!</i></blockquote>"
+            f"• Reply To Any Audio/Video File With <code>.play</code> Or <code>/play</code>\n\n"
+            f"<b>𝟸. Playback Controls :</b>\n"
+            f"• <code>.pause</code> / <code>/pause</code> — Pause Active Stream\n"
+            f"• <code>.resume</code> / <code>/resume</code> — Resume Paused Stream\n"
+            f"• <code>.stop</code> / <code>.end</code> — Stop Stream And Clear\n"
+            f"• <code>.mute</code> / <code>.unmute</code> — Mute / Unmute Bot Mic In Vc\n\n"
+            f"<b>𝟹. Voice Chat & Channel :</b>\n"
+            f"• <code>.vc</code> / <code>.joinvc</code> — Connect Userbot To Vc\n"
+            f"• <code>.leavevc</code> / <code>.vcleft</code> — Disconnect From Vc\n\n"
+            f"<b>𝟺. Thumbnail & Download :</b>\n"
+            f"• <code>.thumb on</code> — Show Song Artwork Banner\n"
+            f"• <code>.thumb off</code> — Clean Text-Only Stream Card (No Image)\n"
+            f"• <code>.song &lt;song name&gt;</code> — Download ᴍᴘ𝟹 File Directly To Telegram\n\n"
+            f"💡 <i>Tip : Run Any Of These Commands Directly In The Group Where Your Userbot Is Added!</i></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", f"select_bot_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Back To Dashboard", f"select_bot_{phone}", style="primary")]]
         try:
             await event.edit(guide_text, buttons=buttons)
         except Exception:
@@ -867,41 +867,41 @@ def register_handlers(client):
             if getattr(userbot_manager._running_bots.get(p), "current_vc_chat_id", None)
         )
         
-        header_vc = "» 🎙️ ᴠᴄ + ɢʀᴘ ᴊᴏɪɴɪɴɢ ᴍᴇɴᴜ (ᴀʟʟ sʏsᴛᴇᴍ ʙᴏᴛs)" if is_system_all_mode(event.sender_id) else "» 🎙️ ᴠᴄ + ɢʀᴘ ᴊᴏɪɴɪɴɢ ᴍᴇɴᴜ (ᴀʟʟ sʟᴏᴛs)"
+        header_vc = "» 🎙️ Vc + Grp Joining Menu (All System Bots)" if is_system_all_mode(event.sender_id) else "» 🎙️ Vc + Grp Joining Menu (All Slots)"
         text = (
             f"<blockquote><b>{header_vc}</b>\n\n"
-            f"<b>📌 ᴠᴄ ᴄᴏɴɴᴇᴄᴛᴇᴅ ʙᴏᴛs :</b> <b>{vc_connected_count} / {len(sessions)}</b>\n\n"
-            f"<b>👥 ɢʀᴏᴜᴘ ᴊᴏɪɴɪɴɢ ᴍᴏᴅᴜʟᴇ (ᴀʟʟ) :</b>\n"
-            f"• ᴊᴏɪɴ ɢʀᴏᴜᴘ : ᴀʟʟ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs ᴊᴏɪɴ ᴀ ɢʀᴏᴜᴘ.\n"
-            f"• ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ : ᴀʟʟ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs ʟᴇᴀᴠᴇ ᴀ ɢʀᴏᴜᴘ.\n\n"
-            f"<b>🎙️ ᴠᴄ ᴍᴏᴅᴜʟᴇ (ᴀʟʟ) :</b>\n"
-            f"• ᴊᴏɪɴ ᴠᴄ : ᴄᴏɴɴᴇᴄᴛ ᴀʟʟ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs ᴛᴏ ᴠᴄ.\n"
-            f"• ʟᴇᴀᴠᴇ ᴠᴄ : ᴅɪsᴄᴏɴɴᴇᴄᴛ ᴀʟʟ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs ғʀᴏᴍ ᴠᴄ.\n"
-            f"• ᴊᴏɪɴ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs : ᴀᴜᴛᴏ-ᴊᴏɪɴ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ɢʀᴏᴜᴘ ᴠᴄs.\n"
-            f"• ʟᴇᴀᴠᴇ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs : ᴀᴜᴛᴏ-ʟᴇᴀᴠᴇ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ɢʀᴏᴜᴘ ᴠᴄs.\n\n"
-            f"<b>🎵 ᴘʟᴀʏɪɴɢ ᴍᴏᴅᴜʟᴇ (ᴀʟʟ) :</b>\n"
-            f"• ᴘʟᴀʏ sᴏɴɢ : sᴛʀᴇᴀᴍ ᴏɴ ᴀʟʟ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs.</blockquote>"
+            f"<b>📌 Vc Connected Bots :</b> <b>{vc_connected_count} / {len(sessions)}</b>\n\n"
+            f"<b>👥 Group Joining Module (All) :</b>\n"
+            f"• Join Group : All Running Userbots Join A Group.\n"
+            f"• Leave Group : All Running Userbots Leave A Group.\n\n"
+            f"<b>🎙️ Vc Module (All) :</b>\n"
+            f"• Join Vc : Connect All Running Userbots To Vc.\n"
+            f"• Leave Vc : Disconnect All Running Userbots From Vc.\n"
+            f"• Join All Active Vcs : Auto-Join All Active Group Vcs.\n"
+            f"• Leave All Active Vcs : Auto-Leave All Active Group Vcs.\n\n"
+            f"<b>🎵 Playing Module (All) :</b>\n"
+            f"• Play Song : Stream On All Running Userbots.</blockquote>"
         )
         
         buttons = [
             [
-                utils.styled_button("🔗 ᴊᴏɪɴ ɢʀᴏᴜᴘ (ᴀʟʟ)", "all_slots_vc_join_grp", style="success"),
-                utils.styled_button("📚 ᴊᴏɪɴ ᴍᴜʟᴛɪ ɢʀᴏᴜᴘs (ᴀʟʟ)", "all_slots_vc_join_multi_grp", style="success")
+                utils.styled_button("🔗 Join Group (All)", "all_slots_vc_join_grp", style="success"),
+                utils.styled_button("📚 Join Multi Groups (All)", "all_slots_vc_join_multi_grp", style="success")
             ],
             [
-                utils.styled_button("🎙️ ᴊᴏɪɴ ᴠᴄ (ᴀʟʟ)", "all_slots_vc_join", style="success"),
-                utils.styled_button("🔴 ʟᴇᴀᴠᴇ ᴠᴄ (ᴀʟʟ)", "all_slots_vc_leave", style="danger")
+                utils.styled_button("🎙️ Join Vc (All)", "all_slots_vc_join", style="success"),
+                utils.styled_button("🔴 Leave Vc (All)", "all_slots_vc_leave", style="danger")
             ],
             [
-                utils.styled_button("🎙️ ᴊᴏɪɴ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs (ᴀʟʟ)", "all_slots_vc_join_all", style="primary"),
-                utils.styled_button("🔴 ʟᴇᴀᴠᴇ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs (ᴀʟʟ)", "all_slots_vc_leave_all", style="danger")
+                utils.styled_button("🎙️ Join All Active Vcs (All)", "all_slots_vc_join_all", style="primary"),
+                utils.styled_button("🔴 Leave All Active Vcs (All)", "all_slots_vc_leave_all", style="danger")
             ],
             [
-                utils.styled_button("❌ ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ (ᴀʟʟ)", "all_slots_vc_leave_grp", style="danger"),
-                utils.styled_button("🎵 ᴘʟᴀʏ sᴏɴɢ (ᴀʟʟ)", "all_slots_play_song", style="primary")
+                utils.styled_button("❌ Leave Group (All)", "all_slots_vc_leave_grp", style="danger"),
+                utils.styled_button("🎵 Play Song (All)", "all_slots_play_song", style="primary")
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_all_slots", style="primary")
+                utils.styled_button("🔙 Back", "menu_all_slots", style="primary")
             ]
         ]
         try:
@@ -922,7 +922,7 @@ def register_handlers(client):
             await event.answer("⚠️ Userbot is not running.", alert=True)
             return
             
-        progress_msg = await event.reply("⏳ <b>sᴄᴀɴɴɪɴɢ ᴀɴᴅ ᴊᴏɪɴɪɴɢ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛs...</b>", parse_mode="html")
+        progress_msg = await event.reply("⏳ <b>Scanning And Joining All Active Voice Chats...</b>", parse_mode="html")
         joined, total = await bot_obj.join_all_active_group_vcs()
         try:
             await progress_msg.delete()
@@ -930,8 +930,8 @@ def register_handlers(client):
             pass
             
         flash = (
-            f"<blockquote><b>» 🎙️ ᴀᴜᴛᴏ-ᴊᴏɪɴ ᴠᴄ ʀᴇsᴜʟᴛs</b>\n\n"
-            f"• <b>sᴜᴄᴄᴇssғᴜʟʟʏ ᴊᴏɪɴᴇᴅ :</b> <b>{joined} / {total}</b> ᴀᴄᴛɪᴠᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛs!</blockquote>"
+            f"<blockquote><b>» 🎙️ Auto-Join Vc Results</b>\n\n"
+            f"• <b>Successfully Joined :</b> <b>{joined} / {total}</b> Active Voice Chats!</blockquote>"
         )
         await show_bot_dashboard(event, phone, user_id, flash_message=flash)
 
@@ -943,7 +943,7 @@ def register_handlers(client):
             await event.answer("⚠️ No slots found.", alert=True)
             return
             
-        progress_msg = await event.reply("⏳ <b>sᴄᴀɴɴɪɴɢ ᴀɴᴅ ᴊᴏɪɴɪɴɢ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs ᴀᴄʀᴏss ᴜsᴇʀʙᴏᴛs...</b>", parse_mode="html")
+        progress_msg = await event.reply("⏳ <b>Scanning And Joining All Active Vcs Across Userbots...</b>", parse_mode="html")
         total_joined = 0
         total_found = 0
         
@@ -963,8 +963,8 @@ def register_handlers(client):
             pass
             
         flash = (
-            f"<blockquote><b>» 🎙️ ᴀʟʟ sʟᴏᴛs : ᴀᴜᴛᴏ-ᴊᴏɪɴ ᴠᴄ ʀᴇsᴜʟᴛs</b>\n\n"
-            f"• <b>ᴛᴏᴛᴀʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs ᴊᴏɪɴᴇᴅ :</b> <b>{total_joined} / {total_found}</b></blockquote>"
+            f"<blockquote><b>» 🎙️ All Slots : Auto-Join Vc Results</b>\n\n"
+            f"• <b>Total Active Vcs Joined :</b> <b>{total_joined} / {total_found}</b></blockquote>"
         )
         await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(event.sender_id))
 
@@ -985,7 +985,7 @@ def register_handlers(client):
             await event.answer("⚠️ Please start at least one userbot first!", alert=True)
             return
 
-        progress_msg = await event.reply("⏳ <b>ʟᴇᴀᴠɪɴɢ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs ᴀᴄʀᴏss ᴀʟʟ ᴜsᴇʀʙᴏᴛs...</b>", parse_mode="html")
+        progress_msg = await event.reply("⏳ <b>Leaving All Active Vcs Across All Userbots...</b>", parse_mode="html")
         total_left = 0
         total_processed = 0
 
@@ -1013,9 +1013,9 @@ def register_handlers(client):
             pass
 
         flash = (
-            f"<blockquote><b>» 🔴 ᴀʟʟ sʟᴏᴛs : ʟᴇᴀᴠᴇ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs</b>\n\n"
-            f"• <b>ᴛᴏᴛᴀʟ ᴠᴄs ʟᴇғᴛ :</b> <b>{total_left}</b>\n"
-            f"• <b>ᴜsᴇʀʙᴏᴛs ᴘʀᴏᴄᴇssᴇᴅ :</b> <b>{total_processed} / {len(running_phones)}</b></blockquote>"
+            f"<blockquote><b>» 🔴 All Slots : Leave All Active Vcs</b>\n\n"
+            f"• <b>Total Vcs Left :</b> <b>{total_left}</b>\n"
+            f"• <b>Userbots Processed :</b> <b>{total_processed} / {len(running_phones)}</b></blockquote>"
         )
         await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(event.sender_id))
 
@@ -1032,7 +1032,7 @@ def register_handlers(client):
             await event.answer("⚠️ Userbot is not running.", alert=True)
             return
 
-        progress_msg = await event.reply("⏳ <b>ʟᴇᴀᴠɪɴɢ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛs...</b>", parse_mode="html")
+        progress_msg = await event.reply("⏳ <b>Leaving All Active Voice Chats...</b>", parse_mode="html")
         try:
             left_count, msg = await bot_obj.leave_all_voice_chats()
         except Exception as e:
@@ -1045,9 +1045,9 @@ def register_handlers(client):
             pass
 
         flash_text = (
-            f"<blockquote><b>» 🔴 ʟᴇᴀᴠᴇ ᴀʟʟ ᴠᴄs ʀᴇsᴜʟᴛs</b>\n\n"
-            f"• <b>sᴛᴀᴛᴜs :</b> {msg}\n"
-            f"• <b>ᴠᴄs ʟᴇғᴛ :</b> <b>{left_count}</b></blockquote>"
+            f"<blockquote><b>» 🔴 Leave All Vcs Results</b>\n\n"
+            f"• <b>Status :</b> {msg}\n"
+            f"• <b>Vcs Left :</b> <b>{left_count}</b></blockquote>"
         )
         await show_bot_dashboard(event, phone, user_id, flash_message=flash_text)
 
@@ -1060,7 +1060,7 @@ def register_handlers(client):
             await event.answer("⚠️ Userbot is not running.", alert=True)
             return
             
-        progress_msg = await event.reply("<blockquote><b>» ⏳ ʟᴇᴀᴠɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</b></blockquote>", parse_mode="html")
+        progress_msg = await event.reply("<blockquote><b>» ⏳ Leaving Voice Chat...</b></blockquote>", parse_mode="html")
         try:
             success, msg = await bot_obj.leave_voice_chat()
         except Exception as e:
@@ -1072,7 +1072,7 @@ def register_handlers(client):
         except Exception:
             pass
         
-        flash_text = f"<blockquote><b>» 🎙️ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛᴀᴛᴜs</b>\n\n• {msg}</blockquote>"
+        flash_text = f"<blockquote><b>» 🎙️ Voice Chat Status</b>\n\n• {msg}</blockquote>"
         await show_bot_dashboard(event, phone, user_id, flash_message=flash_text)
 
     @client.on(events.CallbackQuery(pattern=r"^vc_leave_grp_(.+)$"))
@@ -1094,7 +1094,7 @@ def register_handlers(client):
             "> Send the <b>Group invite link</b>, <b>Username</b>, or <b>Chat ID</b> of the group you want the userbot to leave.\n\n"
             "✍️ <b>Send the link or ID below:</b>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"vc_menu_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"vc_menu_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1262,7 +1262,7 @@ def register_handlers(client):
             "> Send the <b>Group invite link</b>, <b>Username</b>, or <b>Chat ID</b> of the group you want ALL running userbots to leave.\n\n"
             "✍️ <b>Send the link or ID below:</b>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_vc_menu", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_vc_menu", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1277,7 +1277,7 @@ def register_handlers(client):
             await event.answer("⚠️ Please start at least one userbot first!", alert=True)
             return
             
-        progress_msg = await event.reply("<blockquote><b>» ⏳ ʟᴇᴀᴠɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛs ᴏɴ ᴀʟʟ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs...</b></blockquote>", parse_mode="html")
+        progress_msg = await event.reply("<blockquote><b>» ⏳ Leaving Voice Chats On All Running Userbots...</b></blockquote>", parse_mode="html")
         
         async def _leave_one(p):
             bot_obj = userbot_manager._running_bots[p]
@@ -1291,7 +1291,7 @@ def register_handlers(client):
             await progress_msg.delete()
         except Exception:
             pass
-        flash = f"<blockquote><b>» 🎙️ ᴀʟʟ sʟᴏᴛs : ʟᴇᴀᴠᴇ ᴠᴄ ʀᴇsᴜʟᴛs</b>\n\n• <b>sᴜᴄᴄᴇssғᴜʟʟʏ ʟᴇғᴛ :</b> <b>{success_count} / {len(running_phones)}</b> ᴜsᴇʀʙᴏᴛs</blockquote>"
+        flash = f"<blockquote><b>» 🎙️ All Slots : Leave Vc Results</b>\n\n• <b>Successfully Left :</b> <b>{success_count} / {len(running_phones)}</b> Userbots</blockquote>"
         await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(event.sender_id))
 
     @client.on(events.CallbackQuery(pattern="^all_slots_restart$"))
@@ -1342,22 +1342,22 @@ def register_handlers(client):
             return
             
         text = utils.format_html_message(
-            "<blockquote><b>» 👥 ʙᴜʟᴋ ᴘʀᴏғɪʟᴇ ᴄʟᴏɴɪɴɢ ᴏᴘᴛɪᴏɴs</b>\n\n"
-            "ᴄʜᴏᴏsᴇ ᴡʜɪᴄʜ ᴀsᴘᴇᴄᴛ ᴏғ ᴛʜᴇ ᴛᴀʀɢᴇᴛ ᴘʀᴏғɪʟᴇ ʏᴏᴜ ᴡᴏᴜʟᴅ ʟɪᴋᴇ to ᴄʟᴏɴᴇ ᴛᴏ ᴀʟʟ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs:</blockquote>"
+            "<blockquote><b>» 👥 Bulk Profile Cloning Options</b>\n\n"
+            "Choose Which Aspect Of The Target Profile You Would Like to Clone To All Running Userbots:</blockquote>"
         )
         
         buttons = [
             [
-                utils.styled_button("👥 ᴄᴏᴍᴘʟᴇᴛᴇ ᴘʀᴏғɪʟᴇ ᴄʟᴏɴᴇ", "all_slots_clone_opt_complete", style="success")
+                utils.styled_button("👥 Complete Profile Clone", "all_slots_clone_opt_complete", style="success")
             ],
             [
-                utils.styled_button("✏️ ᴄʟᴏɴᴇ ɴᴀᴍᴇ ᴏɴʟʏ", "all_slots_clone_opt_name", style="primary"),
-                utils.styled_button("📝 ᴄʟᴏɴᴇ ʙɪᴏ ᴏɴʟʏ", "all_slots_clone_opt_bio", style="primary")
+                utils.styled_button("✏️ Clone Name Only", "all_slots_clone_opt_name", style="primary"),
+                utils.styled_button("📝 Clone Bio Only", "all_slots_clone_opt_bio", style="primary")
             ],
             [
-                utils.styled_button("🖼️ ᴄʟᴏɴᴇ ᴘʜᴏᴛᴏ ᴏɴʟʏ", "all_slots_clone_opt_photo", style="primary")
+                utils.styled_button("🖼️ Clone Photo Only", "all_slots_clone_opt_photo", style="primary")
             ],
-            [utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "menu_all_slots", style="danger")]
+            [utils.styled_button("🔙 Cancel", "menu_all_slots", style="danger")]
         ]
         try:
             await event.edit(text, buttons=buttons)
@@ -1382,10 +1382,10 @@ def register_handlers(client):
         }.get(clone_type, "Complete Profile")
         
         prompt_text = utils.format_html_message(
-            f"<blockquote><b>» 👥 ʙᴜʟᴋ ᴄʟᴏɴᴇ ᴘʀᴏғɪʟᴇ ({type_display})</b>\n\n"
-            f"• ᴇɴᴛᴇʀ ᴛʜᴇ ᴜsᴇʀɴᴀᴍᴇ (ᴇ.ɢ. <code>@username</code>) ᴏʀ ᴜsᴇʀ ɪᴅ ᴏғ ᴛʜᴇ ᴛᴀʀɢᴇᴛ ᴘʀᴏғɪʟᴇ ᴛᴏ ᴄʟᴏɴᴇ ғᴏʀ ᴀʟʟ ᴜsᴇʀʙᴏᴛs:</blockquote>"
+            f"<blockquote><b>» 👥 Bulk Clone Profile ({type_display})</b>\n\n"
+            f"• Enter The Username (E.G. <code>@username</code>) Or User Id Of The Target Profile To Clone For All Userbots:</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_clone_profile", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_clone_profile", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1397,7 +1397,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("help_dashboard_text", lang)
-        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_all_slots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Back", "menu_all_slots", style="primary")]]
         global_settings = database.get_global_settings()
         help_image = global_settings.get("help_image")
         try:
@@ -1414,7 +1414,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("how_to_use_text", lang)
-        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_all_slots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Back", "menu_all_slots", style="primary")]]
         try:
             await event.edit(text, buttons=buttons)
         except Exception:
@@ -1429,10 +1429,10 @@ def register_handlers(client):
             "action": "WAITING_FOR_ALL_NAME"
         }
         prompt_text = (
-            "<blockquote><b>» ✏️ ᴄʜᴀɴɢᴇ ɴᴀᴍᴇ (ᴀʟʟ ᴜsᴇʀʙᴏᴛs)</b>\n\n"
-            "sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ɴᴀᴍᴇ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ sᴇᴛ ғᴏʀ ᴀʟʟ ʏᴏᴜʀ ᴜsᴇʀʙᴏᴛs :</blockquote>"
+            "<blockquote><b>» ✏️ Change Name (All Userbots)</b>\n\n"
+            "Send The New Name You Want To Set For All Your Userbots :</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "menu_all_slots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "menu_all_slots", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1472,8 +1472,8 @@ def register_handlers(client):
             "This will delete all Telegram sessions from disk and database. This action cannot be undone!"
         )
         buttons = [
-            [utils.styled_button("🗑️ ʏᴇs, ᴅᴇʟᴇᴛᴇ ᴀʟʟ", "all_slots_delete_confirm", style="danger")],
-            [utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "menu_all_slots", style="primary")]
+            [utils.styled_button("🗑️ Yes, Delete All", "all_slots_delete_confirm", style="danger")],
+            [utils.styled_button("❌ Cancel", "menu_all_slots", style="primary")]
         ]
         try:
             await event.edit(text, buttons=buttons)
@@ -1576,7 +1576,7 @@ def register_handlers(client):
         }
         
         prompt_text = utils.get_text("prompt_all_vc_link", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "menu_all_slots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "menu_all_slots", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1593,25 +1593,25 @@ def register_handlers(client):
         total_bots = len(sessions)
         modes = [s.get("settings", {}).get("broadcast_mode", "single") for s in sessions]
         mode = "multiple" if (modes and all(m == "multiple" for m in modes)) else "single"
-        mode_display = "📚 ᴍᴜʟᴛɪᴘʟᴇ (ʀᴏᴛᴀᴛɪᴏɴᴀʟ)" if mode == "multiple" else "✉️ sɪɴɢʟᴇ (ɴᴏʀᴍᴀʟ)"
+        mode_display = "📚 Multiple (Rotational)" if mode == "multiple" else "✉️ Single (Normal)"
         
         text = (
-            f"<blockquote><b>» ✉️ ʙᴜʟᴋ ʙʀᴏᴀᴅᴄᴀsᴛ sᴇᴛᴛɪɴɢs (ᴀʟʟ sʟᴏᴛs)</b>\n\n"
-            f"ᴄᴏɴғɪɢᴜʀᴇ ʙʀᴏᴀᴅᴄᴀsᴛɪɴɢ sᴇᴛᴛɪɴɢs ғᴏʀ ᴀʟʟ ᴜsᴇʀʙᴏᴛs sɪᴍᴜʟᴛᴀɴᴇᴏᴜsʟʏ:\n\n"
-            f"• <b>ᴄᴜʀʀᴇɴᴛ ᴍᴏᴅᴇ :</b> <b>{mode_display}</b>\n"
-            f"• <b>ᴄᴏɴғɪɢᴜʀᴇᴅ ᴜsᴇʀʙᴏᴛs :</b> <b>{total_bots}</b>\n\n"
-            f"💡 <i>ʜᴏᴡ ᴛᴏ sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴍᴇssᴀɢᴇs : ᴄʟɪᴄᴋ 'sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴍᴇssᴀɢᴇs (ᴀʟʟ)' ᴀɴᴅ sᴇɴᴅ ᴍᴇssᴀɢᴇs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs (<code>,</code>).</i></blockquote>"
+            f"<blockquote><b>» ✉️ Bulk Broadcast Settings (All Slots)</b>\n\n"
+            f"Configure Broadcasting Settings For All Userbots Simultaneously:\n\n"
+            f"• <b>Current Mode :</b> <b>{mode_display}</b>\n"
+            f"• <b>Configured Userbots :</b> <b>{total_bots}</b>\n\n"
+            f"💡 <i>How To Set Multiple Messages : Click 'Set Multiple Messages (All)' And Send Messages Separated By Commas (<code>,</code>).</i></blockquote>"
         )
         buttons = [
             [
-                utils.styled_button("✉️ sᴇᴛ sɪɴɢʟᴇ ᴍᴇssᴀɢᴇ (ᴀʟʟ)", "all_slots_set_single_msg", style="primary"),
-                utils.styled_button("📚 sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴍᴇssᴀɢᴇs (ᴀʟʟ)", "all_slots_set_multi_msg", style="primary")
+                utils.styled_button("✉️ Set Single Message (All)", "all_slots_set_single_msg", style="primary"),
+                utils.styled_button("📚 Set Multiple Messages (All)", "all_slots_set_multi_msg", style="primary")
             ],
             [
-                utils.styled_button(f"🔄 ᴍᴏᴅᴇ : {mode.upper()} (ᴀʟʟ)", "all_slots_toggle_broadcast_mode", style="primary")
+                utils.styled_button(f"🔄 Mode : {mode.upper()} (All)", "all_slots_toggle_broadcast_mode", style="primary")
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", "menu_all_slots", style="danger")
+                utils.styled_button("🔙 Back To Dashboard", "menu_all_slots", style="danger")
             ]
         ]
         try:
@@ -1629,7 +1629,7 @@ def register_handlers(client):
             "action": "WAITING_FOR_ALL_BROADCAST"
         }
         prompt_text = utils.get_text("prompt_broadcast", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_set_broadcast", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_set_broadcast", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1643,13 +1643,13 @@ def register_handlers(client):
             "action": "WAITING_FOR_ALL_MULTI_MSG"
         }
         prompt_text = (
-            "<blockquote><b>» 📚 sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴍᴇssᴀɢᴇs (ᴀʟʟ sʟᴏᴛs)</b>\n\n"
-            "sᴇɴᴅ ʏᴏᴜʀ ᴍᴜʟᴛɪᴘʟᴇ ʙʀᴏᴀᴅᴄᴀsᴛ ᴍᴇssᴀɢᴇs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs (<code>,</code>). ᴛʜᴇ ʙᴏᴛ ᴡɪʟʟ ʀᴏᴛᴀᴛᴇ/ᴘɪᴄᴋ ᴏɴᴇ ᴍᴇssᴀɢᴇ ғᴏʀ ᴇᴀᴄʜ ɢʀᴏᴜᴘ.\n\n"
-            "💡 <b>ᴇxᴀᴍᴘʟᴇ ɪɴᴘᴜᴛ :</b>\n"
-            "<code>ʜᴇʏ ᴄʜᴇᴄᴋ ᴛʜɪs ᴏᴜᴛ!, ᴊᴏɪɴ ᴏᴜʀ ᴄʜᴀɴɴᴇʟ ɴᴏᴡ!, ʙᴇsᴛ ᴅᴇᴀʟs ᴛᴏᴅᴀʏ!</code>\n\n"
-            "✍️ <b>sᴇɴᴅ ʏᴏᴜʀ ᴄᴏᴍᴍᴀ-sᴇᴘᴀʀᴀᴛᴇᴅ ᴍᴇssᴀɢᴇ ʟɪsᴛ ʙᴇʟᴏᴡ :</b></blockquote>"
+            "<blockquote><b>» 📚 Set Multiple Messages (All Slots)</b>\n\n"
+            "Send Your Multiple Broadcast Messages Separated By Commas (<code>,</code>). The Bot Will Rotate/Pick One Message For Each Group.\n\n"
+            "💡 <b>Example Input :</b>\n"
+            "<code>Hey Check This Out!, Join Our Channel Now!, Best Deals Today!</code>\n\n"
+            "✍️ <b>Send Your Comma-Separated Message List Below :</b></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_set_broadcast", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_set_broadcast", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1687,25 +1687,25 @@ def register_handlers(client):
         total_bots = len(sessions)
         modes = [s.get("settings", {}).get("welcome_mode", "single") for s in sessions]
         mode = "multiple" if (modes and all(m == "multiple" for m in modes)) else "single"
-        mode_display = "📚 ᴍᴜʟᴛɪᴘʟᴇ (ʀᴏᴛᴀᴛɪᴏɴᴀʟ)" if mode == "multiple" else "👋 sɪɴɢʟᴇ (ɴᴏʀᴍᴀʟ)"
+        mode_display = "📚 Multiple (Rotational)" if mode == "multiple" else "👋 Single (Normal)"
         
         text = (
-            f"<blockquote><b>» 👋 ᴅᴍ ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇ sᴇᴛᴛɪɴɢs (ᴀʟʟ ᴜsᴇʀʙᴏᴛs)</b>\n\n"
-            f"ᴄᴏɴғɪɢᴜʀᴇ ᴅᴍ ᴡᴇʟᴄᴏᴍᴇ ʀᴇsᴘᴏɴsᴇs ғᴏʀ ᴀʟʟ ᴜsᴇʀʙᴏᴛs sɪᴍᴜʟᴛᴀɴᴇᴏᴜsʟʏ:\n\n"
-            f"• <b>ᴄᴜʀʀᴇɴᴛ ᴍᴏᴅᴇ :</b> <b>{mode_display}</b>\n"
-            f"• <b>ᴄᴏɴғɪɢᴜʀᴇᴅ ᴜsᴇʀʙᴏᴛs :</b> <b>{total_bots}</b>\n\n"
-            f"💡 <i>ʜᴏᴡ ᴛᴏ sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴡᴇʟᴄᴏᴍᴇs : ᴄʟɪᴄᴋ 'sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴡᴇʟᴄᴏᴍᴇs' ᴀɴᴅ sᴇɴᴅ ᴍᴇssᴀɢᴇs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs (<code>,</code>).</i></blockquote>"
+            f"<blockquote><b>» 👋 Dm Welcome Message Settings (All Userbots)</b>\n\n"
+            f"Configure Dm Welcome Responses For All Userbots Simultaneously:\n\n"
+            f"• <b>Current Mode :</b> <b>{mode_display}</b>\n"
+            f"• <b>Configured Userbots :</b> <b>{total_bots}</b>\n\n"
+            f"💡 <i>How To Set Multiple Welcomes : Click 'Set Multiple Welcomes' And Send Messages Separated By Commas (<code>,</code>).</i></blockquote>"
         )
         buttons = [
             [
-                utils.styled_button("👋 sᴇᴛ sɪɴɢʟᴇ ᴡᴇʟᴄᴏᴍᴇ (ᴀʟʟ)", "all_slots_set_single_welcome", style="primary"),
-                utils.styled_button("📚 sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴡᴇʟᴄᴏᴍᴇs (ᴀʟʟ)", "all_slots_set_multi_welcome", style="primary")
+                utils.styled_button("👋 Set Single Welcome (All)", "all_slots_set_single_welcome", style="primary"),
+                utils.styled_button("📚 Set Multiple Welcomes (All)", "all_slots_set_multi_welcome", style="primary")
             ],
             [
-                utils.styled_button(f"🔄 ᴍᴏᴅᴇ : {mode.upper()} (ᴀʟʟ)", "all_slots_toggle_welcome_mode", style="primary")
+                utils.styled_button(f"🔄 Mode : {mode.upper()} (All)", "all_slots_toggle_welcome_mode", style="primary")
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", "menu_all_slots", style="danger")
+                utils.styled_button("🔙 Back To Dashboard", "menu_all_slots", style="danger")
             ]
         ]
         try:
@@ -1724,7 +1724,7 @@ def register_handlers(client):
         }
         
         prompt_text = utils.get_text("prompt_all_welcome", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_set_welcome", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_set_welcome", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1741,7 +1741,7 @@ def register_handlers(client):
         }
         
         prompt_text = utils.get_text("prompt_multi_welcome", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_set_welcome", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_set_welcome", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1779,25 +1779,25 @@ def register_handlers(client):
         total_bots = len(sessions)
         modes = [s.get("settings", {}).get("auto_reply_mode", "single") for s in sessions]
         mode = "multiple" if (modes and all(m == "multiple" for m in modes)) else "single"
-        mode_display = "📚 ᴍᴜʟᴛɪᴘʟᴇ (ʀᴏᴛᴀᴛɪᴏɴᴀʟ)" if mode == "multiple" else "💬 sɪɴɢʟᴇ (ɴᴏʀᴍᴀʟ)"
+        mode_display = "📚 Multiple (Rotational)" if mode == "multiple" else "💬 Single (Normal)"
         
         text = (
-            f"<blockquote><b>» 💬 ɢʀᴏᴜᴘ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ sᴇᴛᴛɪɴɢs (ᴀʟʟ ᴜsᴇʀʙᴏᴛs)</b>\n\n"
-            f"ᴄᴏɴғɪɢᴜʀᴇ ɢʀᴏᴜᴘ ᴛᴀɢ/ᴍᴇɴᴛɪᴏɴ ʀᴇsᴘᴏɴsᴇs ғᴏʀ ᴀʟʟ ᴜsᴇʀʙᴏᴛs sɪᴍᴜʟᴛᴀɴᴇᴏᴜsʟʏ:\n\n"
-            f"• <b>ᴄᴜʀʀᴇɴᴛ ᴍᴏᴅᴇ :</b> <b>{mode_display}</b>\n"
-            f"• <b>ᴄᴏɴғɪɢᴜʀᴇᴅ ᴜsᴇʀʙᴏᴛs :</b> <b>{total_bots}</b>\n\n"
-            f"💡 <i>ʜᴏᴡ ᴛᴏ sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ʀᴇᴘʟɪᴇs : ᴄʟɪᴄᴋ 'sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ʀᴇᴘʟɪᴇs (ᴀʟʟ)' ᴀɴᴅ sᴇɴᴅ ᴍᴇssᴀɢᴇs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs (<code>,</code>).</i></blockquote>"
+            f"<blockquote><b>» 💬 Group Tag Auto-Reply Settings (All Userbots)</b>\n\n"
+            f"Configure Group Tag/Mention Responses For All Userbots Simultaneously:\n\n"
+            f"• <b>Current Mode :</b> <b>{mode_display}</b>\n"
+            f"• <b>Configured Userbots :</b> <b>{total_bots}</b>\n\n"
+            f"💡 <i>How To Set Multiple Replies : Click 'Set Multiple Replies (All)' And Send Messages Separated By Commas (<code>,</code>).</i></blockquote>"
         )
         buttons = [
             [
-                utils.styled_button("💬 sᴇᴛ sɪɴɢʟᴇ ʀᴇᴘʟʏ (ᴀʟʟ)", "all_slots_set_single_reply", style="primary"),
-                utils.styled_button("📚 sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ʀᴇᴘʟɪᴇs (ᴀʟʟ)", "all_slots_set_multi_reply", style="primary")
+                utils.styled_button("💬 Set Single Reply (All)", "all_slots_set_single_reply", style="primary"),
+                utils.styled_button("📚 Set Multiple Replies (All)", "all_slots_set_multi_reply", style="primary")
             ],
             [
-                utils.styled_button(f"🔄 ᴍᴏᴅᴇ : {mode.upper()} (ᴀʟʟ)", "all_slots_toggle_reply_mode", style="primary")
+                utils.styled_button(f"🔄 Mode : {mode.upper()} (All)", "all_slots_toggle_reply_mode", style="primary")
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", "menu_all_slots", style="danger")
+                utils.styled_button("🔙 Back To Dashboard", "menu_all_slots", style="danger")
             ]
         ]
         try:
@@ -1811,8 +1811,8 @@ def register_handlers(client):
         _bot_action_states[user_id] = {
             "action": "WAITING_FOR_ALL_AUTO_REPLY_SINGLE"
         }
-        prompt_text = "<blockquote><b>» 💬 sᴇᴛ sɪɴɢʟᴇ ɢʀᴏᴜᴘ ᴛᴀɢ ʀᴇᴘʟʏ (ᴀʟʟ sʟᴏᴛs)</b>\n\nsᴇɴᴅ ʏᴏᴜʀ sɪɴɢʟᴇ ɢʀᴏᴜᴘ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴍᴇssᴀɢᴇ ғᴏʀ ᴀʟʟ ʙᴏᴛs ʙᴇʟᴏᴡ :</blockquote>"
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_set_auto_reply", style="primary")]]
+        prompt_text = "<blockquote><b>» 💬 Set Single Group Tag Reply (All Slots)</b>\n\nSend Your Single Group Tag Auto-Reply Message For All Bots Below :</blockquote>"
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_set_auto_reply", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1827,7 +1827,7 @@ def register_handlers(client):
             "action": "WAITING_FOR_ALL_AUTO_REPLY_MSGS"
         }
         prompt_text = utils.get_text("prompt_set_auto_reply", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_set_auto_reply", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_set_auto_reply", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1879,9 +1879,9 @@ def register_handlers(client):
             database.save_session(s)
             userbot_manager.reload_bot_settings(s["phone"])
             
-        state_word = "🟢 ᴏɴ" if new_state else "🔴 ᴏғғ"
-        feature_name = "ᴀᴜᴛᴏ-sᴘᴀᴍ" if feature == "spam" else ("ᴀᴜᴛᴏ-ᴡᴇʟᴄᴏᴍᴇ" if feature == "welcome" else "ᴀᴜᴛᴏ-ᴄᴏɴᴛᴀᴄᴛ")
-        await show_all_slots_dashboard(event, user_id, flash_message=f"<blockquote><b>» ⚙️ sᴇᴛᴛɪɴɢs ᴜᴘᴅᴀᴛᴇᴅ</b>\n\n{feature_name} ᴛᴜʀɴᴇᴅ <b>{state_word}</b> ғᴏʀ ᴀʟʟ ʙᴏᴛs!</blockquote>", fetch_all=is_system_all_mode(event.sender_id))
+        state_word = "🟢 On" if new_state else "🔴 Off"
+        feature_name = "Auto-Spam" if feature == "spam" else ("Auto-Welcome" if feature == "welcome" else "Auto-Contact")
+        await show_all_slots_dashboard(event, user_id, flash_message=f"<blockquote><b>» ⚙️ Settings Updated</b>\n\n{feature_name} Turned <b>{state_word}</b> For All Bots!</blockquote>", fetch_all=is_system_all_mode(event.sender_id))
 
     @client.on(events.CallbackQuery(pattern=r"^set_run_timer_(.+)$"))
     async def set_run_timer_callback(event):
@@ -1894,14 +1894,14 @@ def register_handlers(client):
         }
         
         prompt_text = utils.format_html_message(
-            "<blockquote><b>» ⏱️ sᴇᴛ ʀᴜɴ ᴛɪᴍᴇʀ</b>\n\n"
-            "sᴇɴᴅ ᴛʜᴇ ɴᴜᴍʙᴇʀ ᴏғ ʜᴏᴜʀs (ᴏʀ ᴍɪɴᴜᴛᴇs ᴜsɪɴɢ 'ᴍ') ʏᴏᴜ ᴡᴀɴᴛ ᴛʜᴇ ᴜsᴇʀʙᴏᴛ ᴛᴏ ʀᴜɴ ʙᴇғᴏʀᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ sᴛᴏᴘᴘɪɴɢ.\n\n"
-            "<b>ᴇxᴀᴍᴘʟᴇ :</b>\n"
-            "• <code>2</code> (ғᴏʀ 𝟸 ʜᴏᴜʀs)\n"
-            "• <code>30m</code> (ғᴏʀ 𝟹𝟶 ᴍɪɴᴜᴛᴇs)\n"
-            "• <code>0</code> (ᴛᴏ ᴅɪsᴀʙʟᴇ ᴛɪᴍᴇʀ)</blockquote>"
+            "<blockquote><b>» ⏱️ Set Run Timer</b>\n\n"
+            "Send The Number Of Hours (Or Minutes Using 'M') You Want The Userbot To Run Before Automatically Stopping.\n\n"
+            "<b>Example :</b>\n"
+            "• <code>2</code> (For 𝟸 Hours)\n"
+            "• <code>30m</code> (For 𝟹𝟶 Minutes)\n"
+            "• <code>0</code> (To Disable Timer)</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"select_bot_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"select_bot_{phone}", style="primary")]]
         
         try:
             await event.edit(prompt_text, buttons=buttons)
@@ -1917,14 +1917,14 @@ def register_handlers(client):
         }
         
         prompt_text = utils.format_html_message(
-            "<blockquote><b>» ⏱️ sᴇᴛ ʀᴜɴ ᴛɪᴍᴇʀ (ᴀʟʟ ʙᴏᴛs)</b>\n\n"
-            "sᴇɴᴅ ᴛʜᴇ ɴᴜᴍʙᴇʀ ᴏғ ʜᴏᴜʀs (ᴏʀ ᴍɪɴᴜᴛᴇs ᴜsɪɴɢ 'ᴍ') ʏᴏᴜ ᴡᴀɴᴛ ᴀʟʟ ʏᴏᴜʀ ᴜsᴇʀʙᴏᴛs ᴛᴏ ʀᴜɴ ʙᴇғᴏʀᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ sᴛᴏᴘᴘɪɴɢ.\n\n"
-            "<b>ᴇxᴀᴍᴘʟᴇ :</b>\n"
-            "• <code>2</code> (ғᴏʀ 𝟸 ʜᴏᴜʀs)\n"
-            "• <code>30m</code> (ғᴏʀ 𝟹𝟶 ᴍɪɴᴜᴛᴇs)\n"
-            "• <code>0</code> (ᴛᴏ ᴅɪsᴀʙʟᴇ ᴛɪᴍᴇʀ)</blockquote>"
+            "<blockquote><b>» ⏱️ Set Run Timer (All Bots)</b>\n\n"
+            "Send The Number Of Hours (Or Minutes Using 'M') You Want All Your Userbots To Run Before Automatically Stopping.\n\n"
+            "<b>Example :</b>\n"
+            "• <code>2</code> (For 𝟸 Hours)\n"
+            "• <code>30m</code> (For 𝟹𝟶 Minutes)\n"
+            "• <code>0</code> (To Disable Timer)</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "menu_all_slots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "menu_all_slots", style="primary")]]
         
         try:
             await event.edit(prompt_text, buttons=buttons)
@@ -1948,7 +1948,7 @@ def register_handlers(client):
         }
         
         prompt_text = utils.get_text("prompt_vc_link", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"vc_menu_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"vc_menu_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1970,14 +1970,14 @@ def register_handlers(client):
         }
         
         prompt_text = (
-            f"<blockquote><b>» 🔗 ᴊᴏɪɴ ɢʀᴏᴜᴘ + ᴠᴄ ({phone})</b>\n\n"
-            f"• sᴇɴᴅ ʏᴏᴜʀ <b>ɢʀᴏᴜᴘ ɪɴᴠɪᴛᴇ ʟɪɴᴋ</b> (ᴇ.ɢ. <code>https://t.me/+xxxx</code>) ᴏʀ <b>ᴜsᴇʀɴᴀᴍᴇ</b>.\n"
-            f"• <i>(ʏᴏᴜ ᴄᴀɴ ᴀʟsᴏ sᴇɴᴅ ᴍᴜʟᴛɪᴘʟᴇ ʟɪɴᴋs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs)</i>\n\n"
-            f"✅ <b>ᴛʜᴇ ᴜsᴇʀʙᴏᴛ ᴡɪʟʟ :</b>\n"
-            f"𝟷. ᴀᴜᴛᴏ-ᴊᴏɪɴ ᴛʜᴇ ɢʀᴏᴜᴘ/ᴄʜᴀɴɴᴇʟ.\n"
-            f"𝟸. ᴄᴏɴɴᴇᴄᴛ ᴛᴏ ᴛʜᴇ ᴀᴄᴛɪᴠᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.</blockquote>"
+            f"<blockquote><b>» 🔗 Join Group + Vc ({phone})</b>\n\n"
+            f"• Send Your <b>Group Invite Link</b> (E.G. <code>https://t.me/+xxxx</code>) Or <b>Username</b>.\n"
+            f"• <i>(You Can Also Send Multiple Links Separated By Commas)</i>\n\n"
+            f"✅ <b>The Userbot Will :</b>\n"
+            f"𝟷. Auto-Join The Group/Channel.\n"
+            f"𝟸. Connect To The Active Voice Chat.</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"vc_menu_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"vc_menu_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1999,13 +1999,13 @@ def register_handlers(client):
         }
         
         prompt_text = (
-            f"<blockquote><b>» 📚 ᴊᴏɪɴ ᴍᴜʟᴛɪᴘʟᴇ ɢʀᴏᴜᴘs ({phone})</b>\n\n"
-            f"• <b>ᴅᴇsᴄʀɪᴘᴛɪᴏɴ :</b> sᴇɴᴅ ᴀʟʟ ʏᴏᴜʀ ɢʀᴏᴜᴘ / ᴄʜᴀɴɴᴇʟ ʟɪɴᴋs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs (<code>,</code>) ᴏʀ ɴᴇᴡʟɪɴᴇs.\n"
-            f"• <b>ғᴏʀᴍᴀᴛ ᴇxᴀᴍᴘʟᴇ :</b>\n"
+            f"<blockquote><b>» 📚 Join Multiple Groups ({phone})</b>\n\n"
+            f"• <b>Description :</b> Send All Your Group / Channel Links Separated By Commas (<code>,</code>) Or Newlines.\n"
+            f"• <b>Format Example :</b>\n"
             f"<code>https://t.me/groupone, https://t.me/+AbCdEfGh, @groupthree</code>\n\n"
-            f"⚡ <i>ᴛʜᴇ ᴜsᴇʀʙᴏᴛ ᴡɪʟʟ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴊᴏɪɴ ᴀʟʟ ᴘʀᴏᴠɪᴅᴇᴅ ɢʀᴏᴜᴘs/ᴄʜᴀɴɴᴇʟs sᴇǫᴜᴇɴᴛɪᴀʟʟʏ ᴡɪᴛʜ sᴀғᴇ ᴅᴇʟᴀʏ!</i></blockquote>"
+            f"⚡ <i>The Userbot Will Automatically Join All Provided Groups/Channels Sequentially With Safe Delay!</i></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"vc_menu_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"vc_menu_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2026,15 +2026,15 @@ def register_handlers(client):
             "action": "WAITING_FOR_ALL_VC_GRP_LINK"
         }
         
-        header_grp = "» 🔗 ᴊᴏɪɴ ɢʀᴏᴜᴘ (ᴀʟʟ sʏsᴛᴇᴍ ʙᴏᴛs)" if is_system_all_mode(event.sender_id) else "» 🔗 ᴊᴏɪɴ ɢʀᴏᴜᴘ (ᴀʟʟ sʟᴏᴛs)"
+        header_grp = "» 🔗 Join Group (All System Bots)" if is_system_all_mode(event.sender_id) else "» 🔗 Join Group (All Slots)"
         prompt_text = (
             f"<blockquote><b>{header_grp}</b>\n\n"
-            f"• <b>ᴀʟʟ {len(sessions)} ᴜsᴇʀʙᴏᴛs</b> (ʀᴜɴɴɪɴɢ ᴏʀ sᴛᴏᴘᴘᴇᴅ) ᴡɪʟʟ :\n"
-            f"𝟷. ᴀᴜᴛᴏ-sᴛᴀʀᴛ (ɪғ ᴄᴜʀʀᴇɴᴛʟʏ sᴛᴏᴘᴘᴇᴅ).\n"
-            f"𝟸. ᴀᴜᴛᴏ-ᴊᴏɪɴ ᴛʜᴇ ɢʀᴏᴜᴘ/ᴄʜᴀɴɴᴇʟ ᴠɪᴀ ʏᴏᴜʀ ʟɪɴᴋ.\n\n"
-            f"✍️ <b>sᴇɴᴅ ᴛʜᴇ ɢʀᴏᴜᴘ ɪɴᴠɪᴛᴇ ʟɪɴᴋ ᴏʀ ᴜsᴇʀɴᴀᴍᴇ ʙᴇʟᴏᴡ:</b></blockquote>"
+            f"• <b>All {len(sessions)} Userbots</b> (Running Or Stopped) Will :\n"
+            f"𝟷. Auto-Start (If Currently Stopped).\n"
+            f"𝟸. Auto-Join The Group/Channel Via Your Link.\n\n"
+            f"✍️ <b>Send The Group Invite Link Or Username Below:</b></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_vc_menu", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_vc_menu", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2053,15 +2053,15 @@ def register_handlers(client):
             "action": "WAITING_FOR_ALL_VC_MULTI_GRP_LINK"
         }
         
-        header_grp = "» 📚 ᴊᴏɪɴ ᴍᴜʟᴛɪᴘʟᴇ ɢʀᴏᴜᴘs (ᴀʟʟ sʏsᴛᴇᴍ ʙᴏᴛs)" if is_system_all_mode(event.sender_id) else f"» 📚 ᴊᴏɪɴ ᴍᴜʟᴛɪᴘʟᴇ ɢʀᴏᴜᴘs (ᴀʟʟ {len(sessions)} sʟᴏᴛs)"
+        header_grp = "» 📚 Join Multiple Groups (All System Bots)" if is_system_all_mode(event.sender_id) else f"» 📚 Join Multiple Groups (All {len(sessions)} Slots)"
         prompt_text = (
             f"<blockquote><b>{header_grp}</b>\n\n"
-            f"• <b>ᴅᴇsᴄʀɪᴘᴛɪᴏɴ :</b> sᴇɴᴅ ᴀʟʟ ɢʀᴏᴜᴘ/ᴄʜᴀɴɴᴇʟ ʟɪɴᴋs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs (<code>,</code>) ᴏʀ ɴᴇᴡʟɪɴᴇs.\n"
-            f"• <b>ғᴏʀᴍᴀᴛ ᴇxᴀᴍᴘʟᴇ :</b>\n"
+            f"• <b>Description :</b> Send All Group/Channel Links Separated By Commas (<code>,</code>) Or Newlines.\n"
+            f"• <b>Format Example :</b>\n"
             f"<code>https://t.me/groupone, https://t.me/+AbCdEfGh, @groupthree</code>\n\n"
-            f"⚡ <i>ᴀʟʟ ᴜsᴇʀʙᴏᴛs ᴡɪʟʟ ᴊᴏɪɴ ᴇᴠᴇʀʏ ɢʀᴏᴜᴘ sᴇǫᴜᴇɴᴛɪᴀʟʟʏ ᴡɪᴛʜ ᴀɴᴛɪ-ғʟᴏᴏᴅ ᴅᴇʟᴀʏ!</i></blockquote>"
+            f"⚡ <i>All Userbots Will Join Every Group Sequentially With Anti-Flood Delay!</i></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_vc_menu", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_vc_menu", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2082,7 +2082,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("help_dashboard_text", lang)
-        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", f"select_bot_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Back", f"select_bot_{phone}", style="primary")]]
         
         global_settings = database.get_global_settings()
         help_image = global_settings.get("help_image")
@@ -2101,7 +2101,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("how_to_use_text", lang)
-        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", f"select_bot_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Back", f"select_bot_{phone}", style="primary")]]
         try:
             await event.edit(text, buttons=buttons)
         except Exception:
@@ -2113,7 +2113,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("help_dashboard_text", lang)
-        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_my_bots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Back", "menu_my_bots", style="primary")]]
         
         global_settings = database.get_global_settings()
         help_image = global_settings.get("help_image")
@@ -2131,7 +2131,7 @@ def register_handlers(client):
         user = database.get_user(user_id)
         lang = user.get("language", "en") if user else "en"
         text = utils.get_text("how_to_use_text", lang)
-        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_my_bots", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Back", "menu_my_bots", style="primary")]]
         try:
             await event.edit(text, buttons=buttons)
         except Exception:
@@ -2149,28 +2149,28 @@ def register_handlers(client):
             return
             
         text = utils.format_html_message(
-            "<blockquote><b>» 👤 ᴘʀᴏғɪʟᴇ ᴄʟᴏɴɪɴɢ ᴏᴘᴛɪᴏɴs</b>\n\n"
-            "ᴄʜᴏᴏsᴇ ᴡʜɪᴄʜ ᴀsᴘᴇᴄᴛ ᴏғ ᴛʜᴇ ᴛᴀʀɢᴇᴛ ᴘʀᴏғɪʟᴇ ʏᴏᴜ ᴡᴏᴜʟᴅ ʟɪᴋᴇ ᴛᴏ ᴄʟᴏɴᴇ ᴛᴏ ʏᴏᴜʀ ᴜsᴇʀʙᴏᴛ:</blockquote>"
+            "<blockquote><b>» 👤 Profile Cloning Options</b>\n\n"
+            "Choose Which Aspect Of The Target Profile You Would Like To Clone To Your Userbot:</blockquote>"
         )
         
         sess = database.get_session(phone)
         buttons = [
             [
-                utils.styled_button("👤 ᴄᴏᴍᴘʟᴇᴛᴇ ᴘʀᴏғɪʟᴇ ᴄʟᴏɴᴇ", f"clone_opt_complete_{phone}", style="success")
+                utils.styled_button("👤 Complete Profile Clone", f"clone_opt_complete_{phone}", style="success")
             ],
             [
-                utils.styled_button("✏️ ᴄʟᴏɴᴇ ɴᴀᴍᴇ ᴏɴʟʏ", f"clone_opt_name_{phone}", style="primary"),
-                utils.styled_button("📝 ᴄʟᴏɴᴇ ʙɪᴏ ᴏɴʟʏ", f"clone_opt_bio_{phone}", style="primary")
+                utils.styled_button("✏️ Clone Name Only", f"clone_opt_name_{phone}", style="primary"),
+                utils.styled_button("📝 Clone Bio Only", f"clone_opt_bio_{phone}", style="primary")
             ],
             [
-                utils.styled_button("🖼️ ᴄʟᴏɴᴇ ᴘʜᴏᴛᴏ ᴏɴʟʏ", f"clone_opt_photo_{phone}", style="primary")
+                utils.styled_button("🖼️ Clone Photo Only", f"clone_opt_photo_{phone}", style="primary")
             ]
         ]
         
         if sess and "original_first_name" in sess:
-            buttons.append([utils.styled_button("🔄 ʀᴇᴛᴜʀɴ ᴛᴏ ᴏʀɪɢɪɴᴀʟ ᴘʀᴏғɪʟᴇ", f"restore_profile_{phone}", style="success")])
+            buttons.append([utils.styled_button("🔄 Return To Original Profile", f"restore_profile_{phone}", style="success")])
             
-        buttons.append([utils.styled_button("🔙 ʙᴀᴄᴋ", f"select_bot_{phone}", style="danger")])
+        buttons.append([utils.styled_button("🔙 Back", f"select_bot_{phone}", style="danger")])
         
         try:
             await event.edit(text, buttons=buttons)
@@ -2201,11 +2201,11 @@ def register_handlers(client):
         }.get(clone_type, "Complete Profile")
         
         prompt_text = utils.format_html_message(
-            f"<blockquote><b>» 👤 ᴄʟᴏɴᴇ ᴘʀᴏғɪʟᴇ ({type_display})</b>\n\n"
-            f"• ᴇɴᴛᴇʀ ᴛʜᴇ ᴜsᴇʀɴᴀᴍᴇ (ᴇ.ɢ. <code>@username</code>) ᴏʀ ᴜsᴇʀ ɪᴅ ᴏғ ᴛʜᴇ ᴛᴀʀɢᴇᴛ ᴘʀᴏғɪʟᴇ ᴛᴏ ᴄʟᴏɴᴇ:</blockquote>"
+            f"<blockquote><b>» 👤 Clone Profile ({type_display})</b>\n\n"
+            f"• Enter The Username (E.G. <code>@username</code>) Or User Id Of The Target Profile To Clone:</blockquote>"
         )
         
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"clone_profile_{phone}", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"clone_profile_{phone}", style="danger")]]
         
         try:
             await event.edit(prompt_text, buttons=buttons)
@@ -2290,7 +2290,7 @@ def register_handlers(client):
                     pm_event, 
                     sess.get("phone", phone_target), 
                     user_id, 
-                    flash_message=f"<blockquote><b>» 👑 ᴏᴡɴᴇʀ ᴀᴄᴄᴇss :</b> ᴄᴏɴᴛʀᴏʟʟɪɴɢ ᴜsᴇʀʙᴏᴛ <code>{sess.get('phone', phone_target)}</code> (ᴜsᴇʀ: <code>{target_user_id}</code>)</blockquote>"
+                    flash_message=f"<blockquote><b>» 👑 Owner Access :</b> Controlling Userbot <code>{sess.get('phone', phone_target)}</code> (User: <code>{target_user_id}</code>)</blockquote>"
                 )
                 await event.answer("✅ Userbot Dashboard sent to your PM!", alert=True)
             except Exception as e:
@@ -2301,7 +2301,7 @@ def register_handlers(client):
                 event, 
                 sess.get("phone", phone_target), 
                 user_id, 
-                flash_message=f"<blockquote><b>» 👑 ᴏᴡɴᴇʀ ᴀᴄᴄᴇss :</b> ᴄᴏɴᴛʀᴏʟʟɪɴɢ ᴜsᴇʀʙᴏᴛ <code>{sess.get('phone', phone_target)}</code> (ᴜsᴇʀ: <code>{target_user_id}</code>)</blockquote>"
+                flash_message=f"<blockquote><b>» 👑 Owner Access :</b> Controlling Userbot <code>{sess.get('phone', phone_target)}</code> (User: <code>{target_user_id}</code>)</blockquote>"
             )
 
     @client.on(events.CallbackQuery(pattern="^admin_exit_impersonation$"))
@@ -2371,10 +2371,10 @@ def register_handlers(client):
             
         settings = sess.get("settings", {})
         
-        spam_status = "🟢 ᴏɴ" if settings.get("auto_spam") else "🔴 ᴏғғ"
-        welcome_status = "🟢 ᴏɴ" if settings.get("auto_welcome") else "🔴 ᴏғғ"
-        add_contact_status = "🟢 ᴏɴ" if settings.get("auto_add_contact") else "🔴 ᴏғғ"
-        reply_status = "🟢 ᴏɴ" if settings.get("auto_reply") else "🔴 ᴏғғ"
+        spam_status = "🟢 On" if settings.get("auto_spam") else "🔴 Off"
+        welcome_status = "🟢 On" if settings.get("auto_welcome") else "🔴 Off"
+        add_contact_status = "🟢 On" if settings.get("auto_add_contact") else "🔴 Off"
+        reply_status = "🟢 On" if settings.get("auto_reply") else "🔴 Off"
         interval = settings.get("broadcast_interval", 300)
         delay = settings.get("inter_group_delay", 5)
         spam_msg = settings.get("broadcast_msg", "None")
@@ -2383,28 +2383,28 @@ def register_handlers(client):
         
         # Format a clean message
         text = (
-            f"<blockquote><b>» ℹ️ ᴜsᴇʀʙᴏᴛ sᴇᴛᴛɪɴɢs ɪɴғᴏ</b>\n\n"
-            f"• <b>📞 ᴀᴄᴄᴏᴜɴᴛ :</b> <code>{phone}</code>\n"
-            f"• <b>🏷️ ɴᴀᴍᴇ :</b> <b>{sess.get('name', 'Userbot')}</b>\n"
-            f"• <b>🔗 ᴜsᴇʀɴᴀᴍᴇ :</b> @{sess.get('username', 'None')}\n\n"
-            f"<b>📢 ᴀᴜᴛᴏ-sᴘᴀᴍ sᴇᴛᴛɪɴɢs :</b>\n"
-            f"• <b>sᴛᴀᴛᴜs :</b> {spam_status}\n"
-            f"• <b>ɪɴᴛᴇʀᴠᴀʟ :</b> <b>{interval}s</b> | <b>ᴅᴇʟᴀʏ :</b> <b>{delay}s</b>\n"
-            f"• <b>ʙʀᴏᴀᴅᴄᴀsᴛ ᴍsɢ :</b>\n"
+            f"<blockquote><b>» ℹ️ Userbot Settings Info</b>\n\n"
+            f"• <b>📞 Account :</b> <code>{phone}</code>\n"
+            f"• <b>🏷️ Name :</b> <b>{sess.get('name', 'Userbot')}</b>\n"
+            f"• <b>🔗 Username :</b> @{sess.get('username', 'None')}\n\n"
+            f"<b>📢 Auto-Spam Settings :</b>\n"
+            f"• <b>Status :</b> {spam_status}\n"
+            f"• <b>Interval :</b> <b>{interval}s</b> | <b>Delay :</b> <b>{delay}s</b>\n"
+            f"• <b>Broadcast Msg :</b>\n"
             f"  <code>{spam_msg}</code>\n\n"
-            f"<b>👋 ᴀᴜᴛᴏ-ᴡᴇʟᴄᴏᴍᴇ sᴇᴛᴛɪɴɢs :</b>\n"
-            f"• <b>sᴛᴀᴛᴜs :</b> {welcome_status}\n"
-            f"• <b>ᴡᴇʟᴄᴏᴍᴇ ᴍsɢ :</b>\n"
+            f"<b>👋 Auto-Welcome Settings :</b>\n"
+            f"• <b>Status :</b> {welcome_status}\n"
+            f"• <b>Welcome Msg :</b>\n"
             f"  <code>{welcome_msg}</code>\n"
-            f"• <b>ᴍᴜʟᴛɪᴘʟᴇ ᴡᴇʟᴄᴏᴍᴇ ᴍsɢs :</b>\n"
+            f"• <b>Multiple Welcome Msgs :</b>\n"
             f"  <code>{welcome_msgs}</code>\n\n"
-            f"<b>💬 ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ sᴇᴛᴛɪɴɢs :</b>\n"
-            f"• <b>sᴛᴀᴛᴜs :</b> {reply_status}\n\n"
-            f"<b>👥 ᴀᴜᴛᴏ-ᴄᴏɴᴛᴀᴄᴛ sᴇᴛᴛɪɴɢs :</b>\n"
-            f"• <b>sᴛᴀᴛᴜs :</b> {add_contact_status}</blockquote>"
+            f"<b>💬 Tag Auto-Reply Settings :</b>\n"
+            f"• <b>Status :</b> {reply_status}\n\n"
+            f"<b>👥 Auto-Contact Settings :</b>\n"
+            f"• <b>Status :</b> {add_contact_status}</blockquote>"
         )
         
-        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", f"select_bot_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Back To Dashboard", f"select_bot_{phone}", style="primary")]]
         try:
             await event.edit(text, buttons=buttons)
         except Exception:
@@ -2445,9 +2445,9 @@ def register_handlers(client):
             database.save_session(sess)
             userbot_manager.reload_bot_settings(phone)
             
-            state_word = "🟢 ᴏɴ" if settings[db_key] else "🔴 ᴏғғ"
-            feature_name = "ᴀᴜᴛᴏ-sᴘᴀᴍ" if feature == "spam" else ("ᴀᴜᴛᴏ-ᴡᴇʟᴄᴏᴍᴇ" if feature == "welcome" else ("ᴀᴜᴛᴏ-ᴄᴏɴᴛᴀᴄᴛ" if feature == "add_contact" else "ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ"))
-            flash = f"<blockquote><b>» ⚙️ sᴇᴛᴛɪɴɢs ᴜᴘᴅᴀᴛᴇᴅ</b>\n\n{feature_name} ɪs ɴᴏᴡ <b>{state_word}</b></blockquote>"
+            state_word = "🟢 On" if settings[db_key] else "🔴 Off"
+            feature_name = "Auto-Spam" if feature == "spam" else ("Auto-Welcome" if feature == "welcome" else ("Auto-Contact" if feature == "add_contact" else "Tag Auto-Reply"))
+            flash = f"<blockquote><b>» ⚙️ Settings Updated</b>\n\n{feature_name} Is Now <b>{state_word}</b></blockquote>"
             
         await show_bot_dashboard(event, phone, user_id, flash_message=flash)
 
@@ -2496,7 +2496,7 @@ def register_handlers(client):
             "action": "WAITING_FOR_BROADCAST"
         }
         prompt_text = utils.get_text("prompt_broadcast", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"set_broadcast_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"set_broadcast_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2512,13 +2512,13 @@ def register_handlers(client):
             "action": "WAITING_FOR_MULTI_MSG"
         }
         prompt_text = (
-            "<blockquote><b>» 📚 sᴇᴛ ᴍᴜʟᴛɪᴘʟᴇ ᴍᴇssᴀɢᴇs</b>\n\n"
-            "sᴇɴᴅ ʏᴏᴜʀ ᴍᴜʟᴛɪᴘʟᴇ ʙʀᴏᴀᴅᴄᴀsᴛ ᴍᴇssᴀɢᴇs sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs (<code>,</code>). ᴛʜᴇ ʙᴏᴛ ᴡɪʟʟ ʀᴏᴛᴀᴛᴇ/ᴘɪᴄᴋ ᴏɴᴇ ᴍᴇssᴀɢᴇ ғᴏʀ ᴇᴀᴄʜ ɢʀᴏᴜᴘ.\n\n"
-            "💡 <b>ᴇxᴀᴍᴘʟᴇ ɪɴᴘᴜᴛ :</b>\n"
-            "<code>ʜᴇʏ ᴄʜᴇᴄᴋ ᴛʜɪs ᴏᴜᴛ!, ᴊᴏɪɴ ᴏᴜʀ ᴄʜᴀɴɴᴇʟ ɴᴏᴡ!, ʙᴇsᴛ ᴅᴇᴀʟs ᴛᴏᴅᴀʏ!</code>\n\n"
-            "✍️ <b>sᴇɴᴅ ʏᴏᴜʀ ᴄᴏᴍᴍᴀ-sᴇᴘᴀʀᴀᴛᴇᴅ ᴍᴇssᴀɢᴇ ʟɪsᴛ ʙᴇʟᴏᴡ :</b></blockquote>"
+            "<blockquote><b>» 📚 Set Multiple Messages</b>\n\n"
+            "Send Your Multiple Broadcast Messages Separated By Commas (<code>,</code>). The Bot Will Rotate/Pick One Message For Each Group.\n\n"
+            "💡 <b>Example Input :</b>\n"
+            "<code>Hey Check This Out!, Join Our Channel Now!, Best Deals Today!</code>\n\n"
+            "✍️ <b>Send Your Comma-Separated Message List Below :</b></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"set_broadcast_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"set_broadcast_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2563,7 +2563,7 @@ def register_handlers(client):
             "action": "WAITING_FOR_WELCOME"
         }
         prompt_text = utils.get_text("prompt_welcome", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"set_welcome_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"set_welcome_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2581,7 +2581,7 @@ def register_handlers(client):
             "action": "WAITING_FOR_MULTI_WELCOME"
         }
         prompt_text = utils.get_text("prompt_multi_welcome", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"set_welcome_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"set_welcome_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2625,8 +2625,8 @@ def register_handlers(client):
             "phone": phone,
             "action": "WAITING_FOR_AUTO_REPLY_SINGLE"
         }
-        prompt_text = "<blockquote><b>» 💬 sᴇᴛ sɪɴɢʟᴇ ɢʀᴏᴜᴘ ᴛᴀɢ ʀᴇᴘʟʏ</b>\n\nsᴇɴᴅ ʏᴏᴜʀ sɪɴɢʟᴇ ɢʀᴏᴜᴘ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴍᴇssᴀɢᴇ ʙᴇʟᴏᴡ :</blockquote>"
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"set_auto_reply_{phone}", style="primary")]]
+        prompt_text = "<blockquote><b>» 💬 Set Single Group Tag Reply</b>\n\nSend Your Single Group Tag Auto-Reply Message Below :</blockquote>"
+        buttons = [[utils.styled_button("🔙 Cancel", f"set_auto_reply_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2644,7 +2644,7 @@ def register_handlers(client):
             "action": "WAITING_FOR_AUTO_REPLY_MSGS"
         }
         prompt_text = utils.get_text("prompt_set_auto_reply", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"set_auto_reply_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"set_auto_reply_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2683,10 +2683,10 @@ def register_handlers(client):
             "action": "WAITING_FOR_NAME"
         }
         prompt_text = (
-            "<blockquote><b>» ✏️ ᴄʜᴀɴɢᴇ ᴜsᴇʀʙᴏᴛ ɴᴀᴍᴇ</b>\n\n"
-            "sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ɴᴀᴍᴇ ғᴏʀ ᴛʜɪs ᴜsᴇʀʙᴏᴛ ᴀᴄᴄᴏᴜɴᴛ :</blockquote>"
+            "<blockquote><b>» ✏️ Change Userbot Name</b>\n\n"
+            "Send The New Name For This Userbot Account :</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"select_bot_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"select_bot_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2710,13 +2710,13 @@ def register_handlers(client):
         }
         
         prompt_text = utils.format_html_message(
-            "<blockquote><b>» 🎵 ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ</b>\n\n"
-            "• sᴇɴᴅ <code>/play &lt;song name / yt link&gt;</code> ᴛᴏ sᴛʀᴇᴀᴍ ᴀᴜᴅɪᴏ.\n"
-            "• sᴇɴᴅ <code>/vplay &lt;video name / yt link&gt;</code> ᴛᴏ sᴛʀᴇᴀᴍ ᴠɪᴅᴇᴏ.\n"
-            "• ʀᴇᴘʟʏ ᴛᴏ ᴀɴʏ ᴀᴜᴅɪᴏ/ᴠɪᴅᴇᴏ ғɪʟᴇ ᴡɪᴛʜ <code>/play</code> ᴏʀ <code>/vplay</code>.\n\n"
-            "✍️ <b>ᴛʏᴘᴇ ʏᴏᴜʀ sᴏɴɢ ɴᴀᴍᴇ ᴏʀ ʏᴏᴜᴛᴜʙᴇ ʟɪɴᴋ ʙᴇʟᴏᴡ:</b></blockquote>"
+            "<blockquote><b>» 🎵 Voice Chat Music Player</b>\n\n"
+            "• Send <code>/play &lt;song name / yt link&gt;</code> To Stream Audio.\n"
+            "• Send <code>/vplay &lt;video name / yt link&gt;</code> To Stream Video.\n"
+            "• Reply To Any Audio/Video File With <code>/play</code> Or <code>/vplay</code>.\n\n"
+            "✍️ <b>Type Your Song Name Or Youtube Link Below:</b></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"vc_menu_{phone}", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"vc_menu_{phone}", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2735,13 +2735,13 @@ def register_handlers(client):
         }
         
         prompt_text = utils.format_html_message(
-            "<blockquote><b>» 🎵 ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ (ᴀʟʟ sʟᴏᴛs)</b>\n\n"
-            "• sᴇɴᴅ <code>/play &lt;song name / yt link&gt;</code> ᴛᴏ sᴛʀᴇᴀᴍ ᴀᴜᴅɪᴏ ᴀᴄʀᴏss ᴀʟʟ ᴠᴄs.\n"
-            "• sᴇɴᴅ <code>/vplay &lt;video name / yt link&gt;</code> ᴛᴏ sᴛʀᴇᴀᴍ ᴠɪᴅᴇᴏ ᴀᴄʀᴏss ᴀʟʟ ᴠᴄs.\n"
-            "• ᴀʟʟ ᴜsᴇʀʙᴏᴛs ᴡɪʟʟ ᴀᴜᴛᴏ-sᴛᴀʀᴛ ᴀɴᴅ sᴛʀᴇᴀᴍ sɪᴍᴜʟᴛᴀɴᴇᴏᴜsʟʏ!\n\n"
-            "✍️ <b>ᴛʏᴘᴇ ʏᴏᴜʀ sᴏɴɢ ɴᴀᴍᴇ ᴏʀ ʏᴏᴜᴛᴜʙᴇ ʟɪɴᴋ ʙᴇʟᴏᴡ:</b></blockquote>"
+            "<blockquote><b>» 🎵 Voice Chat Music Player (All Slots)</b>\n\n"
+            "• Send <code>/play &lt;song name / yt link&gt;</code> To Stream Audio Across All Vcs.\n"
+            "• Send <code>/vplay &lt;video name / yt link&gt;</code> To Stream Video Across All Vcs.\n"
+            "• All Userbots Will Auto-Start And Stream Simultaneously!\n\n"
+            "✍️ <b>Type Your Song Name Or Youtube Link Below:</b></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_vc_menu", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_vc_menu", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2764,22 +2764,22 @@ def register_handlers(client):
         name = sess.get("name") or "UserBot" if sess else "UserBot"
         
         text = (
-            f"<blockquote><b>» ⏱️ ᴜsᴇʀʙᴏᴛ ᴛɪᴍɪɴɢ & ᴅᴇʟᴀʏ sᴇᴛᴛɪɴɢs</b>\n\n"
-            f"👤 <b>ᴜsᴇʀʙᴏᴛ :</b> <b>{name}</b>\n\n"
-            f"• <b>ᴄᴜʀʀᴇɴᴛ ɢʀᴏᴜᴘ ᴅᴇʟᴀʏ :</b> <code>{current_delay}s</code>\n"
-            f"• <b>ᴄᴜʀʀᴇɴᴛ ʟᴏᴏᴘ ɪɴᴛᴇʀᴠᴀʟ :</b> <code>{current_interval}s</code>\n\n"
-            f"⚡ <b>ʙᴇsᴛ ᴛɪᴍɪɴɢ :</b> <i>𝟺𝟻s ɢʀᴏᴜᴘ ᴅᴇʟᴀʏ + 𝟹𝟶𝟶s ʟᴏᴏᴘ ɪɴᴛᴇʀᴠᴀʟ (ᴀɴᴛɪ-ғʟᴏᴏᴅ ᴘʀᴏᴛᴇᴄᴛɪᴏɴ).</i></blockquote>"
+            f"<blockquote><b>» ⏱️ Userbot Timing & Delay Settings</b>\n\n"
+            f"👤 <b>Userbot :</b> <b>{name}</b>\n\n"
+            f"• <b>Current Group Delay :</b> <code>{current_delay}s</code>\n"
+            f"• <b>Current Loop Interval :</b> <code>{current_interval}s</code>\n\n"
+            f"⚡ <b>Best Timing :</b> <i>𝟺𝟻s Group Delay + 𝟹𝟶𝟶s Loop Interval (Anti-Flood Protection).</i></blockquote>"
         )
         buttons = [
             [
-                utils.styled_button("⚡ ʙᴇsᴛ ᴛɪᴍɪɴɢ (𝟺𝟻s ᴅᴇʟᴀʏ | 𝟹𝟶𝟶s ʟᴏᴏᴘ)", f"apply_best_timing_{phone}", style="success")
+                utils.styled_button("⚡ Best Timing (𝟺𝟻s Delay | 𝟹𝟶𝟶s Loop)", f"apply_best_timing_{phone}", style="success")
             ],
             [
-                utils.styled_button("⏱️ ᴄᴜsᴛᴏᴍ ɢʀᴏᴜᴘ ᴅᴇʟᴀʏ", f"set_inter_delay_{phone}", style="primary"),
-                utils.styled_button("🔄 ᴄᴜsᴛᴏᴍ ʟᴏᴏᴘ ɪɴᴛᴇʀᴠᴀʟ", f"set_loop_interval_{phone}", style="primary")
+                utils.styled_button("⏱️ Custom Group Delay", f"set_inter_delay_{phone}", style="primary"),
+                utils.styled_button("🔄 Custom Loop Interval", f"set_loop_interval_{phone}", style="primary")
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", f"select_bot_{phone}", style="danger")
+                utils.styled_button("🔙 Back To Dashboard", f"select_bot_{phone}", style="danger")
             ]
         ]
         try:
@@ -2799,9 +2799,9 @@ def register_handlers(client):
             settings["broadcast_interval"] = 300
             database.save_session(sess)
             userbot_manager.reload_bot_settings(phone)
-            flash = "<blockquote><b>» ⚡ ʙᴇsᴛ ᴛɪᴍɪɴɢ ᴀᴘᴘʟɪᴇᴅ! (𝟺𝟻s ɢʀᴏᴜᴘ ᴅᴇʟᴀʏ + 𝟹𝟶𝟶s ʟᴏᴏᴘ)</b></blockquote>"
+            flash = "<blockquote><b>» ⚡ Best Timing Applied! (𝟺𝟻s Group Delay + 𝟹𝟶𝟶s Loop)</b></blockquote>"
         else:
-            flash = "<blockquote><b>» ❌ sᴇssɪᴏɴ ɴᴏᴛ ғᴏᴜɴᴅ.</b></blockquote>"
+            flash = "<blockquote><b>» ❌ Session Not Found.</b></blockquote>"
             
         await show_bot_dashboard(event, phone, user_id, flash_message=flash)
 
@@ -2813,21 +2813,21 @@ def register_handlers(client):
         total = len(sessions)
         
         text = (
-            f"<blockquote><b>» ⏱️ ᴀʟʟ ᴜsᴇʀʙᴏᴛs ᴛɪᴍɪɴɢ & ᴅᴇʟᴀʏ sᴇᴛᴛɪɴɢs</b>\n\n"
-            f"ᴄᴏɴғɪɢᴜʀᴇ ʙʀᴏᴀᴅᴄᴀsᴛɪɴɢ sᴘᴇᴇᴅs ғᴏʀ ᴀʟʟ <b>{total}</b> ᴜsᴇʀʙᴏᴛs sɪᴍᴜʟᴛᴀɴᴇᴏᴜsʟʏ:\n\n"
-            f"• <b>ɢʀᴏᴜᴘ ᴅᴇʟᴀʏ :</b> <code>45s</code> (sᴀғᴇ & ᴀɴᴛɪ-ғʟᴏᴏᴅ ᴅᴇʟᴀʏ)\n"
-            f"• <b>ʟᴏᴏᴘ ʀᴇᴘᴇᴀᴛ :</b> <code>300s</code> (𝟻-ᴍɪɴᴜᴛᴇ ʀᴇᴘᴇᴀᴛ ᴄʏᴄʟᴇ)</blockquote>"
+            f"<blockquote><b>» ⏱️ All Userbots Timing & Delay Settings</b>\n\n"
+            f"Configure Broadcasting Speeds For All <b>{total}</b> Userbots Simultaneously:\n\n"
+            f"• <b>Group Delay :</b> <code>45s</code> (Safe & Anti-Flood Delay)\n"
+            f"• <b>Loop Repeat :</b> <code>300s</code> (𝟻-Minute Repeat Cycle)</blockquote>"
         )
         buttons = [
             [
-                utils.styled_button("⚡ ʙᴇsᴛ ᴛɪᴍɪɴɢ (ᴀʟʟ: 𝟺𝟻s ᴅᴇʟᴀʏ | 𝟹𝟶𝟶s ʟᴏᴏᴘ)", "all_slots_apply_best_timing", style="success")
+                utils.styled_button("⚡ Best Timing (All: 𝟺𝟻s Delay | 𝟹𝟶𝟶s Loop)", "all_slots_apply_best_timing", style="success")
             ],
             [
-                utils.styled_button("⏱️ ᴄᴜsᴛᴏᴍ ɢʀᴏᴜᴘ ᴅᴇʟᴀʏ (ᴀʟʟ)", "all_slots_set_inter_delay", style="primary"),
-                utils.styled_button("🔄 ᴄᴜsᴛᴏᴍ ʟᴏᴏᴘ ɪɴᴛᴇʀᴠᴀʟ (ᴀʟʟ)", "all_slots_set_loop_interval", style="primary")
+                utils.styled_button("⏱️ Custom Group Delay (All)", "all_slots_set_inter_delay", style="primary"),
+                utils.styled_button("🔄 Custom Loop Interval (All)", "all_slots_set_loop_interval", style="primary")
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", "menu_all_slots", style="danger")
+                utils.styled_button("🔙 Back To Dashboard", "menu_all_slots", style="danger")
             ]
         ]
         try:
@@ -2850,7 +2850,7 @@ def register_handlers(client):
             if userbot_manager.is_bot_running(s["phone"]):
                 userbot_manager.reload_bot_settings(s["phone"])
                 
-        flash = f"<blockquote><b>» ⚡ ʙᴇsᴛ ᴛɪᴍɪɴɢ ᴀᴘᴘʟɪᴇᴅ ᴛᴏ {len(sessions)} ᴜsᴇʀʙᴏᴛs!</b></blockquote>"
+        flash = f"<blockquote><b>» ⚡ Best Timing Applied To {len(sessions)} Userbots!</b></blockquote>"
         await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(event.sender_id))
 
     @client.on(events.CallbackQuery(pattern="^all_slots_set_inter_delay$"))
@@ -2860,11 +2860,11 @@ def register_handlers(client):
             "action": "WAITING_FOR_ALL_CUSTOM_DELAY"
         }
         prompt_text = (
-            "<blockquote><b>» ⏱️ ᴄᴜsᴛᴏᴍ ɢʀᴏᴜᴘ-ᴛᴏ-ɢʀᴏᴜᴘ ᴅᴇʟᴀʏ (ᴀʟʟ ʙᴏᴛs)</b>\n\n"
-            "sᴇɴᴅ ᴛʜᴇ ᴅᴇʟᴀʏ ɪɴ sᴇᴄᴏɴᴅs ʙᴇᴛᴡᴇᴇɴ sᴇɴᴅɪɴɢ ᴍᴇssᴀɢᴇs ᴛᴏ ᴅɪғғᴇʀᴇɴᴛ ɢʀᴏᴜᴘs (ᴇ.ɢ. <code>45</code>):\n"
-            "<i>(ᴍᴜsᴛ ʙᴇ ʙᴇᴛᴡᴇᴇɴ 𝟸 ᴀɴᴅ 𝟹𝟶𝟶 sᴇᴄᴏɴᴅs)</i></blockquote>"
+            "<blockquote><b>» ⏱️ Custom Group-To-Group Delay (All Bots)</b>\n\n"
+            "Send The Delay In Seconds Between Sending Messages To Different Groups (E.G. <code>45</code>):\n"
+            "<i>(Must Be Between 𝟸 And 𝟹𝟶𝟶 Seconds)</i></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_set_interval", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_set_interval", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2877,11 +2877,11 @@ def register_handlers(client):
             "action": "WAITING_FOR_ALL_CUSTOM_INTERVAL"
         }
         prompt_text = (
-            "<blockquote><b>» 🔄 ᴄᴜsᴛᴏᴍ ʟᴏᴏᴘ ʀᴇᴘᴇᴀᴛ ɪɴᴛᴇʀᴠᴀʟ (ᴀʟʟ ʙᴏᴛs)</b>\n\n"
-            "sᴇɴᴅ ᴛʜᴇ ᴛᴏᴛᴀʟ ʙʀᴏᴀᴅᴄᴀsᴛ ʟᴏᴏᴘ ɪɴᴛᴇʀᴠᴀʟ ɪɴ sᴇᴄᴏɴᴅs (ᴇ.ɢ. <code>300</code> ғᴏʀ 𝟻 ᴍɪɴᴜᴛᴇs):\n"
-            "<i>(ᴍᴜsᴛ ʙᴇ 𝟼𝟶 sᴇᴄᴏɴᴅs ᴏʀ ʜɪɢʜᴇʀ)</i></blockquote>"
+            "<blockquote><b>» 🔄 Custom Loop Repeat Interval (All Bots)</b>\n\n"
+            "Send The Total Broadcast Loop Interval In Seconds (E.G. <code>300</code> For 𝟻 Minutes):\n"
+            "<i>(Must Be 𝟼𝟶 Seconds Or Higher)</i></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "all_slots_set_interval", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "all_slots_set_interval", style="primary")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2903,7 +2903,7 @@ def register_handlers(client):
             ],
             [
                 utils.styled_button(utils.get_text("btn_int_custom", lang), f"int_custom_{phone}", style="primary"),
-                utils.styled_button("🔙 ʙᴀᴄᴋ", f"set_interval_{phone}", style="danger")
+                utils.styled_button("🔙 Back", f"set_interval_{phone}", style="danger")
             ]
         ]
         try:
@@ -2923,7 +2923,7 @@ def register_handlers(client):
             sess.setdefault("settings", {})["broadcast_interval"] = val
             database.save_session(sess)
             userbot_manager.reload_bot_settings(phone)
-            flash = f"<blockquote><b>» ⏱️ ɪɴᴛᴇʀᴠᴀʟ ᴜᴘᴅᴀᴛᴇᴅ ᴛᴏ {val}s</b></blockquote>"
+            flash = f"<blockquote><b>» ⏱️ Interval Updated To {val}s</b></blockquote>"
             
         await show_bot_dashboard(event, phone, user_id, flash_message=flash)
 
@@ -2941,7 +2941,7 @@ def register_handlers(client):
         
         prompt_text = utils.get_text("prompt_custom_interval", lang)
         try:
-            buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"set_loop_interval_{phone}", style="primary")]]
+            buttons = [[utils.styled_button("🔙 Cancel", f"set_loop_interval_{phone}", style="primary")]]
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
             await event.respond(prompt_text)
@@ -2962,7 +2962,7 @@ def register_handlers(client):
             ],
             [
                 utils.styled_button(utils.get_text("btn_del_custom", lang), f"del_custom_{phone}", style="primary"),
-                utils.styled_button("🔙 ʙᴀᴄᴋ", f"set_interval_{phone}", style="danger")
+                utils.styled_button("🔙 Back", f"set_interval_{phone}", style="danger")
             ]
         ]
         try:
@@ -2982,7 +2982,7 @@ def register_handlers(client):
             sess.setdefault("settings", {})["inter_group_delay"] = val
             database.save_session(sess)
             userbot_manager.reload_bot_settings(phone)
-            flash = f"<blockquote><b>» ⏱️ ɪɴᴛᴇʀ-ɢʀᴏᴜᴘ ᴅᴇʟᴀʏ ᴜᴘᴅᴀᴛᴇᴅ ᴛᴏ {val}s</b></blockquote>"
+            flash = f"<blockquote><b>» ⏱️ Inter-Group Delay Updated To {val}s</b></blockquote>"
             
         await show_bot_dashboard(event, phone, user_id, flash_message=flash)
 
@@ -3000,7 +3000,7 @@ def register_handlers(client):
         
         prompt_text = utils.get_text("prompt_custom_inter_delay", lang)
         try:
-            buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"set_inter_delay_{phone}", style="primary")]]
+            buttons = [[utils.styled_button("🔙 Cancel", f"set_inter_delay_{phone}", style="primary")]]
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
             await event.respond(prompt_text)
@@ -3047,16 +3047,16 @@ def register_handlers(client):
         if action == "WAITING_FOR_ALL_VC_LINK":
             link = event.text.strip()
             if not link:
-                await event.reply("<blockquote><b>❌ ᴄʜᴀᴛ ɪᴅ / ᴜsᴇʀɴᴀᴍᴇ / ʟɪɴᴋ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>❌ Chat Id / Username / Link Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
                 
             sessions = get_effective_sessions(user_id)
             running_phones = [s["phone"] for s in sessions if userbot_manager.is_bot_running(s["phone"])]
             if not running_phones:
-                await event.reply("<blockquote><b>❌ ɴᴏ ᴜsᴇʀʙᴏᴛs ᴀʀᴇ ᴄᴜʀʀᴇɴᴛʟʏ ʀᴜɴɴɪɴɢ. ᴘʟᴇᴀsᴇ sᴛᴀʀᴛ ʏᴏᴜʀ ᴜsᴇʀʙᴏᴛs ғɪʀsᴛ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>❌ No Userbots Are Currently Running. Please Start Your Userbots First.</b></blockquote>", parse_mode="html")
                 return
                 
-            progress_msg = await event.reply(f"<blockquote><b>» ⏳ ᴊᴏɪɴɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ᴏɴ {len(running_phones)} ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs...</b></blockquote>", parse_mode="html")
+            progress_msg = await event.reply(f"<blockquote><b>» ⏳ Joining Voice Chat On {len(running_phones)} Running Userbots...</b></blockquote>", parse_mode="html")
             
             async def _join_vc_concurrent(phone_num):
                 bot_obj = userbot_manager._running_bots[phone_num]
@@ -3081,7 +3081,7 @@ def register_handlers(client):
                 else:
                     fail_msgs.append(f"📞 `{phone_num}`: {msg}")
                     
-            flash = f"<blockquote><b>» 🎙️ ᴀʟʟ sʟᴏᴛs : ᴠᴄ ᴊᴏɪɴ ʀᴇsᴜʟᴛs</b>\n\n• <b>sᴜᴄᴄᴇssғᴜʟʟʏ ᴊᴏɪɴᴇᴅ :</b> <b>{success_count} / {len(running_phones)}</b> ᴜsᴇʀʙᴏᴛs</blockquote>"
+            flash = f"<blockquote><b>» 🎙️ All Slots : Vc Join Results</b>\n\n• <b>Successfully Joined :</b> <b>{success_count} / {len(running_phones)}</b> Userbots</blockquote>"
             if fail_msgs:
                 flash += f"\n\n<b>Errors:</b>\n" + "\n".join(fail_msgs)
                 
@@ -3096,7 +3096,7 @@ def register_handlers(client):
                 database.save_session(s)
                 if userbot_manager.is_bot_running(s["phone"]):
                     userbot_manager.reload_bot_settings(s["phone"])
-            flash = "<blockquote><b>» ✉️ ʙʀᴏᴀᴅᴄᴀsᴛ ᴍᴇssᴀɢᴇ ᴜᴘᴅᴀᴛᴇᴅ ғᴏʀ ᴀʟʟ ʙᴏᴛs!</b></blockquote>"
+            flash = "<blockquote><b>» ✉️ Broadcast Message Updated For All Bots!</b></blockquote>"
             await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
             return
             
@@ -3108,14 +3108,14 @@ def register_handlers(client):
                 database.save_session(s)
                 if userbot_manager.is_bot_running(s["phone"]):
                     userbot_manager.reload_bot_settings(s["phone"])
-            flash = "<blockquote><b>» 👋 ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇ ᴜᴘᴅᴀᴛᴇᴅ ғᴏʀ ᴀʟʟ ʙᴏᴛs!</b></blockquote>"
+            flash = "<blockquote><b>» 👋 Welcome Message Updated For All Bots!</b></blockquote>"
             await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
             return
 
         elif action == "WAITING_FOR_ALL_MULTI_WELCOME":
             msgs = [x.strip() for x in event.text.split("|") if x.strip()]
             if not msgs:
-                await event.reply("<blockquote><b>» ❌ ɪɴᴘᴜᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Input Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
             sessions = get_effective_sessions(user_id)
             for s in sessions:
@@ -3123,24 +3123,24 @@ def register_handlers(client):
                 database.save_session(s)
                 if userbot_manager.is_bot_running(s["phone"]):
                     userbot_manager.reload_bot_settings(s["phone"])
-            flash = "<blockquote><b>» 👋 ᴍᴜʟᴛɪᴘʟᴇ ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇs ᴜᴘᴅᴀᴛᴇᴅ ғᴏʀ ᴀʟʟ ʙᴏᴛs!</b></blockquote>"
+            flash = "<blockquote><b>» 👋 Multiple Welcome Messages Updated For All Bots!</b></blockquote>"
             await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
             return
  
         elif action == "WAITING_FOR_ALL_CLONE_TARGET":
             target = event.text.strip()
             if not target:
-                await event.reply("<blockquote><b>» ❌ ᴛᴀʀɢᴇᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ. ᴘʟᴇᴀsᴇ ᴇɴᴛᴇʀ ᴀ ᴠᴀʟɪᴅ ᴜsᴇʀɴᴀᴍᴇ/ɪᴅ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Target Cannot Be Empty. Please Enter A Valid Username/Id.</b></blockquote>", parse_mode="html")
                 return
                 
             clone_type = state.get("clone_type", "complete")
             sessions = get_effective_sessions(user_id)
             running_phones = [s["phone"] for s in sessions if userbot_manager.is_bot_running(s["phone"])]
             if not running_phones:
-                await event.reply("<blockquote><b>» ❌ ɴᴏ ᴜsᴇʀʙᴏᴛs ᴀʀᴇ ᴄᴜʀʀᴇɴᴛʟʏ ʀᴜɴɴɪɴɢ. ᴘʟᴇᴀsᴇ sᴛᴀʀᴛ ʏᴏᴜʀ ᴜsᴇʀʙᴏᴛs ғɪʀsᴛ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ No Userbots Are Currently Running. Please Start Your Userbots First.</b></blockquote>", parse_mode="html")
                 return
                 
-            progress_msg = await event.reply(f"<blockquote><b>» ⏳ ᴄʟᴏɴɪɴɢ ᴘʀᴏғɪʟᴇ ᴅᴇᴛᴀɪʟs ᴏɴ {len(running_phones)} ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs...</b></blockquote>", parse_mode="html")
+            progress_msg = await event.reply(f"<blockquote><b>» ⏳ Cloning Profile Details On {len(running_phones)} Running Userbots...</b></blockquote>", parse_mode="html")
             
             async def _clone_concurrent(phone_num):
                 return await userbot_manager.clone_profile(phone_num, target, clone_type=clone_type, fallback_client=client)
@@ -3156,22 +3156,22 @@ def register_handlers(client):
                 if not isinstance(res, Exception) and res[0]:
                     success_count += 1
                     
-            flash = f"<blockquote><b>» 👤 ᴘʀᴏғɪʟᴇ ᴄʟᴏɴɪɴɢ ʀᴇsᴜʟᴛs</b>\n• ᴄʟᴏɴᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ ᴏɴ {success_count}/{len(running_phones)} ᴜsᴇʀʙᴏᴛs!</blockquote>"
+            flash = f"<blockquote><b>» 👤 Profile Cloning Results</b>\n• Cloned Successfully On {success_count}/{len(running_phones)} Userbots!</blockquote>"
             await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
             return
  
         elif action == "WAITING_FOR_ALL_NAME":
             new_name = event.text.strip()
             if not new_name:
-                await event.reply("<blockquote><b>» ❌ ɴᴀᴍᴇ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Name Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
                 
             sessions = get_effective_sessions(user_id)
             if not sessions:
-                await event.reply("<blockquote><b>» ❌ ɴᴏ ᴜsᴇʀʙᴏᴛ sʟᴏᴛs ғᴏᴜɴᴅ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ No Userbot Slots Found.</b></blockquote>", parse_mode="html")
                 return
                 
-            progress_msg = await event.reply(f"<blockquote><b>» ⏳ ᴜᴘᴅᴀᴛɪɴɢ ɴᴀᴍᴇ ᴛᴏ '{new_name}' ᴀᴄʀᴏss ᴀʟʟ sʟᴏᴛs...</b></blockquote>", parse_mode="html")
+            progress_msg = await event.reply(f"<blockquote><b>» ⏳ Updating Name To '{new_name}' Across All Slots...</b></blockquote>", parse_mode="html")
             
             async def _update_one_name(s):
                 return await userbot_manager.set_userbot_name(s["phone"], new_name)
@@ -3183,7 +3183,7 @@ def register_handlers(client):
                 pass
                 
             success_count = sum(1 for r in results if not isinstance(r, Exception) and r[0])
-            flash = f"<blockquote><b>» ✏️ ᴜᴘᴅᴀᴛᴇᴅ ɴᴀᴍᴇ ᴛᴏ '{new_name}' ғᴏʀ {success_count}/{len(sessions)} ᴜsᴇʀʙᴏᴛs!</b></blockquote>"
+            flash = f"<blockquote><b>» ✏️ Updated Name To '{new_name}' For {success_count}/{len(sessions)} Userbots!</b></blockquote>"
             await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
             return
  
@@ -3196,7 +3196,7 @@ def register_handlers(client):
                     s.setdefault("settings", {})["broadcast_interval"] = val
                     database.save_session(s)
                     userbot_manager.reload_bot_settings(s["phone"])
-                flash = f"<blockquote><b>» ⏱️ ɪɴᴛᴇʀᴠᴀʟ ᴜᴘᴅᴀᴛᴇᴅ ᴛᴏ {val}s ғᴏʀ ᴀʟʟ ʙᴏᴛs!</b></blockquote>"
+                flash = f"<blockquote><b>» ⏱️ Interval Updated To {val}s For All Bots!</b></blockquote>"
                 await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
                 return
             else:
@@ -3212,7 +3212,7 @@ def register_handlers(client):
                     s.setdefault("settings", {})["inter_group_delay"] = val
                     database.save_session(s)
                     userbot_manager.reload_bot_settings(s["phone"])
-                flash = f"<blockquote><b>» ⏱️ ɪɴᴛᴇʀ-ɢʀᴏᴜᴘ ᴅᴇʟᴀʏ ᴜᴘᴅᴀᴛᴇᴅ ᴛᴏ {val}s ғᴏʀ ᴀʟʟ ʙᴏᴛs!</b></blockquote>"
+                flash = f"<blockquote><b>» ⏱️ Inter-Group Delay Updated To {val}s For All Bots!</b></blockquote>"
                 await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
                 return
             else:
@@ -3229,11 +3229,11 @@ def register_handlers(client):
                     database.save_session(s)
                     if userbot_manager.is_bot_running(s["phone"]):
                         userbot_manager.reload_bot_settings(s["phone"])
-                flash = f"<blockquote><b>» ✅ ʀᴀɴᴅᴏᴍɪᴢᴇᴅ ᴍᴇssᴀɢᴇs ᴜᴘᴅᴀᴛᴇᴅ ғᴏʀ ᴀʟʟ ʙᴏᴛs ({len(msgs)} ᴍsɢs)!</b></blockquote>"
+                flash = f"<blockquote><b>» ✅ Randomized Messages Updated For All Bots ({len(msgs)} Msgs)!</b></blockquote>"
                 await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
                 return
             else:
-                await event.reply("<blockquote><b>» ❌ ᴍᴇssᴀɢᴇ ʟɪsᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ. sᴇᴘᴀʀᴀᴛᴇ ᴡɪᴛʜ ᴄᴏᴍᴍᴀs (,).</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Message List Cannot Be Empty. Separate With Commas (,).</b></blockquote>", parse_mode="html")
                 return
 
         elif action == "WAITING_FOR_ALL_AUTO_REPLY_SINGLE":
@@ -3247,11 +3247,11 @@ def register_handlers(client):
                     database.save_session(s)
                     userbot_manager.reload_bot_settings(s.get("phone", ""))
                     userbot_manager.reload_bot_settings(s.get("session_id", ""))
-                flash = "<blockquote><b>» 💬 sɪɴɢʟᴇ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴍᴇssᴀɢᴇ ᴜᴘᴅᴀᴛᴇᴅ ғᴏʀ ᴀʟʟ ʙᴏᴛs!</b></blockquote>"
+                flash = "<blockquote><b>» 💬 Single Tag Auto-Reply Message Updated For All Bots!</b></blockquote>"
                 await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
                 return
             else:
-                await event.reply("<blockquote><b>» ❌ ᴍᴇssᴀɢᴇ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Message Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
 
         elif action == "WAITING_FOR_ALL_AUTO_REPLY_MSGS":
@@ -3272,7 +3272,7 @@ def register_handlers(client):
                     database.save_session(s)
                     userbot_manager.reload_bot_settings(s.get("phone", ""))
                     userbot_manager.reload_bot_settings(s.get("session_id", ""))
-                flash = f"<blockquote><b>» ✅ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴍᴇssᴀɢᴇs ᴜᴘᴅᴀᴛᴇᴅ ғᴏʀ ᴀʟʟ ʙᴏᴛs ({len(msgs)} ᴍsɢs)!</b></blockquote>"
+                flash = f"<blockquote><b>» ✅ Tag Auto-Reply Messages Updated For All Bots ({len(msgs)} Msgs)!</b></blockquote>"
                 await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
                 return
             else:
@@ -3295,7 +3295,7 @@ def register_handlers(client):
                         if "run_expiry" in s:
                             del s["run_expiry"]
                         database.save_session(s)
-                    flash = "<blockquote><b>» ✅ ʀᴜɴ ᴛɪᴍᴇʀ ᴅɪsᴀʙʟᴇᴅ ғᴏʀ ᴀʟʟ ʙᴏᴛs!</b></blockquote>"
+                    flash = "<blockquote><b>» ✅ Run Timer Disabled For All Bots!</b></blockquote>"
                 else:
                     import time
                     expiry_time = time.time() + seconds
@@ -3303,12 +3303,12 @@ def register_handlers(client):
                     for s in sessions:
                         s["run_expiry"] = expiry_time
                         database.save_session(s)
-                    flash = f"<blockquote><b>» ✅ ʀᴜɴ ᴛɪᴍᴇʀ sᴇᴛ! ᴀʟʟ ʙᴏᴛs ᴡɪʟʟ sᴛᴏᴘ ᴀғᴛᴇʀ {raw_text}.</b></blockquote>"
+                    flash = f"<blockquote><b>» ✅ Run Timer Set! All Bots Will Stop After {raw_text}.</b></blockquote>"
                 
                 await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
                 return
             except ValueError:
-                await event.reply("<blockquote><b>» ❌ ɪɴᴠᴀʟɪᴅ ғᴏʀᴍᴀᴛ. ᴘʟᴇᴀsᴇ sᴇɴᴅ ᴀ ɴᴜᴍʙᴇʀ (ᴇ.ɢ., 2 ғᴏʀ ʜᴏᴜʀs, 30m ғᴏʀ ᴍɪɴᴜᴛᴇs, 0 ᴛᴏ ᴅɪsᴀʙʟᴇ).</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Invalid Format. Please Send A Number (E.G., 2 For Hours, 30m For Minutes, 0 To Disable).</b></blockquote>", parse_mode="html")
                 return
 
         elif action == "WAITING_FOR_ALL_SONG":
@@ -3341,7 +3341,7 @@ def register_handlers(client):
             if not is_audio_file:
                 query = event.text.strip() if event.text else ""
                 if not query:
-                    await event.reply("<blockquote><b>» ❌ ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ sᴏɴɢ ǫᴜᴇʀʏ ᴏʀ sᴇɴᴅ ᴀɴ ᴀᴜᴅɪᴏ ғɪʟᴇ.</b></blockquote>", parse_mode="html")
+                    await event.reply("<blockquote><b>» ❌ Please Provide A Song Query Or Send An Audio File.</b></blockquote>", parse_mode="html")
                     return
                     
             sessions = get_effective_sessions(user_id)
@@ -3354,10 +3354,10 @@ def register_handlers(client):
                     vc_bots.append((p, bot_obj))
                     
             if not vc_bots:
-                await event.reply("<blockquote><b>» ❌ ɴᴏ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs ᴀʀᴇ ɪɴ ᴀ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ No Running Userbots Are In A Voice Chat.</b></blockquote>", parse_mode="html")
                 return
                 
-            progress_msg = await event.reply(f"<blockquote><b>» ⏳ sᴛᴀʀᴛɪɴɢ ᴘʟᴀʏ ᴏɴ {len(vc_bots)} ᴜsᴇʀʙᴏᴛs ᴄᴏɴᴄᴜʀʀᴇɴᴛʟʏ...</b></blockquote>", parse_mode="html")
+            progress_msg = await event.reply(f"<blockquote><b>» ⏳ Starting Play On {len(vc_bots)} Userbots Concurrently...</b></blockquote>", parse_mode="html")
             
             async def _play_one_all_concurrent(p, bot_obj):
                 return await bot_obj.play_song(query, play_type="audio", local_file=local_file_path, title=audio_title, duration=audio_duration)
@@ -3410,9 +3410,9 @@ def register_handlers(client):
                                 logger.warning(f"Could not delete local file {file_path}: {e}")
                     asyncio.create_task(auto_delete())
                     
-                flash = f"<blockquote><b>» ✅ ᴘʟᴀʏɪɴɢ sᴏɴɢ:</b> {song_info_global['title']}</blockquote>"
+                flash = f"<blockquote><b>» ✅ Playing Song:</b> {song_info_global['title']}</blockquote>"
             else:
-                flash = "<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴘʟᴀʏ sᴏɴɢ ᴏɴ ᴀɴʏ ᴜsᴇʀʙᴏᴛ.</b></blockquote>"
+                flash = "<blockquote><b>» ❌ Failed To Play Song On Any Userbot.</b></blockquote>"
                 
             await show_all_slots_dashboard(event, user_id, flash_message=flash)
             return
@@ -3422,19 +3422,19 @@ def register_handlers(client):
             raw_text = (getattr(event, "raw_text", None) or event.text or "").strip()
             raw_text = re.sub(r'<[^>]+>', '', raw_text).strip()
             if not raw_text:
-                await event.reply("<blockquote><b>» ❌ ɢʀᴏᴜᴘ ɪɴᴠɪᴛᴇ ʟɪɴᴋ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Group Invite Link Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
                 
             strip_chars = "\'\"`()[]{}<> \t\n\r"
             links = [re.sub(r'<[^>]+>', '', x).strip().strip(strip_chars) for x in re.split(r'[,;\n\r\t]+', raw_text) if x.strip()]
             links = [x for x in links if x]
             if not links:
-                await event.reply("<blockquote><b>» ❌ ɴᴏ ᴠᴀʟɪᴅ ʟɪɴᴋs ᴘʀᴏᴠɪᴅᴇᴅ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ No Valid Links Provided.</b></blockquote>", parse_mode="html")
                 return
                 
             sessions = get_effective_sessions(user_id)
             if not sessions:
-                await event.reply("<blockquote><b>» ❌ ɴᴏ ᴜsᴇʀʙᴏᴛ sᴇssɪᴏɴs ғᴏᴜɴᴅ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ No Userbot Sessions Found.</b></blockquote>", parse_mode="html")
                 return
                 
             # Auto-start stopped bots if needed
@@ -3447,11 +3447,11 @@ def register_handlers(client):
                         
             running_phones = [s["phone"] for s in sessions if userbot_manager.is_bot_running(s["phone"])]
             if not running_phones:
-                await event.reply("<blockquote><b>» ❌ ɴᴏɴᴇ ᴏғ ᴛʜᴇ ᴜsᴇʀʙᴏᴛs ᴀʀᴇ ʀᴜɴɴɪɴɢ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ None Of The Userbots Are Running.</b></blockquote>", parse_mode="html")
                 return
                 
             progress_msg = await event.reply(
-                f"⏳ <b>ᴊᴏɪɴɪɴɢ {len(links)} ɢʀᴏᴜᴘ(s) ᴀᴄʀᴏss {len(running_phones)} ᴜsᴇʀʙᴏᴛ(s)...</b>",
+                f"⏳ <b>Joining {len(links)} Group(s) Across {len(running_phones)} Userbot(s)...</b>",
                 parse_mode="html"
             )
             
@@ -3477,8 +3477,8 @@ def register_handlers(client):
                         await asyncio.sleep(1.2)
                 try:
                     await progress_msg.edit(
-                        f"⏳ <b>ᴊᴏɪɴɪɴɢ ɢʀᴏᴜᴘs... (ʙᴏᴛ {p_idx}/{len(running_phones)})</b>\n\n"
-                        f"✅ <b>sᴜᴄᴄᴇssғᴜʟ :</b> {total_joins_success} | ❌ <b>ғᴀɪʟᴇᴅ :</b> {total_joins_failed}",
+                        f"⏳ <b>Joining Groups... (Bot {p_idx}/{len(running_phones)})</b>\n\n"
+                        f"✅ <b>Successful :</b> {total_joins_success} | ❌ <b>Failed :</b> {total_joins_failed}",
                         parse_mode="html"
                     )
                 except Exception:
@@ -3490,11 +3490,11 @@ def register_handlers(client):
                 pass
                 
             flash = (
-                f"<blockquote><b>» 📚 ᴀʟʟ sʟᴏᴛs : ɢʀᴏᴜᴘ ᴊᴏɪɴɪɴɢ ᴄᴏᴍᴘʟᴇᴛᴇᴅ</b>\n\n"
-                f"• <b>ᴛᴏᴛᴀʟ ᴜsᴇʀʙᴏᴛs :</b> <b>{len(running_phones)}</b>\n"
-                f"• <b>ᴛᴏᴛᴀʟ ɢʀᴏᴜᴘ ʟɪɴᴋs :</b> <b>{len(links)}</b>\n"
-                f"• <b>✅ sᴜᴄᴄᴇssғᴜʟ ᴊᴏɪɴs :</b> <b>{total_joins_success}</b>\n"
-                f"• <b>❌ ғᴀɪʟᴇᴅ ᴊᴏɪɴs :</b> <b>{total_joins_failed}</b></blockquote>"
+                f"<blockquote><b>» 📚 All Slots : Group Joining Completed</b>\n\n"
+                f"• <b>Total Userbots :</b> <b>{len(running_phones)}</b>\n"
+                f"• <b>Total Group Links :</b> <b>{len(links)}</b>\n"
+                f"• <b>✅ Successful Joins :</b> <b>{total_joins_success}</b>\n"
+                f"• <b>❌ Failed Joins :</b> <b>{total_joins_failed}</b></blockquote>"
             )
             await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
             return
@@ -3502,16 +3502,16 @@ def register_handlers(client):
         elif action == "WAITING_FOR_ALL_LEAVE_GRP":
             raw_text = event.text.strip()
             if not raw_text:
-                await event.reply("<blockquote><b>» ❌ ɪɴᴘᴜᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Input Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
             strip_chars = "\'\"`()[]{}<> \t\n\r"
             links = [x.strip().strip(strip_chars) for x in re.split(r'[,;\n\r\t]+', raw_text) if x.strip()]
             sessions = get_effective_sessions(user_id)
             running_phones = [s["phone"] for s in sessions if userbot_manager.is_bot_running(s["phone"])]
             if not running_phones:
-                await event.reply("<blockquote><b>» ❌ ɴᴏ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs ғᴏᴜɴᴅ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ No Running Userbots Found.</b></blockquote>", parse_mode="html")
                 return
-            progress_msg = await event.reply("⏳ <b>ʟᴇᴀᴠɪɴɢ ɢʀᴏᴜᴘ(s) ᴀᴄʀᴏss ᴀʟʟ ᴜsᴇʀʙᴏᴛs...</b>", parse_mode="html")
+            progress_msg = await event.reply("⏳ <b>Leaving Group(s) Across All Userbots...</b>", parse_mode="html")
             left_count = 0
             for phone_num in running_phones:
                 bot_obj = userbot_manager._running_bots.get(phone_num)
@@ -3528,25 +3528,25 @@ def register_handlers(client):
                 await progress_msg.delete()
             except Exception:
                 pass
-            flash = f"<blockquote><b>» ❌ ᴀʟʟ sʟᴏᴛs : ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ(s) ᴄᴏᴍᴘʟᴇᴛᴇᴅ</b>\n\n• <b>sᴜᴄᴄᴇssғᴜʟʟʏ ʟᴇғᴛ ɪɴsᴛᴀɴᴄᴇs :</b> <b>{left_count}</b></blockquote>"
+            flash = f"<blockquote><b>» ❌ All Slots : Leave Group(s) Completed</b>\n\n• <b>Successfully Left Instances :</b> <b>{left_count}</b></blockquote>"
             await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
             return
             
         # --- Handle Single Bot Actions ---
         if not phone:
-            await event.reply("<blockquote><b>» ❌ sᴇssɪᴏɴ ɴᴏᴛ ғᴏᴜɴᴅ.</b></blockquote>", parse_mode="html")
+            await event.reply("<blockquote><b>» ❌ Session Not Found.</b></blockquote>", parse_mode="html")
             return
             
         sess = database.get_session(phone)
         if not sess or not is_session_owner_or_admin(sess, user_id):
-            await event.reply("<blockquote><b>» ❌ sᴇssɪᴏɴ ᴇʀʀᴏʀ.</b></blockquote>", parse_mode="html")
+            await event.reply("<blockquote><b>» ❌ Session Error.</b></blockquote>", parse_mode="html")
             return
             
         # 1. Broadcast Message
         if action == "WAITING_FOR_BROADCAST":
             sess["settings"]["broadcast_msg"] = event.text
             database.save_session(sess)
-            flash = "<blockquote><b>» ✉️ ʙʀᴏᴀᴅᴄᴀsᴛ ᴍᴇssᴀɢᴇ ᴜᴘᴅᴀᴛᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ!</b></blockquote>"
+            flash = "<blockquote><b>» ✉️ Broadcast Message Updated Successfully!</b></blockquote>"
             
         elif action == "WAITING_FOR_RUN_TIMER":
             raw_text = event.text.strip().lower()
@@ -3562,45 +3562,45 @@ def register_handlers(client):
                     if "run_expiry" in sess:
                         del sess["run_expiry"]
                     database.save_session(sess)
-                    flash = "<blockquote><b>» ✅ ʀᴜɴ ᴛɪᴍᴇʀ ᴅɪsᴀʙʟᴇᴅ!</b></blockquote>"
+                    flash = "<blockquote><b>» ✅ Run Timer Disabled!</b></blockquote>"
                 else:
                     import time
                     expiry_time = time.time() + seconds
                     sess["run_expiry"] = expiry_time
                     database.save_session(sess)
-                    flash = f"<blockquote><b>» ✅ ʀᴜɴ ᴛɪᴍᴇʀ sᴇᴛ! ʙᴏᴛ ᴡɪʟʟ sᴛᴏᴘ ᴀғᴛᴇʀ {raw_text}.</b></blockquote>"
+                    flash = f"<blockquote><b>» ✅ Run Timer Set! Bot Will Stop After {raw_text}.</b></blockquote>"
             except ValueError:
-                await event.reply("<blockquote><b>» ❌ ɪɴᴠᴀʟɪᴅ ғᴏʀᴍᴀᴛ. ᴘʟᴇᴀsᴇ sᴇɴᴅ ᴀ ɴᴜᴍʙᴇʀ (ᴇ.ɢ., 2 ғᴏʀ ʜᴏᴜʀs, 30m ғᴏʀ ᴍɪɴᴜᴛᴇs, 0 ᴛᴏ ᴅɪsᴀʙʟᴇ).</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Invalid Format. Please Send A Number (E.G., 2 For Hours, 30m For Minutes, 0 To Disable).</b></blockquote>", parse_mode="html")
                 return
             
         # 2. Welcome Message
         elif action == "WAITING_FOR_WELCOME":
             sess["settings"]["welcome_msg"] = event.text
             database.save_session(sess)
-            flash = "<blockquote><b>» 👋 ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇ ᴜᴘᴅᴀᴛᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ!</b></blockquote>"
+            flash = "<blockquote><b>» 👋 Welcome Message Updated Successfully!</b></blockquote>"
             
         # 2.b Multiple Welcome Messages
         elif action == "WAITING_FOR_MULTI_WELCOME":
             msgs = [x.strip() for x in event.text.split("|") if x.strip()]
             if not msgs:
-                await event.reply("<blockquote><b>» ❌ ɪɴᴘᴜᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Input Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
             sess["settings"]["welcome_messages"] = msgs
             database.save_session(sess)
-            flash = "<blockquote><b>» 👋 ᴍᴜʟᴛɪᴘʟᴇ ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇs ᴜᴘᴅᴀᴛᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ!</b></blockquote>"
+            flash = "<blockquote><b>» 👋 Multiple Welcome Messages Updated Successfully!</b></blockquote>"
             
         # 2.5 Join VC Link
         elif action == "WAITING_FOR_VC_LINK":
             link = event.text.strip()
             if not link:
-                await event.reply("<blockquote><b>» ❌ ᴄʜᴀᴛ ɪᴅ/ᴜsᴇʀɴᴀᴍᴇ/ʟɪɴᴋ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Chat Id/Username/Link Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
                 
             if not userbot_manager.is_bot_running(phone):
-                await event.reply("<blockquote><b>» ❌ ᴜsᴇʀʙᴏᴛ ɪs ɴᴏᴛ ʀᴜɴɴɪɴɢ. ᴘʟᴇᴀsᴇ sᴛᴀʀᴛ ɪᴛ ғɪʀsᴛ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Userbot Is Not Running. Please Start It First.</b></blockquote>", parse_mode="html")
                 return
                 
-            progress_msg = await event.reply("⏳ <b>ᴊᴏɪɴɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ, ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ...</b>", parse_mode="html")
+            progress_msg = await event.reply("⏳ <b>Joining Voice Chat, Please Wait...</b>", parse_mode="html")
             bot_obj = userbot_manager._running_bots[phone]
             success, msg = await bot_obj.join_voice_chat(link)
             try:
@@ -3609,34 +3609,34 @@ def register_handlers(client):
                 pass
             
             if success:
-                flash = f"<blockquote><b>» ✅ ᴊᴏɪɴᴇᴅ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ!</b>\n{msg}</blockquote>"
+                flash = f"<blockquote><b>» ✅ Joined Voice Chat!</b>\n{msg}</blockquote>"
             else:
-                flash = f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴠᴄ:</b> {msg}</blockquote>"
+                flash = f"<blockquote><b>» ❌ Failed To Join Vc:</b> {msg}</blockquote>"
 
         # 2.6 Join Group via Link or Multiple Links (Single Bot)
         elif action in ("WAITING_FOR_VC_GRP_LINK", "WAITING_FOR_VC_MULTI_GRP_LINK"):
             raw_text = (getattr(event, "raw_text", None) or event.text or "").strip()
             raw_text = re.sub(r'<[^>]+>', '', raw_text).strip()
             if not raw_text:
-                await event.reply("<blockquote><b>» ❌ ɢʀᴏᴜᴘ ɪɴᴠɪᴛᴇ ʟɪɴᴋ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Group Invite Link Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
                 
             if not userbot_manager.is_bot_running(phone):
-                await event.reply("<blockquote><b>» ❌ ᴜsᴇʀʙᴏᴛ ɪs ɴᴏᴛ ʀᴜɴɴɪɴɢ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Userbot Is Not Running.</b></blockquote>", parse_mode="html")
                 return
                 
             strip_chars = "\'\"`()[]{}<> \t\n\r"
             links = [re.sub(r'<[^>]+>', '', x).strip().strip(strip_chars) for x in re.split(r'[,;\n\r\t]+', raw_text) if x.strip()]
             links = [x for x in links if x]
             if not links:
-                await event.reply("<blockquote><b>» ❌ ɴᴏ ᴠᴀʟɪᴅ ʟɪɴᴋs ᴘʀᴏᴠɪᴅᴇᴅ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ No Valid Links Provided.</b></blockquote>", parse_mode="html")
                 return
                 
             bot_obj = userbot_manager._running_bots[phone]
             
             if len(links) == 1:
                 link = links[0]
-                progress_msg = await event.reply("⏳ <b>ᴊᴏɪɴɪɴɢ ɢʀᴏᴜᴘ, ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ...</b>", parse_mode="html")
+                progress_msg = await event.reply("⏳ <b>Joining Group, Please Wait...</b>", parse_mode="html")
                 success = await join_channel_single(bot_obj.client, link)
                 try:
                     await progress_msg.delete()
@@ -3644,11 +3644,11 @@ def register_handlers(client):
                     pass
                 if success:
                     bot_obj.groups_cache_time = 0
-                    flash = f"<blockquote><b>» ✅ sᴜᴄᴄᴇssғᴜʟʟʏ ᴊᴏɪɴᴇᴅ ɢʀᴏᴜᴘ!</b>\n\n• <b>ᴛᴀʀɢᴇᴛ :</b> <code>{link}</code>\n• <i>ʏᴏᴜ ᴄᴀɴ ɴᴏᴡ ᴄʟɪᴄᴋ '🎙️ ᴊᴏɪɴ ᴠᴄ' ᴛᴏ ᴇɴᴛᴇʀ ᴛʜᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.</i></blockquote>"
+                    flash = f"<blockquote><b>» ✅ Successfully Joined Group!</b>\n\n• <b>Target :</b> <code>{link}</code>\n• <i>You Can Now Click '🎙️ Join Vc' To Enter The Voice Chat.</i></blockquote>"
                 else:
-                    flash = f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴊᴏɪɴ ɢʀᴏᴜᴘ</b>\n\n• <b>ᴛᴀʀɢᴇᴛ :</b> <code>{link}</code>\n• <i>ᴍᴀᴋᴇ sᴜʀᴇ ᴛʜᴇ ʟɪɴᴋ ɪs ᴠᴀʟɪᴅ ᴏʀ ɴᴏᴛ ᴇxᴘɪʀᴇᴅ.</i></blockquote>"
+                    flash = f"<blockquote><b>» ❌ Failed To Join Group</b>\n\n• <b>Target :</b> <code>{link}</code>\n• <i>Make Sure The Link Is Valid Or Not Expired.</i></blockquote>"
             else:
-                progress_msg = await event.reply(f"⏳ <b>ᴊᴏɪɴɪɴɢ {len(links)} ɢʀᴏᴜᴘs... (0/{len(links)})</b>", parse_mode="html")
+                progress_msg = await event.reply(f"⏳ <b>Joining {len(links)} Groups... (0/{len(links)})</b>", parse_mode="html")
                 success_count = 0
                 failed_count = 0
                 for idx, link in enumerate(links, 1):
@@ -3664,8 +3664,8 @@ def register_handlers(client):
                         failed_count += 1
                     try:
                         await progress_msg.edit(
-                            f"⏳ <b>ᴊᴏɪɴɪɴɢ {len(links)} ɢʀᴏᴜᴘs... ({idx}/{len(links)})</b>\n\n"
-                            f"✅ <b>sᴜᴄᴄᴇss :</b> {success_count} | ❌ <b>ғᴀɪʟᴇᴅ :</b> {failed_count}",
+                            f"⏳ <b>Joining {len(links)} Groups... ({idx}/{len(links)})</b>\n\n"
+                            f"✅ <b>Success :</b> {success_count} | ❌ <b>Failed :</b> {failed_count}",
                             parse_mode="html"
                         )
                     except Exception:
@@ -3679,10 +3679,10 @@ def register_handlers(client):
                     pass
                     
                 flash = (
-                    f"<blockquote><b>» 📚 ᴍᴜʟᴛɪᴘʟᴇ ɢʀᴏᴜᴘs ᴊᴏɪɴ ᴄᴏᴍᴘʟᴇᴛᴇᴅ</b>\n\n"
-                    f"• <b>ᴛᴏᴛᴀʟ ʟɪɴᴋs :</b> <b>{len(links)}</b>\n"
-                    f"• <b>✅ sᴜᴄᴄᴇssғᴜʟʟʏ ᴊᴏɪɴᴇᴅ :</b> <b>{success_count}</b>\n"
-                    f"• <b>❌ ғᴀɪʟᴇᴅ :</b> <b>{failed_count}</b></blockquote>"
+                    f"<blockquote><b>» 📚 Multiple Groups Join Completed</b>\n\n"
+                    f"• <b>Total Links :</b> <b>{len(links)}</b>\n"
+                    f"• <b>✅ Successfully Joined :</b> <b>{success_count}</b>\n"
+                    f"• <b>❌ Failed :</b> <b>{failed_count}</b></blockquote>"
                 )
                 
             await show_bot_dashboard(event, phone, user_id, flash_message=flash)
@@ -3693,21 +3693,21 @@ def register_handlers(client):
             raw_text = (getattr(event, "raw_text", None) or event.text or "").strip()
             raw_text = re.sub(r'<[^>]+>', '', raw_text).strip()
             if not raw_text:
-                await event.reply("<blockquote><b>» ❌ ɪɴᴘᴜᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Input Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
                 
             if not userbot_manager.is_bot_running(phone):
-                await event.reply("<blockquote><b>» ❌ ᴜsᴇʀʙᴏᴛ ɪs ɴᴏᴛ ʀᴜɴɴɪɴɢ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Userbot Is Not Running.</b></blockquote>", parse_mode="html")
                 return
                 
             strip_chars = "\'\"`()[]{}<> \t\n\r"
             links = [re.sub(r'<[^>]+>', '', x).strip().strip(strip_chars) for x in re.split(r'[,;\n\r\t]+', raw_text) if x.strip()]
             links = [x for x in links if x]
             if not links:
-                await event.reply("<blockquote><b>» ❌ ɴᴏ ᴠᴀʟɪᴅ ʟɪɴᴋs ᴘʀᴏᴠɪᴅᴇᴅ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ No Valid Links Provided.</b></blockquote>", parse_mode="html")
                 return
                 
-            progress_msg = await event.reply("⏳ <b>ʟᴇᴀᴠɪɴɢ ɢʀᴏᴜᴘ/ᴄʜᴀɴɴᴇʟ, ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ...</b>", parse_mode="html")
+            progress_msg = await event.reply("⏳ <b>Leaving Group/Channel, Please Wait...</b>", parse_mode="html")
             bot_obj = userbot_manager._running_bots[phone]
             left_cnt = 0
             for lk in links:
@@ -3722,9 +3722,9 @@ def register_handlers(client):
                 pass
             
             if left_cnt > 0:
-                flash = f"<blockquote><b>» ✅ sᴜᴄᴄᴇssғᴜʟʟʏ ʟᴇғᴛ {left_cnt} ɢʀᴏᴜᴘ(s)!</b></blockquote>"
+                flash = f"<blockquote><b>» ✅ Successfully Left {left_cnt} Group(s)!</b></blockquote>"
             else:
-                flash = "<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ(s). ᴄʜᴇᴄᴋ ʟɪɴᴋ/ɪᴅ.</b></blockquote>"
+                flash = "<blockquote><b>» ❌ Failed To Leave Group(s). Check Link/Id.</b></blockquote>"
                 
             await show_bot_dashboard(event, phone, user_id, flash_message=flash)
             return
@@ -3733,11 +3733,11 @@ def register_handlers(client):
         elif action == "WAITING_FOR_CLONE_TARGET":
             target = event.text.strip()
             if not target:
-                await event.reply("<blockquote><b>» ❌ ᴛᴀʀɢᴇᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ. ᴘʟᴇᴀsᴇ ᴇɴᴛᴇʀ ᴀ ᴠᴀʟɪᴅ ᴜsᴇʀɴᴀᴍᴇ/ɪᴅ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Target Cannot Be Empty. Please Enter A Valid Username/Id.</b></blockquote>", parse_mode="html")
                 return
                 
             clone_type = state.get("clone_type", "complete")
-            progress_msg = await event.reply("<blockquote><b>» ⏳ ᴄʟᴏɴɪɴɢ ᴘʀᴏғɪʟᴇ ᴅᴇᴛᴀɪʟs, ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ...</b></blockquote>", parse_mode="html")
+            progress_msg = await event.reply("<blockquote><b>» ⏳ Cloning Profile Details, Please Wait...</b></blockquote>", parse_mode="html")
             success, msg = await userbot_manager.clone_profile(phone, target, clone_type=clone_type, fallback_client=client)
             try:
                 await progress_msg.delete()
@@ -3745,17 +3745,17 @@ def register_handlers(client):
                 pass
             
             if success:
-                flash = f"<blockquote><b>» ✅ ᴘʀᴏғɪʟᴇ sᴜᴄᴄᴇssғᴜʟʟʏ ᴄʟᴏɴᴇᴅ!</b>\n{msg}</blockquote>"
+                flash = f"<blockquote><b>» ✅ Profile Successfully Cloned!</b>\n{msg}</blockquote>"
             else:
-                flash = f"<blockquote><b>» ❌ ᴄʟᴏɴɪɴɢ ғᴀɪʟᴇᴅ:</b>\n{msg}</blockquote>"
+                flash = f"<blockquote><b>» ❌ Cloning Failed:</b>\n{msg}</blockquote>"
 
         # 4. Change Name
         elif action == "WAITING_FOR_NAME":
             new_name = event.text.strip()
             if not new_name:
-                await event.reply("<blockquote><b>» ❌ ɴᴀᴍᴇ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Name Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
-            progress_msg = await event.reply("<blockquote><b>» ⏳ ᴜᴘᴅᴀᴛɪɴɢ ᴀᴄᴄᴏᴜɴᴛ ɴᴀᴍᴇ...</b></blockquote>", parse_mode="html")
+            progress_msg = await event.reply("<blockquote><b>» ⏳ Updating Account Name...</b></blockquote>", parse_mode="html")
             success, msg = await userbot_manager.set_userbot_name(phone, new_name)
             try:
                 await progress_msg.delete()
@@ -3773,7 +3773,7 @@ def register_handlers(client):
                 val = int(val_str)
                 sess["settings"]["broadcast_interval"] = val
                 database.save_session(sess)
-                flash = f"<blockquote><b>» ⏱️ ɪɴᴛᴇʀᴠᴀʟ ᴜᴘᴅᴀᴛᴇᴅ ᴛᴏ {val}s</b></blockquote>"
+                flash = f"<blockquote><b>» ⏱️ Interval Updated To {val}s</b></blockquote>"
             else:
                 await event.reply(utils.get_text("interval_invalid", lang))
                 return
@@ -3785,7 +3785,7 @@ def register_handlers(client):
                 val = int(val_str)
                 sess.setdefault("settings", {})["inter_group_delay"] = val
                 database.save_session(sess)
-                flash = f"<blockquote><b>» ⏱️ ɪɴᴛᴇʀ-ɢʀᴏᴜᴘ ᴅᴇʟᴀʏ ᴜᴘᴅᴀᴛᴇᴅ ᴛᴏ {val}s</b></blockquote>"
+                flash = f"<blockquote><b>» ⏱️ Inter-Group Delay Updated To {val}s</b></blockquote>"
             else:
                 await event.reply(utils.get_text("inter_delay_invalid", lang))
                 return
@@ -3797,9 +3797,9 @@ def register_handlers(client):
             if msgs:
                 sess.setdefault("settings", {})["broadcast_messages"] = msgs
                 database.save_session(sess)
-                flash = f"<blockquote><b>» ✅ sᴜᴄᴄᴇssғᴜʟʟʏ sᴇᴛ {len(msgs)} ᴍᴇssᴀɢᴇs ғᴏʀ ʀᴀɴᴅᴏᴍɪᴢᴇᴅ ʙʀᴏᴀᴅᴄᴀsᴛ!</b></blockquote>"
+                flash = f"<blockquote><b>» ✅ Successfully Set {len(msgs)} Messages For Randomized Broadcast!</b></blockquote>"
             else:
-                await event.reply("<blockquote><b>» ❌ ᴍᴇssᴀɢᴇ ʟɪsᴛ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ. sᴇᴘᴀʀᴀᴛᴇ ᴡɪᴛʜ ᴄᴏᴍᴍᴀs (,).</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Message List Cannot Be Empty. Separate With Commas (,).</b></blockquote>", parse_mode="html")
                 return
 
         # 5.6.4 Single Auto Reply Message
@@ -3812,9 +3812,9 @@ def register_handlers(client):
                 database.save_session(sess)
                 userbot_manager.reload_bot_settings(phone)
                 userbot_manager.reload_bot_settings(sess.get("session_id", phone))
-                flash = "<blockquote><b>» 💬 sɪɴɢʟᴇ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴍᴇssᴀɢᴇ ᴜᴘᴅᴀᴛᴇᴅ!</b></blockquote>"
+                flash = "<blockquote><b>» 💬 Single Tag Auto-Reply Message Updated!</b></blockquote>"
             else:
-                await event.reply("<blockquote><b>» ❌ ᴍᴇssᴀɢᴇ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Message Cannot Be Empty.</b></blockquote>", parse_mode="html")
                 return
 
         # 5.6.5 Auto Reply Messages
@@ -3834,7 +3834,7 @@ def register_handlers(client):
                 database.save_session(sess)
                 userbot_manager.reload_bot_settings(phone)
                 userbot_manager.reload_bot_settings(sess.get("session_id", phone))
-                flash = f"<blockquote><b>» ✅ ᴛᴀɢ ᴀᴜᴛᴏ-ʀᴇᴘʟʏ ᴍᴇssᴀɢᴇs ᴜᴘᴅᴀᴛᴇᴅ ({len(msgs)} ᴍsɢs)!</b></blockquote>"
+                flash = f"<blockquote><b>» ✅ Tag Auto-Reply Messages Updated ({len(msgs)} Msgs)!</b></blockquote>"
             else:
                 await event.reply(utils.get_text("auto_reply_invalid", lang))
                 return
@@ -3870,15 +3870,15 @@ def register_handlers(client):
             if not is_audio_file:
                 query = event.text.strip() if event.text else ""
                 if not query:
-                    await event.reply("<blockquote><b>» ❌ ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ sᴏɴɢ ǫᴜᴇʀʏ ᴏʀ sᴇɴᴅ ᴀɴ ᴀᴜᴅɪᴏ ғɪʟᴇ.</b></blockquote>", parse_mode="html")
+                    await event.reply("<blockquote><b>» ❌ Please Provide A Song Query Or Send An Audio File.</b></blockquote>", parse_mode="html")
                     return
                 
             if not userbot_manager.is_bot_running(phone):
-                await event.reply("<blockquote><b>» ❌ ᴜsᴇʀʙᴏᴛ ɪs ɴᴏᴛ ʀᴜɴɴɪɴɢ.</b></blockquote>", parse_mode="html")
+                await event.reply("<blockquote><b>» ❌ Userbot Is Not Running.</b></blockquote>", parse_mode="html")
                 return
                 
             bot_obj = userbot_manager._running_bots[phone]
-            progress_msg = await event.reply("⏳ <b>ᴘʟᴀʏɪɴɢ sᴏɴɢ, ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ...</b>", parse_mode="html")
+            progress_msg = await event.reply("⏳ <b>Playing Song, Please Wait...</b>", parse_mode="html")
             success, msg, song_info = await bot_obj.play_song(query, play_type="audio", local_file=local_file_path, title=audio_title, duration=audio_duration)
             try:
                 await progress_msg.delete()
@@ -3920,13 +3920,13 @@ def register_handlers(client):
                                 logger.warning(f"Could not delete local file {file_path}: {e}")
                     asyncio.create_task(auto_delete())
                     
-                flash = f"<blockquote><b>» ✅ ᴘʟᴀʏɪɴɢ sᴏɴɢ:</b> {song_info['title']}</blockquote>"
+                flash = f"<blockquote><b>» ✅ Playing Song:</b> {song_info['title']}</blockquote>"
             else:
-                flash = f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴘʟᴀʏ:</b> {msg}</blockquote>"
+                flash = f"<blockquote><b>» ❌ Failed To Play:</b> {msg}</blockquote>"
                 
         else:
             logger.warning(f"Unhandled action in text_input_handler: {action}")
-            flash = "<blockquote><b>» ⚠️ ᴜɴᴋɴᴏᴡɴ ᴏʀ ᴇxᴘɪʀᴇᴅ ᴀᴄᴛɪᴏɴ.</b></blockquote>"
+            flash = "<blockquote><b>» ⚠️ Unknown Or Expired Action.</b></blockquote>"
 
         # Return to dashboard showing updated stats and flash notification
         userbot_manager.reload_bot_settings(phone)

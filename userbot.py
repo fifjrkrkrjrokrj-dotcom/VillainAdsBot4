@@ -2175,9 +2175,9 @@ class UserBot:
                             from handlers.player import _active_chat_players, _chat_queues, _track_timer_tasks, _preparing_chats, get_chat_lock, play_next_in_queue
                             
                             inquiry_text = utils.format_html_message(
-                                f"<blockquote><b>» 🎧 ᴘʟᴀʏɪɴɢ ɪɴǫᴜɪʀʏ...</b>\n\n"
+                                f"<blockquote><b>» 🎧 Playing Inquiry...</b>\n\n"
                                 f"🔍 <i>{query or 'replied media'}</i>\n"
-                                f"⏳ <b>sᴛᴀᴛᴜs :</b> ᴘʀᴇᴘᴀʀɪɴɢ {play_type} sᴛʀᴇᴀᴍ... 🎶</blockquote>"
+                                f"⏳ <b>Status :</b> Preparing {play_type} Stream... 🎶</blockquote>"
                             )
                             if is_outgoing:
                                 try:
@@ -2197,22 +2197,22 @@ class UserBot:
                                     except Exception as dl_err:
                                         await prog.edit(
                                             utils.format_html_message(
-                                                f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ᴍᴇᴅɪᴀ</b>\n\n"
-                                                f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{dl_err}</code></blockquote>"
+                                                f"<blockquote><b>» ❌ Failed To Download Media</b>\n\n"
+                                                f"⚠️ <b>Error :</b> <code>{dl_err}</code></blockquote>"
                                             )
                                         )
                                         return
                             elif not query:
                                 await prog.edit(
                                     utils.format_html_message(
-                                        f"<blockquote><b>» 💡 ᴍᴜsɪᴄ ᴘʟᴀʏᴇʀ ᴜsᴀɢᴇ ɢᴜɪᴅᴇ</b>\n\n"
-                                        f"• <code>.{cmd} &lt;song name&gt;</code> (ᴇ.ɢ. <code>.{cmd} Faded Alan Walker</code>)\n"
+                                        f"<blockquote><b>» 💡 Music Player Usage Guide</b>\n\n"
+                                        f"• <code>.{cmd} &lt;song name&gt;</code> (E.G. <code>.{cmd} Faded Alan Walker</code>)\n"
                                         f"• <code>/{cmd} &lt;song name&gt;</code>\n"
-                                        f"• <code>.playforce &lt;song name&gt;</code> (ғᴏʀᴄᴇ ᴘʟᴀʏ ɴᴏᴡ)\n"
+                                        f"• <code>.playforce &lt;song name&gt;</code> (Force Play Now)\n"
                                         f"• <code>.queue</code> / <code>.skip</code>\n"
-                                        f"• <b>ᴛʜᴜᴍʙɴᴀɪʟ ᴍᴏᴅᴇ :</b> <code>.thumb on</code> ᴏʀ <code>.thumb off</code>\n"
-                                        f"• ʀᴇᴘʟʏ ᴛᴏ ᴀɴʏ ᴀᴜᴅɪᴏ/ᴠɪᴅᴇᴏ ғɪʟᴇ ᴡɪᴛʜ <code>.{cmd}</code>\n\n"
-                                        f"⚡ <i>sᴛᴀʀᴛ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ʙᴇғᴏʀᴇ sᴛʀᴇᴀᴍɪɴɢ.</i></blockquote>"
+                                        f"• <b>Thumbnail Mode :</b> <code>.thumb on</code> Or <code>.thumb off</code>\n"
+                                        f"• Reply To Any Audio/Video File With <code>.{cmd}</code>\n\n"
+                                        f"⚡ <i>Start Group Voice Chat Before Streaming.</i></blockquote>"
                                     )
                                 )
                                 return
@@ -2255,16 +2255,16 @@ class UserBot:
                                     pos = len(_chat_queues[chat_id])
                                     mins, secs = divmod(audio_duration or 0, 60)
                                     dur_str = f"{mins:02d}:{secs:02d}" if audio_duration else "03:00"
-                                    mode_emoji = "🎬 ᴠɪᴅᴇᴏ" if play_type == "video" else "🎙️ ᴀᴜᴅɪᴏ"
+                                    mode_emoji = "🎬 Video" if play_type == "video" else "🎙️ Audio"
                                     
                                     await prog.edit(
                                         utils.format_html_message(
-                                            f"<blockquote><b>» 📋 ᴀᴅᴅᴇᴅ ᴛᴏ ǫᴜᴇᴜᴇ : #{pos}</b>\n\n"
-                                            f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{audio_title or query}</b>\n"
-                                            f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
-                                            f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
-                                            f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{sender_name}</a>\n\n"
-                                            f"💡 <i>ᴛʀᴀᴄᴋ ᴡɪʟʟ ᴘʟᴀʏ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀғᴛᴇʀ ᴄᴜʀʀᴇɴᴛ sᴏɴɢ ғɪɴɪsʜᴇs.</i></blockquote>"
+                                            f"<blockquote><b>» 📋 Added To Queue : #{pos}</b>\n\n"
+                                            f"<b>📌 Title :</b> <b>{audio_title or query}</b>\n"
+                                            f"<b>⏱️ Duration :</b> <code>{dur_str}</code>\n"
+                                            f"<b>🎧 Mode :</b> <b>{mode_emoji}</b>\n"
+                                            f"<b>👤 Requested By :</b> <a href=\"tg://user?id={requester_id}\">{sender_name}</a>\n\n"
+                                            f"💡 <i>Track Will Play Automatically After Current Song Finishes.</i></blockquote>"
                                         )
                                     )
                                     return
@@ -2274,8 +2274,8 @@ class UserBot:
                             try:
                                 await prog.edit(
                                     utils.format_html_message(
-                                        f"<blockquote><b>» ⏳ ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
-                                        f"🎙️ <i>ᴄᴏɴɴᴇᴄᴛɪɴɢ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ & sᴛᴀʀᴛɪɴɢ sᴛʀᴇᴀᴍ ᴘɪᴘᴇʟɪɴᴇ...</i></blockquote>"
+                                        f"<blockquote><b>» ⏳ Connecting To Voice Chat</b>\n\n"
+                                        f"🎙️ <i>Connecting To Voice Chat & Starting Stream Pipeline...</i></blockquote>"
                                     )
                                 )
                                 
@@ -2296,9 +2296,9 @@ class UserBot:
                                 if not success or not song_info:
                                     await prog.edit(
                                         utils.format_html_message(
-                                            f"<blockquote><b>» ❌ ᴘʟᴀʏʙᴀᴄᴋ ғᴀɪʟᴇᴅ</b>\n\n"
-                                            f"⚠️ <b>ᴇʀʀᴏʀ :</b> <code>{msg}</code>\n\n"
-                                            f"💡 <b>ᴛɪᴘ :</b> ᴍᴀᴋᴇ sᴜʀᴇ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ɪs sᴛᴀʀᴛᴇᴅ!</blockquote>"
+                                            f"<blockquote><b>» ❌ Playback Failed</b>\n\n"
+                                            f"⚠️ <b>Error :</b> <code>{msg}</code>\n\n"
+                                            f"💡 <b>Tip :</b> Make Sure Group Voice Chat Is Started!</blockquote>"
                                         )
                                     )
                                     return
@@ -2309,16 +2309,16 @@ class UserBot:
                             duration = song_info.get("duration", 0)
                             mins, secs = divmod(duration, 60)
                             dur_str = f"{mins:02d}:{secs:02d}" if duration > 0 else "Live Stream"
-                            mode_emoji = "🎬 ᴠɪᴅᴇᴏ sᴛʀᴇᴀᴍ" if play_type == "video" else "🎙️ ᴀᴜᴅɪᴏ sᴛʀᴇᴀᴍ"
+                            mode_emoji = "🎬 Video Stream" if play_type == "video" else "🎙️ Audio Stream"
                             
                             np_text = utils.format_html_message(
-                                f"<blockquote><b>» 🎵 ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ</b>\n\n"
-                                f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{title}</b>\n"
-                                f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
-                                f"<b>🎧 ᴍᴏᴅᴇ :</b> <b>{mode_emoji}</b>\n"
-                                f"<b>👤 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> <a href=\"tg://user?id={requester_id}\">{sender_name}</a>\n"
-                                f"<b>🤖 sᴛʀᴇᴀᴍ sᴏᴜʀᴄᴇ :</b> <b>{self.name}</b>\n\n"
-                                f"⚡ <i>ᴄᴏɴᴛʀᴏʟs : .pause, .resume, .skip, .queue, .stop, .vc</i></blockquote>"
+                                f"<blockquote><b>» 🎵 Now Streaming</b>\n\n"
+                                f"<b>📌 Title :</b> <b>{title}</b>\n"
+                                f"<b>⏱️ Duration :</b> <code>{dur_str}</code>\n"
+                                f"<b>🎧 Mode :</b> <b>{mode_emoji}</b>\n"
+                                f"<b>👤 Requested By :</b> <a href=\"tg://user?id={requester_id}\">{sender_name}</a>\n"
+                                f"<b>🤖 Stream Source :</b> <b>{self.name}</b>\n\n"
+                                f"⚡ <i>Controls : .pause, .resume, .skip, .queue, .stop, .vc</i></blockquote>"
                             )
                             
                             _active_chat_players[chat_id] = {
@@ -2402,8 +2402,8 @@ class UserBot:
                                 await self.stop_song(chat_id)
                                 prog = await event.respond(
                                     utils.format_html_message(
-                                        "<blockquote><b>» ⏭️ ǫᴜᴇᴜᴇ ᴇᴍᴘᴛʏ</b>\n\n"
-                                        "ɴᴏ ᴍᴏʀᴇ sᴏɴɢs ɪɴ ǫᴜᴇᴜᴇ. sᴛʀᴇᴀᴍ ʜᴀs ʙᴇᴇɴ sᴛᴏᴘᴘᴇᴅ.</blockquote>"
+                                        "<blockquote><b>» ⏭️ Queue Empty</b>\n\n"
+                                        "No More Songs In Queue. Stream Has Been Stopped.</blockquote>"
                                     )
                                 )
                                 await asyncio.sleep(3)
@@ -2415,8 +2415,8 @@ class UserBot:
 
                             prog = await event.respond(
                                 utils.format_html_message(
-                                    "<blockquote><b>» ⏭️ sᴋɪᴘᴘɪɴɢ ᴛʀᴀᴄᴋ</b>\n\n"
-                                    "sᴋɪᴘᴘɪɴɢ ᴛᴏ ɴᴇxᴛ sᴏɴɢ ɪɴ ǫᴜᴇᴜᴇ...</blockquote>"
+                                    "<blockquote><b>» ⏭️ Skipping Track</b>\n\n"
+                                    "Skipping To Next Song In Queue...</blockquote>"
                                 )
                             )
                             await play_next_in_queue(chat_id)
@@ -2434,8 +2434,8 @@ class UserBot:
                             if not active and not queue:
                                 prog = await event.reply(
                                     utils.format_html_message(
-                                        "<blockquote><b>» 📜 ǫᴜᴇᴜᴇ ᴘʟᴀʏʟɪsᴛ</b>\n\n"
-                                        "<i>ǫᴜᴇᴜᴇ ɪs ᴄᴜʀʀᴇɴᴛʟʏ ᴇᴍᴘᴛʏ. ᴜsᴇ <code>.play &lt;song&gt;</code> ᴛᴏ ᴀᴅᴅ ᴛʀᴀᴄᴋs!</i></blockquote>"
+                                        "<blockquote><b>» 📜 Queue Playlist</b>\n\n"
+                                        "<i>Queue Is Currently Empty. Use <code>.play &lt;song&gt;</code> To Add Tracks!</i></blockquote>"
                                     )
                                 )
                                 return
@@ -2447,13 +2447,13 @@ class UserBot:
                             np_dur_str = f"{mins:02d}:{secs:02d}" if np_dur else "Live"
                             
                             text = (
-                                "<blockquote><b>» 📜 ǫᴜᴇᴜᴇ ᴘʟᴀʏʟɪsᴛ</b>\n\n"
-                                f"🎵 <b>ɴᴏᴡ ᴘʟᴀʏɪɴɢ :</b>\n"
+                                "<blockquote><b>» 📜 Queue Playlist</b>\n\n"
+                                f"🎵 <b>Now Playing :</b>\n"
                                 f"• <b>{np_title}</b> (<code>{np_dur_str}</code>)\n\n"
                             )
                             
                             if queue:
-                                text += "📋 <b>ᴜᴘᴄᴏᴍɪɴɢ ǫᴜᴇᴜᴇ :</b>\n"
+                                text += "📋 <b>Upcoming Queue :</b>\n"
                                 for idx, item in enumerate(queue[:10], 1):
                                     item_title = item.get("title") or item.get("query") or "Unknown"
                                     item_dur = item.get("duration", 0)
@@ -2463,11 +2463,11 @@ class UserBot:
                                     text += f"{idx}. <b>{item_title}</b> (<code>{d_str}</code>) | <i>{req}</i>\n"
                                     
                                 if len(queue) > 10:
-                                    text += f"\n<i>...ᴀɴᴅ {len(queue) - 10} ᴍᴏʀᴇ ᴛʀᴀᴄᴋs</i>\n"
+                                    text += f"\n<i>...And {len(queue) - 10} More Tracks</i>\n"
                             else:
-                                text += "📋 <b>ᴜᴘᴄᴏᴍɪɴɢ ǫᴜᴇᴜᴇ :</b>\n<i>ɴᴏ ᴛʀᴀᴄᴋs ɪɴ ǫᴜᴇᴜᴇ.</i>\n"
+                                text += "📋 <b>Upcoming Queue :</b>\n<i>No Tracks In Queue.</i>\n"
                                 
-                            text += "\n💡 <i>ᴜsᴇ <code>.skip</code> ᴛᴏ ᴘʟᴀʏ ɴᴇxᴛ ᴛʀᴀᴄᴋ.</i></blockquote>"
+                            text += "\n💡 <i>Use <code>.skip</code> To Play Next Track.</i></blockquote>"
                             prog = await event.reply(utils.format_html_message(text))
                             return
 
@@ -2475,7 +2475,7 @@ class UserBot:
                             if not query:
                                 prog = await event.reply(
                                     utils.format_html_message(
-                                        f"<blockquote><b>» 💡 sᴏɴɢ ᴅᴏᴡɴʟᴏᴀᴅ ᴜsᴀɢᴇ</b>\n\n"
+                                        f"<blockquote><b>» 💡 Song Download Usage</b>\n\n"
                                         f"• <code>.{cmd} &lt;song name or youtube link&gt;</code></blockquote>"
                                     )
                                 )
@@ -2483,16 +2483,16 @@ class UserBot:
                                 
                             prog = await event.reply(
                                 utils.format_html_message(
-                                    f"<blockquote><b>» 📥 ᴅᴏᴡɴʟᴏᴀᴅɪɴɢ sᴏɴɢ</b>\n\n"
-                                    f"⏳ <i>sᴇᴀʀᴄʜɪɴɢ ᴀɴᴅ ᴅᴏᴡɴʟᴏᴀᴅɪɴɢ <code>{query}</code> ғʀᴏᴍ ʏᴏᴜᴛᴜʙᴇ...</i></blockquote>"
+                                    f"<blockquote><b>» 📥 Downloading Song</b>\n\n"
+                                    f"⏳ <i>Searching And Downloading <code>{query}</code> From Youtube...</i></blockquote>"
                                 )
                             )
                             file_path, title, duration, thumb = await download_media(query, download_type="audio")
                             if not file_path or not os.path.exists(file_path):
                                 await prog.edit(
                                     utils.format_html_message(
-                                        f"<blockquote><b>» ❌ ᴅᴏᴡɴʟᴏᴀᴅ ғᴀɪʟᴇᴅ</b>\n\n"
-                                        f"⚠️ ғᴀɪʟᴇᴅ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ᴀᴜᴅɪᴏ ғʀᴏᴍ ʏᴏᴜᴛᴜʙᴇ.</blockquote>"
+                                        f"<blockquote><b>» ❌ Download Failed</b>\n\n"
+                                        f"⚠️ Failed To Download Audio From Youtube.</blockquote>"
                                     )
                                 )
                                 return
@@ -2500,10 +2500,10 @@ class UserBot:
                             mins, secs = divmod(duration or 0, 60)
                             dur_str = f"{mins:02d}:{secs:02d}" if duration else "03:00"
                             caption = utils.format_html_message(
-                                f"<blockquote><b>» 🎵 ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ ᴛʀᴀᴄᴋ</b>\n\n"
-                                f"<b>📌 ᴛɪᴛʟᴇ :</b> <b>{title or query}</b>\n"
-                                f"<b>⏱️ ᴅᴜʀᴀᴛɪᴏɴ :</b> <code>{dur_str}</code>\n"
-                                f"<b>🤖 ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ ʙʏ :</b> <b>{self.name}</b></blockquote>"
+                                f"<blockquote><b>» 🎵 Downloaded Track</b>\n\n"
+                                f"<b>📌 Title :</b> <b>{title or query}</b>\n"
+                                f"<b>⏱️ Duration :</b> <code>{dur_str}</code>\n"
+                                f"<b>🤖 Downloaded By :</b> <b>{self.name}</b></blockquote>"
                             )
                             try:
                                 dur_int = int(duration or 0)
@@ -2524,7 +2524,7 @@ class UserBot:
                             except Exception as up_err:
                                 await prog.edit(
                                     utils.format_html_message(
-                                        f"<blockquote><b>» ❌ ᴜᴘʟᴏᴀᴅ ғᴀɪʟᴇᴅ</b>\n\n"
+                                        f"<blockquote><b>» ❌ Upload Failed</b>\n\n"
                                         f"⚠️ <code>{up_err}</code></blockquote>"
                                     )
                                 )
@@ -2537,7 +2537,7 @@ class UserBot:
                                 pass
                             prog = await event.respond(
                                 utils.format_html_message(
-                                    "<blockquote><b>» ⏳ ᴘᴀᴜsɪɴɢ sᴛʀᴇᴀᴍ</b>\n\nᴘᴀᴜsɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ...</blockquote>"
+                                    "<blockquote><b>» ⏳ Pausing Stream</b>\n\nPausing Voice Chat Stream...</blockquote>"
                                 )
                             )
                             try:
@@ -2545,12 +2545,12 @@ class UserBot:
                                 await pytg.pause_stream(chat_id)
                                 await prog.edit(
                                     utils.format_html_message(
-                                        "<blockquote><b>» ⏸️ ᴘʟᴀʏʙᴀᴄᴋ ᴘᴀᴜsᴇᴅ</b>\n\n"
-                                        "sᴛʀᴇᴀᴍ ɪs ᴘᴀᴜsᴇᴅ. ᴜsᴇ <code>.resume</code> ᴏʀ <code>/resume</code> ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ ᴘʟᴀʏɪɴɢ.</blockquote>"
+                                        "<blockquote><b>» ⏸️ Playback Paused</b>\n\n"
+                                        "Stream Is Paused. Use <code>.resume</code> Or <code>/resume</code> To Continue Playing.</blockquote>"
                                     )
                                 )
                             except Exception as e:
-                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ᴘᴀᴜsɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
+                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ Error Pausing</b>\n\n⚠️ <code>{e}</code></blockquote>"))
                             return
                             
                         elif cmd == "resume":
@@ -2560,7 +2560,7 @@ class UserBot:
                                 pass
                             prog = await event.respond(
                                 utils.format_html_message(
-                                    "<blockquote><b>» ⏳ ʀᴇsᴜᴍɪɴɢ sᴛʀᴇᴀᴍ</b>\n\nʀᴇsᴜᴍɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ...</blockquote>"
+                                    "<blockquote><b>» ⏳ Resuming Stream</b>\n\nResuming Voice Chat Stream...</blockquote>"
                                 )
                             )
                             try:
@@ -2568,11 +2568,11 @@ class UserBot:
                                 await pytg.resume_stream(chat_id)
                                 await prog.edit(
                                     utils.format_html_message(
-                                        "<blockquote><b>» ▶️ ᴘʟᴀʏʙᴀᴄᴋ ʀᴇsᴜᴍᴇᴅ</b>\n\nsᴛʀᴇᴀᴍ ʀᴇsᴜᴍᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ.</blockquote>"
+                                        "<blockquote><b>» ▶️ Playback Resumed</b>\n\nStream Resumed Successfully.</blockquote>"
                                     )
                                 )
                             except Exception as e:
-                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ ᴇʀʀᴏʀ ʀᴇsᴜᴍɪɴɢ</b>\n\n⚠️ <code>{e}</code></blockquote>"))
+                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ Error Resuming</b>\n\n⚠️ <code>{e}</code></blockquote>"))
                             return
                             
                         elif cmd in ("stop", "end"):
@@ -2601,14 +2601,14 @@ class UserBot:
 
                             prog = await event.respond(
                                 utils.format_html_message(
-                                    "<blockquote><b>» ⏳ sᴛᴏᴘᴘɪɴɢ sᴛʀᴇᴀᴍ</b>\n\nsᴛᴏᴘᴘɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ...</blockquote>"
+                                    "<blockquote><b>» ⏳ Stopping Stream</b>\n\nStopping Voice Chat Stream...</blockquote>"
                                 )
                             )
                             success, msg = await self.stop_song(chat_id)
                             if success:
                                 await prog.edit(
                                     utils.format_html_message(
-                                        "<blockquote><b>» ⏹️ ᴘʟᴀʏʙᴀᴄᴋ sᴛᴏᴘᴘᴇᴅ</b>\n\nᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛʀᴇᴀᴍ ʜᴀs ʙᴇᴇɴ sᴛᴏᴘᴘᴇᴅ & ǫᴜᴇᴜᴇ ᴄʟᴇᴀʀᴇᴅ.</blockquote>"
+                                        "<blockquote><b>» ⏹️ Playback Stopped</b>\n\nVoice Chat Stream Has Been Stopped & Queue Cleared.</blockquote>"
                                     )
                                 )
                                 await asyncio.sleep(3)
@@ -2617,7 +2617,7 @@ class UserBot:
                                 except Exception:
                                     pass
                             else:
-                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ sᴛᴏᴘ</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
+                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ Failed To Stop</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
                             return
                             
                         elif cmd == "mute":
@@ -2627,13 +2627,13 @@ class UserBot:
                                 pass
                             prog = await event.respond(
                                 utils.format_html_message(
-                                    "<blockquote><b>» ⏳ ᴍᴜᴛɪɴɢ ᴍɪᴄ</b>\n\nᴍᴜᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ɪɴ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                                    "<blockquote><b>» ⏳ Muting Mic</b>\n\nMuting Userbot In Voice Chat...</blockquote>"
                                 )
                             )
                             success, msg = await self.mute_mic(chat_id)
                             await prog.edit(
                                 utils.format_html_message(
-                                    "<blockquote><b>» 🔇 ᴍɪᴄ ᴍᴜᴛᴇᴅ</b>\n\nᴜsᴇʀʙᴏᴛ ᴍɪᴄʀᴏᴘʜᴏɴᴇ ʜᴀs ʙᴇᴇɴ ᴛᴜʀɴᴇᴅ <b>ᴏғғ</b>.</blockquote>"
+                                    "<blockquote><b>» 🔇 Mic Muted</b>\n\nUserbot Microphone Has Been Turned <b>Off</b>.</blockquote>"
                                 )
                             )
                             return
@@ -2645,13 +2645,13 @@ class UserBot:
                                 pass
                             prog = await event.respond(
                                 utils.format_html_message(
-                                    "<blockquote><b>» ⏳ ᴜɴᴍᴜᴛɪɴɢ ᴍɪᴄ</b>\n\nᴜɴᴍᴜᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ɪɴ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                                    "<blockquote><b>» ⏳ Unmuting Mic</b>\n\nUnmuting Userbot In Voice Chat...</blockquote>"
                                 )
                             )
                             success, msg = await self.unmute_mic(chat_id)
                             await prog.edit(
                                 utils.format_html_message(
-                                    "<blockquote><b>» 🔊 ᴍɪᴄ ᴜɴᴍᴜᴛᴇᴅ</b>\n\nᴜsᴇʀʙᴏᴛ ᴍɪᴄʀᴏᴘʜᴏɴᴇ ʜᴀs ʙᴇᴇɴ ᴛᴜʀɴᴇᴅ <b>ᴏɴ</b>.</blockquote>"
+                                    "<blockquote><b>» 🔊 Mic Unmuted</b>\n\nUserbot Microphone Has Been Turned <b>On</b>.</blockquote>"
                                 )
                             )
                             return
@@ -2663,22 +2663,22 @@ class UserBot:
                                 pass
                             prog = await event.respond(
                                 utils.format_html_message(
-                                    "<blockquote><b>» ⏳ ᴊᴏɪɴɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\nᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ᴛᴏ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                                    "<blockquote><b>» ⏳ Joining Voice Chat</b>\n\nConnecting Userbot To Group Voice Chat...</blockquote>"
                                 )
                             )
                             success, msg = await self.join_voice_chat(str(chat_id))
                             if success:
                                 await prog.edit(
                                     utils.format_html_message(
-                                        "<blockquote><b>» 🎙️ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\n"
-                                        "ᴜsᴇʀʙᴏᴛ sᴜᴄᴄᴇssғᴜʟʟʏ ᴄᴏɴɴᴇᴄᴛᴇᴅ ᴛᴏ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ!\n\n"
-                                        "💡 <i>ᴜsᴇ <code>.play &lt;song&gt;</code> ᴏʀ <code>.vplay &lt;video&gt;</code> ᴛᴏ sᴛʀᴇᴀᴍ ᴍᴇᴅɪᴀ.</i></blockquote>"
+                                        "<blockquote><b>» 🎙️ Connected To Voice Chat</b>\n\n"
+                                        "Userbot Successfully Connected To Voice Chat!\n\n"
+                                        "💡 <i>Use <code>.play &lt;song&gt;</code> Or <code>.vplay &lt;video&gt;</code> To Stream Media.</i></blockquote>"
                                     )
                                 )
                             else:
                                 await prog.edit(
                                     utils.format_html_message(
-                                        f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"
+                                        f"<blockquote><b>» ❌ Failed To Join Vc</b>\n\n⚠️ <code>{msg}</code></blockquote>"
                                     )
                                 )
                             return
@@ -2690,24 +2690,24 @@ class UserBot:
                                 pass
                             prog = await event.respond(
                                 utils.format_html_message(
-                                    "<blockquote><b>» ⏳ ʟᴇᴀᴠɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\nᴅɪsᴄᴏɴɴᴇᴄᴛɪɴɢ ᴜsᴇʀʙᴏᴛ ғʀᴏᴍ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</blockquote>"
+                                    "<blockquote><b>» ⏳ Leaving Voice Chat</b>\n\nDisconnecting Userbot From Voice Chat...</blockquote>"
                                 )
                             )
                             success, msg = await self.leave_voice_chat(chat_id)
                             if success:
                                 await prog.edit(
                                     utils.format_html_message(
-                                        "<blockquote><b>» 👋 ʟᴇғᴛ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ</b>\n\nᴜsᴇʀʙᴏᴛ ʜᴀs ᴅɪsᴄᴏɴɴᴇᴄᴛᴇᴅ ғʀᴏᴍ ᴛʜᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.</blockquote>"
+                                        "<blockquote><b>» 👋 Left Voice Chat</b>\n\nUserbot Has Disconnected From The Voice Chat.</blockquote>"
                                     )
                                 )
                             else:
-                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴇᴀᴠᴇ ᴠᴄ</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
+                                await prog.edit(utils.format_html_message(f"<blockquote><b>» ❌ Failed To Leave Vc</b>\n\n⚠️ <code>{msg}</code></blockquote>"))
                             return
                             
                         elif cmd in ("thumb", "thumbnail"):
                             prog = await event.reply(
                                 utils.format_html_message(
-                                    "<blockquote><b>» ⏳ ᴜᴘᴅᴀᴛɪɴɢ sᴇᴛᴛɪɴɢs</b>\n\nᴜᴘᴅᴀᴛɪɴɢ ᴛʜᴜᴍʙɴᴀɪʟ ᴄᴏɴғɪɢᴜʀᴀᴛɪᴏɴ...</blockquote>"
+                                    "<blockquote><b>» ⏳ Updating Settings</b>\n\nUpdating Thumbnail Configuration...</blockquote>"
                                 )
                             )
                             current = database.get_thumbnail_setting(chat_id)
@@ -2719,14 +2719,14 @@ class UserBot:
                                 new_state = not current
                                 
                             database.set_thumbnail_setting(chat_id, new_state)
-                            status_text = "🟢 <b>ᴇɴᴀʙʟᴇᴅ</b>" if new_state else "🔴 <b>ᴅɪsᴀʙʟᴇᴅ</b>"
-                            mode_desc = "ᴀʀᴛᴡᴏʀᴋ ᴛʜᴜᴍʙɴᴀɪʟ ʙᴀɴɴᴇʀ ᴡɪʟʟ ʙᴇ ᴅɪsᴘʟᴀʏᴇᴅ." if new_state else "ᴄʟᴇᴀɴ ᴛᴇxᴛ-ᴏɴʟʏ ᴍᴏᴅᴇ ᴀᴄᴛɪᴠᴇ (ɴᴏ ᴛʜᴜᴍʙɴᴀɪʟ)."
+                            status_text = "🟢 <b>Enabled</b>" if new_state else "🔴 <b>Disabled</b>"
+                            mode_desc = "Artwork Thumbnail Banner Will Be Displayed." if new_state else "Clean Text-Only Mode Active (No Thumbnail)."
                             
                             await prog.edit(
                                 utils.format_html_message(
-                                    f"<blockquote><b>» 🖼️ ᴛʜᴜᴍʙɴᴀɪʟ sᴇᴛᴛɪɴɢ</b>\n\n"
-                                    f"<b>• sᴛᴀᴛᴜs :</b> {status_text}\n"
-                                    f"<b>• ᴅɪsᴘʟᴀʏ ᴍᴏᴅᴇ :</b> <i>{mode_desc}</i></blockquote>"
+                                    f"<blockquote><b>» 🖼️ Thumbnail Setting</b>\n\n"
+                                    f"<b>• Status :</b> {status_text}\n"
+                                    f"<b>• Display Mode :</b> <i>{mode_desc}</i></blockquote>"
                                 )
                             )
                             return

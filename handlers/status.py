@@ -22,12 +22,12 @@ async def render_status_dashboard(event, user_id: int):
     
     # Text formatting using blockquotes and bold
     text = (
-        f"<blockquote><b>» 📊 sʏsᴛᴇᴍ sᴛᴀᴛᴜs ᴅᴀsʜʙᴏᴀʀᴅ</b>\n\n"
-        f"📱 <b>ᴄᴏɴɴᴇᴄᴛᴇᴅ ʙᴏᴛs :</b> <code>{total_sessions}</code>\n"
-        f"👥 <b>ᴍᴀɴᴀɢᴇᴅ ɢʀᴏᴜᴘs :</b> <code>{total_groups}</code>\n"
-        f"👤 <b>ᴄᴏɴᴛᴀᴄᴛs / ᴜsᴇʀs :</b> <code>{total_users}</code>\n"
-        f"✉️ <b>ʙʀᴏᴀᴅᴄᴀsᴛs ᴅᴏɴᴇ :</b> <code>{total_broadcasts}</code>\n"
-        f"👋 <b>ᴜsᴇʀs ᴡᴇʟᴄᴏᴍᴇᴅ :</b> <code>{total_welcomed}</code></blockquote>"
+        f"<blockquote><b>» 📊 System Status Dashboard</b>\n\n"
+        f"📱 <b>Connected Bots :</b> <code>{total_sessions}</code>\n"
+        f"👥 <b>Managed Groups :</b> <code>{total_groups}</code>\n"
+        f"👤 <b>Contacts / Users :</b> <code>{total_users}</code>\n"
+        f"✉️ <b>Broadcasts Done :</b> <code>{total_broadcasts}</code>\n"
+        f"👋 <b>Users Welcomed :</b> <code>{total_welcomed}</code></blockquote>"
     )
     
     buttons = [[utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")]]

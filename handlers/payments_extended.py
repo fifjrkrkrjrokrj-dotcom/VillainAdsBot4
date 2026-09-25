@@ -70,10 +70,10 @@ def register_handlers(client):
         _payment_user_states[user_id] = {"action": "WAITING_FOR_COUPON"}
         
         text = (
-            "<blockquote><b>» 🎟️ ʀᴇᴅᴇᴇᴍ ᴄᴏᴜᴘᴏɴ</b>\n\n"
-            "⚡ <i>ᴇɴᴛᴇʀ ʏᴏᴜʀ ᴄᴏᴜᴘᴏɴ ᴄᴏᴅᴇ ʙᴇʟᴏᴡ ᴛᴏ ᴄʀᴇᴅɪᴛ ʏᴏᴜʀ ᴡᴀʟʟᴇᴛ :</i></blockquote>"
+            "<blockquote><b>» 🎟️ Redeem Coupon</b>\n\n"
+            "⚡ <i>Enter Your Coupon Code Below To Credit Your Wallet :</i></blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "menu_settings", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "menu_settings", style="danger")]]
         await event.respond(text, buttons=buttons, parse_mode="html")
         try:
             await event.delete()
@@ -153,19 +153,19 @@ def register_handlers(client):
         comm_rate = global_settings.get("referral_commission", 0.10) * 100
         
         text = utils.format_html_message(
-            f"<blockquote><b>» 👥 ʀᴇғᴇʀ & ᴇᴀʀɴ ᴘʀᴏɢʀᴀᴍ</b>\n\n"
-            f"🔗 <b>ʏᴏᴜʀ ʀᴇғᴇʀʀᴀʟ ʟɪɴᴋ :</b>\n<code>{ref_link}</code>\n\n"
-            f"💰 <b>sɪɢɴᴜᴘ ʙᴏɴᴜs :</b> ɢᴇᴛ <b>₹1.00</b> ɪɴsᴛᴀɴᴛʟʏ ᴡʜᴇɴ ᴀ ғʀɪᴇɴᴅ ᴊᴏɪɴs!\n"
-            f"📈 <b>ᴄᴏᴍᴍɪssɪᴏɴ :</b> ᴇᴀʀɴ <b>{comm_rate:.0f}%</b> ᴄᴏᴍᴍɪssɪᴏɴ ᴏɴ ᴀʟʟ ᴛʜᴇɪʀ sʟᴏᴛ ᴜᴘɢʀᴀᴅᴇs!\n\n"
-            f"📊 <b>ʏᴏᴜʀ sᴛᴀᴛɪsᴛɪᴄs :</b>\n"
-            f"👤 <b>ᴛᴏᴛᴀʟ ʀᴇғᴇʀʀᴇᴅ :</b> <code>{referred_count}</code>\n"
-            f"👛 <b>ᴛᴏᴛᴀʟ ᴇᴀʀɴɪɴɢs :</b> <code>₹{earnings:.2f}</code>\n\n"
-            f"💡 <i>sʜᴀʀᴇ ʏᴏᴜʀ ʟɪɴᴋ & ᴇᴀʀɴ ғʀᴇᴇ ᴡᴀʟʟᴇᴛ ʙᴀʟᴀɴᴄᴇ!</i></blockquote>"
+            f"<blockquote><b>» 👥 Refer & Earn Program</b>\n\n"
+            f"🔗 <b>Your Referral Link :</b>\n<code>{ref_link}</code>\n\n"
+            f"💰 <b>Signup Bonus :</b> Get <b>₹1.00</b> Instantly When A Friend Joins!\n"
+            f"📈 <b>Commission :</b> Earn <b>{comm_rate:.0f}%</b> Commission On All Their Slot Upgrades!\n\n"
+            f"📊 <b>Your Statistics :</b>\n"
+            f"👤 <b>Total Referred :</b> <code>{referred_count}</code>\n"
+            f"👛 <b>Total Earnings :</b> <code>₹{earnings:.2f}</code>\n\n"
+            f"💡 <i>Share Your Link & Earn Free Wallet Balance!</i></blockquote>"
         )
         
         kb = [
             [Button.url("🔗 Share Referral Link", url=f"https://t.me/share/url?url={ref_link}&text=Manage%20your%20Telegram%20UserBots%20easily!")],
-            [utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_settings", style="primary")]
+            [utils.styled_button("🔙 Back", "menu_settings", style="primary")]
         ]
         
         await event.respond(text, buttons=kb)
@@ -225,9 +225,9 @@ def register_handlers(client):
         buttons = []
         for qty in range(1, 6):
             buttons.append([
-                utils.styled_button(f"ʀᴇǫᴜᴇsᴛ {qty} ᴀᴄᴄᴏᴜɴᴛ sʟᴏᴛ(s)", f"buy_plan_qty_{plan_id}_{qty}", style="primary")
+                utils.styled_button(f"Request {qty} Account Slot(s)", f"buy_plan_qty_{plan_id}_{qty}", style="primary")
             ])
-        buttons.append([utils.styled_button("🔙 ʙᴀᴄᴋ", "settings_buy_slots", style="primary")])
+        buttons.append([utils.styled_button("🔙 Back", "settings_buy_slots", style="primary")])
         
         await event.respond(text, buttons=buttons)
         try:
@@ -296,31 +296,31 @@ def register_handlers(client):
         wallet_bal = user.get("wallet_balance", 0.0)
         
         text = (
-            f"<blockquote><b>» 💳 sᴇʟᴇᴄᴛ ᴘᴀʏᴍᴇɴᴛ ᴍᴇᴛʜᴏᴅ</b>\n\n"
-            f"ǫᴜᴀɴᴛɪᴛʏ : <b>{qty} ɪᴅ(s)</b>\n"
-            f"ᴛᴏᴛᴀʟ ᴄᴏsᴛ : <b>₹{cost_inr:.2f}</b>\n"
-            f"ᴡᴀʟʟᴇᴛ ʙᴀʟᴀɴᴄᴇ : <b>₹{wallet_bal:.2f}</b>\n\n"
-            f"⚡ <i>ᴄʜᴏᴏsᴇ ʏᴏᴜʀ ᴘᴀʏᴍᴇɴᴛ ᴍᴇᴛʜᴏᴅ ʙᴇʟᴏᴡ :</i></blockquote>"
+            f"<blockquote><b>» 💳 Select Payment Method</b>\n\n"
+            f"Quantity : <b>{qty} Id(s)</b>\n"
+            f"Total Cost : <b>₹{cost_inr:.2f}</b>\n"
+            f"Wallet Balance : <b>₹{wallet_bal:.2f}</b>\n\n"
+            f"⚡ <i>Choose Your Payment Method Below :</i></blockquote>"
         )
         
         global_settings = database.get_global_settings()
         buttons = []
         
         if global_settings.get("payment_upi_enabled", True):
-            buttons.append([utils.styled_button("💳 ᴜᴘɪ ᴘᴀʏᴍᴇɴᴛ", f"pay_method_upi_{qty}_{payment_id}", style="primary")])
+            buttons.append([utils.styled_button("💳 Upi Payment", f"pay_method_upi_{qty}_{payment_id}", style="primary")])
         if global_settings.get("payment_usdt_enabled", True):
-            buttons.append([utils.styled_button("🪙 ᴜsᴅᴛ (ʙᴇᴘ20)", f"pay_method_usdt_{qty}_{payment_id}", style="primary")])
+            buttons.append([utils.styled_button("🪙 Usdt (ʙᴇᴘ20)", f"pay_method_usdt_{qty}_{payment_id}", style="primary")])
         if global_settings.get("payment_ton_enabled", True):
-            buttons.append([utils.styled_button("💎 ᴛᴏɴ (ᴛᴏɴᴄᴏɪɴ)", f"pay_method_ton_{qty}_{payment_id}", style="primary")])
+            buttons.append([utils.styled_button("💎 Ton (Toncoin)", f"pay_method_ton_{qty}_{payment_id}", style="primary")])
         
         # Allow paying using wallet if balance covers it
         if wallet_bal >= cost_inr:
-            buttons.append([utils.styled_button("👛 ᴘᴀʏ ᴠɪᴀ ᴡᴀʟʟᴇᴛ ʙᴀʟᴀɴᴄᴇ", f"pay_method_wallet_{qty}_{payment_id}", style="success")])
+            buttons.append([utils.styled_button("👛 Pay Via Wallet Balance", f"pay_method_wallet_{qty}_{payment_id}", style="success")])
             
         if not buttons:
-            buttons = [[utils.styled_button("⚠️ ɴᴏ ᴘᴀʏᴍᴇɴᴛ ᴍᴇᴛʜᴏᴅs ᴀᴠᴀɪʟᴀʙʟᴇ", "menu_settings", style="danger")]]
+            buttons = [[utils.styled_button("⚠️ No Payment Methods Available", "menu_settings", style="danger")]]
         
-        buttons.append([utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "menu_settings", style="danger")])
+        buttons.append([utils.styled_button("🔙 Cancel", "menu_settings", style="danger")])
         await event.respond(text, buttons=buttons, parse_mode="html")
         try:
             await event.delete()
@@ -445,31 +445,31 @@ def register_handlers(client):
             pn_encoded = urllib.parse.quote(config.BOT_NAME)
             upi_uri = f"upi://pay?pa={upi_id}&pn={pn_encoded}&am={cost_inr:.2f}&cu=INR&tn={payment_id}"
             qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=jpg&data={urllib.parse.quote(upi_uri)}"
-            amount_text = f"ᴀᴍᴏᴜɴᴛ ᴛᴏ ᴘᴀʏ: <b>₹{cost_inr:.2f}</b>"
+            amount_text = f"Amount To Pay: <b>₹{cost_inr:.2f}</b>"
         elif method == "usdt":
-            address_text = f"🪙 ᴜsᴅᴛ (ʙᴇᴘ20) ᴀᴅᴅʀᴇss:\n`{global_settings.get('usdt_bep20_address', '0x000')}`"
+            address_text = f"🪙 Usdt (ʙᴇᴘ20) Address:\n`{global_settings.get('usdt_bep20_address', '0x000')}`"
             qr_url = None
             usdt_rate = global_settings.get("usdt_rate", 90.0)
             cost_crypto = cost_inr / usdt_rate if usdt_rate > 0 else 0
-            amount_text = f"ᴀᴍᴏᴜɴᴛ ᴛᴏ ᴘᴀʏ: <b>₹{cost_inr:.2f}</b> (ᴀᴘᴘʀᴏx <b>${cost_crypto:.2f} ᴜsᴅᴛ</b>)"
+            amount_text = f"Amount To Pay: <b>₹{cost_inr:.2f}</b> (Approx <b>${cost_crypto:.2f} Usdt</b>)"
         else: # ton
-            address_text = f"💎 ᴛᴏɴ (ᴛᴏɴᴄᴏɪɴ) ᴀᴅᴅʀᴇss:\n`{global_settings.get('ton_address', 'UQ00000000000000000000000000000000000000000000000')}`"
+            address_text = f"💎 Ton (Toncoin) Address:\n`{global_settings.get('ton_address', 'UQ00000000000000000000000000000000000000000000000')}`"
             qr_url = None
             ton_rate = global_settings.get("ton_rate", 500.0)
             cost_crypto = cost_inr / ton_rate if ton_rate > 0 else 0
-            amount_text = f"ᴀᴍᴏᴜɴᴛ ᴛᴏ ᴘᴀʏ: <b>₹{cost_inr:.2f}</b> (ᴀᴘᴘʀᴏx <b>{cost_crypto:.2f} ᴛᴏɴ</b>)"
+            amount_text = f"Amount To Pay: <b>₹{cost_inr:.2f}</b> (Approx <b>{cost_crypto:.2f} Ton</b>)"
             
         text = (
-            f"<blockquote><b>» 💳 ᴍᴀᴋᴇ ᴘᴀʏᴍᴇɴᴛ</b>\n\n"
+            f"<blockquote><b>» 💳 Make Payment</b>\n\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"ᴍᴇᴛʜᴏᴅ: <b>{method.upper()}</b>\n"
+            f"Method: <b>{method.upper()}</b>\n"
             f"{amount_text}\n"
             f"{address_text}\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"📸 sᴇɴᴅ ʏᴏᴜʀ ᴘᴀʏᴍᴇɴᴛ ᴄᴏɴғɪʀᴍᴀᴛɪᴏɴ <b>sᴄʀᴇᴇɴsʜᴏᴛ (ᴀs ᴀ ᴘʜᴏᴛᴏ ᴏʀ ɪᴍᴀɢᴇ ʟɪɴᴋ)</b>:</blockquote>"
+            f"📸 Send Your Payment Confirmation <b>Screenshot (As A Photo Or Image Link)</b>:</blockquote>"
         )
         
-        buttons = [[utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "menu_settings", style="danger")]]
+        buttons = [[utils.styled_button("❌ Cancel", "menu_settings", style="danger")]]
         if qr_url:
             import urllib.request
             import tempfile
@@ -537,7 +537,7 @@ def register_handlers(client):
             state["photo_file_id"] = file_to_save
             state["action"] = "WAITING_FOR_UTR"
             
-            buttons = [[utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "menu_settings", style="danger")]]
+            buttons = [[utils.styled_button("❌ Cancel", "menu_settings", style="danger")]]
             await event.reply(
                 "📸 <b>Screenshot received!</b>\n\n"
                 "🔢 <b>Now enter your UTR / Transaction Hash:</b>\n"
@@ -593,8 +593,8 @@ def register_handlers(client):
                     
                     buttons = [
                         [
-                            utils.styled_button("✅ ᴀᴘᴘʀᴏᴠᴇ", f"approve_payment_{payment_id}", style="success"),
-                            utils.styled_button("❌ ʀᴇᴊᴇᴄᴛ", f"reject_payment_{payment_id}", style="danger")
+                            utils.styled_button("✅ Approve", f"approve_payment_{payment_id}", style="success"),
+                            utils.styled_button("❌ Reject", f"reject_payment_{payment_id}", style="danger")
                         ]
                     ]
                     

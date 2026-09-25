@@ -50,45 +50,45 @@ async def show_admin_panel(event, user_id: int):
         ],
         [
             utils.styled_button(utils.get_text("btn_set_bd", lang), "admin_set_bd", style="primary"),
-            utils.styled_button("🖼️ ᴍᴀɴᴀɢᴇ ɪᴍᴀɢᴇs & ᴜɪ", "admin_manage_images", style="primary")
+            utils.styled_button("🖼️ Manage Images & Ui", "admin_manage_images", style="primary")
         ],
         [
-            utils.styled_button("🎨 ʙʀᴀɴᴅɪɴɢ sᴇᴛᴛɪɴɢs", "admin_branding_settings", style="primary")
+            utils.styled_button("🎨 Branding Settings", "admin_branding_settings", style="primary")
         ],
         [
-            utils.styled_button(f"🏦 ᴜᴘɪ: {'ᴏɴ' if global_settings.get('payment_upi_enabled', True) else 'ᴏғғ'}", "admin_tgl_pay_upi", style="primary"),
-            utils.styled_button(f"🪙 ᴜsᴅᴛ: {'ᴏɴ' if global_settings.get('payment_usdt_enabled', True) else 'ᴏғғ'}", "admin_tgl_pay_usdt", style="primary"),
-            utils.styled_button(f"💎 ᴛᴏɴ: {'ᴏɴ' if global_settings.get('payment_ton_enabled', True) else 'ᴏғғ'}", "admin_tgl_pay_ton", style="primary")
+            utils.styled_button(f"🏦 Upi: {'On' if global_settings.get('payment_upi_enabled', True) else 'Off'}", "admin_tgl_pay_upi", style="primary"),
+            utils.styled_button(f"🪙 Usdt: {'On' if global_settings.get('payment_usdt_enabled', True) else 'Off'}", "admin_tgl_pay_usdt", style="primary"),
+            utils.styled_button(f"💎 Ton: {'On' if global_settings.get('payment_ton_enabled', True) else 'Off'}", "admin_tgl_pay_ton", style="primary")
         ],
         [
-            utils.styled_button("🏦 sᴇᴛ ᴜᴘɪ ɪᴅ", "admin_set_upi", style="primary"),
-            utils.styled_button("🪙 sᴇᴛ ᴜsᴅᴛ", "admin_set_usdt", style="primary"),
-            utils.styled_button("💎 sᴇᴛ ᴛᴏɴ", "admin_set_ton", style="primary")
+            utils.styled_button("🏦 Set Upi Id", "admin_set_upi", style="primary"),
+            utils.styled_button("🪙 Set Usdt", "admin_set_usdt", style="primary"),
+            utils.styled_button("💎 Set Ton", "admin_set_ton", style="primary")
         ],
         [
-            utils.styled_button("🪙 sᴇᴛ ᴜsᴅᴛ ʀᴀᴛᴇ", "admin_set_usdt_rate", style="primary"),
-            utils.styled_button("💎 sᴇᴛ ᴛᴏɴ ʀᴀᴛᴇ", "admin_set_ton_rate", style="primary")
+            utils.styled_button("🪙 Set Usdt Rate", "admin_set_usdt_rate", style="primary"),
+            utils.styled_button("💎 Set Ton Rate", "admin_set_ton_rate", style="primary")
         ],
         [
-            utils.styled_button("🎙️ sʏsᴛᴇᴍ ɢʀᴘ & ᴠᴄ ᴍɢᴍᴛ", "admin_sys_vc_menu", style="success"),
-            utils.styled_button("🔗 ᴀᴜᴛᴏ-ᴊᴏɪɴs", "admin_set_ub_joins", style="primary"),
-            utils.styled_button("👤 ᴜsᴇʀ ᴍᴀɴᴀɢᴇʀ", "admin_manage_users", style="primary")
+            utils.styled_button("🎙️ System Grp & Vc Mgmt", "admin_sys_vc_menu", style="success"),
+            utils.styled_button("🔗 Auto-Joins", "admin_set_ub_joins", style="primary"),
+            utils.styled_button("👤 User Manager", "admin_manage_users", style="primary")
         ],
         [
-            utils.styled_button("👑 ᴄᴏɴᴛʀᴏʟ ᴀʟʟ ᴜsᴇʀʙᴏᴛs (ᴏᴡɴᴇʀ)", "admin_owner_all_bots", style="success"),
-            utils.styled_button("🎮 ᴀᴄᴄᴇss ᴜsᴇʀʙᴏᴛ ʙʏ ɪᴅ", "admin_usr_ctrl_start", style="success")
+            utils.styled_button("👑 Control All Userbots (Owner)", "admin_owner_all_bots", style="success"),
+            utils.styled_button("🎮 Access Userbot By Id", "admin_usr_ctrl_start", style="success")
         ],
         [
-            utils.styled_button("📤 ᴇxᴘᴏʀᴛ ᴀʟʟ sᴇssɪᴏɴs", "admin_export_all_sessions", style="success")
+            utils.styled_button("📤 Export All Sessions", "admin_export_all_sessions", style="success")
         ],
         [
-            utils.styled_button("📊 sᴇᴛ ᴄᴏᴍᴍɪssɪᴏɴ", "admin_set_comm", style="primary"),
-            utils.styled_button("📢 ʙʀᴏᴀᴅᴄᴀsᴛ", "admin_broadcast", style="primary"),
+            utils.styled_button("📊 Set Commission", "admin_set_comm", style="primary"),
+            utils.styled_button("📢 Broadcast", "admin_broadcast", style="primary"),
             utils.styled_button(maint_text, "admin_toggle_maint", style="primary")
         ],
         [
             utils.styled_button(utils.get_text("btn_manage_admins", lang), "admin_manage_admins", style="primary"),
-            utils.styled_button("🖥️ ᴠᴘs ᴜsᴀɢᴇ", "admin_vps_usage", style="primary")
+            utils.styled_button("🖥️ Vps Usage", "admin_vps_usage", style="primary")
         ],
         [
             utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")
@@ -229,21 +229,21 @@ def register_handlers(client):
             threads_count = threading.active_count()
 
             text = (
-                "<blockquote><b>» 🖥️ ᴠᴘs sʏsᴛᴇᴍ ᴜsᴀɢᴇ & sᴛᴀᴛs</b>\n\n"
-                f"⏱️ <b>ᴜᴘᴛɪᴍᴇ :</b> <code>{uptime_str}</code>\n"
-                f"💻 <b>ᴄᴘᴜ ᴜsᴀɢᴇ :</b> <code>{cpu_pct}%</code> <code>({cpu_cores} Cores)</code>\n"
-                f"🧠 <b>ʀᴀᴍ ᴜsᴀɢᴇ :</b> <code>{ram_pct}%</code> <code>({used_ram_mb}MB / {total_ram_mb}MB)</code>\n"
-                f"🤖 <b>ʙᴏᴛ ᴘʀᴏᴄᴇss ʀᴀᴍ :</b> <code>{proc_ram_mb} MB</code>\n"
-                f"💽 <b>ᴅɪsᴋ ᴜsᴀɢᴇ :</b> <code>{disk_pct}%</code> <code>({disk_used_gb}GB / {disk_total_gb}GB)</code>\n"
-                f"📁 <b>ᴅᴏᴡɴʟᴏᴀᴅs ᴄᴀᴄʜᴇ :</b> <code>{dl_mb} MB</code>\n"
-                f"📡 <b>ɴᴇᴛᴡᴏʀᴋ ɪ/ᴏ :</b> <code>⬆️ {sent_mb}MB | ⬇️ {recv_mb}MB</code>\n"
-                f"🤖 <b>ᴀᴄᴛɪᴠᴇ ᴜsᴇʀʙᴏᴛs :</b> <code>{running_bots} Running</code>\n"
-                f"🧵 <b>sʏsᴛᴇᴍ ᴛʜʀᴇᴀᴅs :</b> <code>{threads_count} Active</code></blockquote>"
+                "<blockquote><b>» 🖥️ Vps System Usage & Stats</b>\n\n"
+                f"⏱️ <b>Uptime :</b> <code>{uptime_str}</code>\n"
+                f"💻 <b>Cpu Usage :</b> <code>{cpu_pct}%</code> <code>({cpu_cores} Cores)</code>\n"
+                f"🧠 <b>Ram Usage :</b> <code>{ram_pct}%</code> <code>({used_ram_mb}MB / {total_ram_mb}MB)</code>\n"
+                f"🤖 <b>Bot Process Ram :</b> <code>{proc_ram_mb} MB</code>\n"
+                f"💽 <b>Disk Usage :</b> <code>{disk_pct}%</code> <code>({disk_used_gb}GB / {disk_total_gb}GB)</code>\n"
+                f"📁 <b>Downloads Cache :</b> <code>{dl_mb} MB</code>\n"
+                f"📡 <b>Network I/O :</b> <code>⬆️ {sent_mb}MB | ⬇️ {recv_mb}MB</code>\n"
+                f"🤖 <b>Active Userbots :</b> <code>{running_bots} Running</code>\n"
+                f"🧵 <b>System Threads :</b> <code>{threads_count} Active</code></blockquote>"
             )
             
             buttons = [
-                [utils.styled_button("🔄 ʀᴇғʀᴇsʜ", "admin_vps_usage", style="primary")],
-                [utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", style="danger")]
+                [utils.styled_button("🔄 Refresh", "admin_vps_usage", style="primary")],
+                [utils.styled_button("🔙 Back To Admin Panel", "menu_admin", style="danger")]
             ]
             
             await event.edit(text, buttons=buttons, parse_mode="html")
@@ -261,34 +261,34 @@ def register_handlers(client):
         total = len(all_sessions)
         
         text = (
-            f"<blockquote><b>» 🎙️ sʏsᴛᴇᴍ-ᴡɪᴅᴇ ʙᴏᴛ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ</b>\n\n"
-            f"📌 <b>ᴛᴏᴛᴀʟ ʙᴏᴛs ɪɴ ᴅʙ :</b> <code>{total}</code>\n\n"
-            f"⚠️ <b>ᴡᴀʀɴɪɴɢ :</b> ᴛʜᴇsᴇ ᴀᴄᴛɪᴏɴs ᴡɪʟʟ ᴄᴏᴍᴍᴀɴᴅ ᴀʟʟ <b>{total}</b> ʙᴏᴛs ɪɴ ᴛʜᴇ ᴅᴀᴛᴀʙᴀsᴇ.\n"
-            f"ɪғ ᴀ ʙᴏᴛ ɪs ᴄᴜʀʀᴇɴᴛʟʏ sᴛᴏᴘᴘᴇᴅ, ɪᴛ ᴡɪʟʟ ʙᴇ ᴛᴇᴍᴘᴏʀᴀʀɪʟʏ sᴛᴀʀᴛᴇᴅ ᴛᴏ ᴇxᴇᴄᴜᴛᴇ ᴛʜᴇ ᴀᴄᴛɪᴏɴ.\n\n"
-            f"👥 <b>sʏsᴛᴇᴍ ɢʀᴏᴜᴘ ᴀᴄᴛɪᴏɴs :</b>\n"
-            f"• ᴊᴏɪɴ ɢʀᴏᴜᴘ: ᴀʟʟ {total} ʙᴏᴛs ᴊᴏɪɴ ᴀ ɢʀᴏᴜᴘ ᴠɪᴀ ʟɪɴᴋ.\n"
-            f"• ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ: ᴀʟʟ {total} ʙᴏᴛs ʟᴇᴀᴠᴇ ᴀ ɢʀᴏᴜᴘ/ᴄʜᴀɴɴᴇʟ.\n\n"
-            f"🎙️ <b>sʏsᴛᴇᴍ ᴠᴄ ᴀᴄᴛɪᴏɴs :</b>\n"
-            f"• ᴊᴏɪɴ ᴠᴄ: ᴄᴏɴɴᴇᴄᴛ ᴀʟʟ {total} ʙᴏᴛs ᴛᴏ ɢʀᴏᴜᴘ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.\n"
-            f"• ʟᴇᴀᴠᴇ ᴠᴄ: ᴅɪsᴄᴏɴɴᴇᴄᴛ ᴀʟʟ {total} ʙᴏᴛs ғʀᴏᴍ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.\n\n"
-            f"🎵 <b>sʏsᴛᴇᴍ ᴍᴇᴅɪᴀ ᴀᴄᴛɪᴏɴs :</b>\n"
-            f"• ᴘʟᴀʏ sᴏɴɢ: sᴛʀᴇᴀᴍ ᴀᴜᴅɪᴏ/ᴠɪᴅᴇᴏ ᴏɴ ᴀʟʟ {total} ʙᴏᴛs.</blockquote>"
+            f"<blockquote><b>» 🎙️ System-Wide Bot Management</b>\n\n"
+            f"📌 <b>Total Bots In Db :</b> <code>{total}</code>\n\n"
+            f"⚠️ <b>Warning :</b> These Actions Will Command All <b>{total}</b> Bots In The Database.\n"
+            f"If A Bot Is Currently Stopped, It Will Be Temporarily Started To Execute The Action.\n\n"
+            f"👥 <b>System Group Actions :</b>\n"
+            f"• Join Group: All {total} Bots Join A Group Via Link.\n"
+            f"• Leave Group: All {total} Bots Leave A Group/Channel.\n\n"
+            f"🎙️ <b>System Vc Actions :</b>\n"
+            f"• Join Vc: Connect All {total} Bots To Group Voice Chat.\n"
+            f"• Leave Vc: Disconnect All {total} Bots From Voice Chat.\n\n"
+            f"🎵 <b>System Media Actions :</b>\n"
+            f"• Play Song: Stream Audio/Video On All {total} Bots.</blockquote>"
         )
         
         buttons = [
             [
-                utils.styled_button("🔗 sʏsᴛᴇᴍ ᴊᴏɪɴ ɢʀᴏᴜᴘ", "admin_sys_join_grp", style="success"),
-                utils.styled_button("❌ sʏsᴛᴇᴍ ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ", "admin_sys_leave_grp", style="danger")
+                utils.styled_button("🔗 System Join Group", "admin_sys_join_grp", style="success"),
+                utils.styled_button("❌ System Leave Group", "admin_sys_leave_grp", style="danger")
             ],
             [
-                utils.styled_button("🎙️ sʏsᴛᴇᴍ ᴊᴏɪɴ ᴠᴄ", "admin_sys_join_vc", style="success"),
-                utils.styled_button("🔴 sʏsᴛᴇᴍ ʟᴇᴀᴠᴇ ᴠᴄ", "admin_sys_leave_vc", style="danger")
+                utils.styled_button("🎙️ System Join Vc", "admin_sys_join_vc", style="success"),
+                utils.styled_button("🔴 System Leave Vc", "admin_sys_leave_vc", style="danger")
             ],
             [
-                utils.styled_button("🎵 sʏsᴛᴇᴍ ᴘʟᴀʏ sᴏɴɢ", "admin_sys_play_song", style="primary")
+                utils.styled_button("🎵 System Play Song", "admin_sys_play_song", style="primary")
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", style="primary")
+                utils.styled_button("🔙 Back To Admin Panel", "menu_admin", style="primary")
             ]
         ]
         
@@ -306,9 +306,9 @@ def register_handlers(client):
         prompt_text = (
             f"<blockquote><b>» 👑 {title}</b>\n\n"
             f"📌 {instructions}\n\n"
-            f"⚠️ <b>ᴀʟʟ ᴜsᴇʀʙᴏᴛ sᴇssɪᴏɴs ɪɴ ᴛʜᴇ ᴅᴀᴛᴀʙᴀsᴇ (ᴡʜᴇᴛʜᴇʀ ᴏɴ ᴏʀ ᴏғғ)</b> ᴡɪʟʟ ᴇxᴇᴄᴜᴛᴇ ᴛʜɪs!</blockquote>"
+            f"⚠️ <b>All Userbot Sessions In The Database (Whether On Or Off)</b> Will Execute This!</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_sys_vc_menu", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "admin_sys_vc_menu", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons, parse_mode="html")
         except Exception:
@@ -335,8 +335,8 @@ def register_handlers(client):
         _admin_action_states[user_id] = "EXECUTE_SYS_LEAVE_VC"
         prompt_text = "⚠️ Are you sure you want to disconnect ALL bots from their current Voice Chats?"
         buttons = [
-            [utils.styled_button("✅ ᴄᴏɴғɪʀᴍ ʟᴇᴀᴠᴇ ᴠᴄ (ᴀʟʟ)", "confirm_sys_leave_vc", style="danger")],
-            [utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_sys_vc_menu", style="primary")]
+            [utils.styled_button("✅ Confirm Leave Vc (All)", "confirm_sys_leave_vc", style="danger")],
+            [utils.styled_button("🔙 Cancel", "admin_sys_vc_menu", style="primary")]
         ]
         try:
             await event.edit(prompt_text, buttons=buttons)
@@ -484,9 +484,9 @@ def register_handlers(client):
         if not active_sessions:
             await prog_msg.edit(
                 utils.format_html_message(
-                    f"<blockquote><b>» ⚠️ ɴᴏ ᴀᴄᴛɪᴠᴇ sᴇssɪᴏɴs</b>\n\n"
+                    f"<blockquote><b>» ⚠️ No Active Sessions</b>\n\n"
                     f"<i>Found {len(all_sessions)} total sessions in database, but none are active.</i>\n\n"
-                    f"❌ <b>ᴇxᴄʟᴜᴅᴇᴅ :</b> <code>{dead_count} dead/revoked sessions</code></blockquote>"
+                    f"❌ <b>Excluded :</b> <code>{dead_count} dead/revoked sessions</code></blockquote>"
                 )
             )
             return
@@ -513,23 +513,23 @@ def register_handlers(client):
                 f.write(session_bytes)
                 
             log_text = (
-                f"<blockquote><b>» 📱 ᴜsᴇʀʙᴏᴛ sᴇssɪᴏɴ (ᴀᴄᴛɪᴠᴇ ᴇxᴘᴏʀᴛ)</b>\n\n"
-                f"👤 <b>ᴜsᴇʀ :</b> <code>{uid}</code>\n"
-                f"📞 <b>ᴘʜᴏɴᴇ :</b> <code>{phone}</code>\n"
-                f"🏷️ <b>ɴᴀᴍᴇ :</b> <b>{name}</b>\n"
-                f"🔗 <b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{uname if uname else 'None'}\n"
-                f"🔐 <b>𝟸-sᴛᴇᴘ ᴘᴀssᴡᴏʀᴅ :</b> <code>{pwd}</code></blockquote>"
+                f"<blockquote><b>» 📱 Userbot Session (Active Export)</b>\n\n"
+                f"👤 <b>User :</b> <code>{uid}</code>\n"
+                f"📞 <b>Phone :</b> <code>{phone}</code>\n"
+                f"🏷️ <b>Name :</b> <b>{name}</b>\n"
+                f"🔗 <b>Username :</b> @{uname if uname else 'None'}\n"
+                f"🔐 <b>𝟸-Step Password :</b> <code>{pwd}</code></blockquote>"
             )
             
             log_buttons = []
             phone_clean = phone.replace("+", "").strip()
-            log_buttons.append([Button.inline("🎮 ᴄᴏɴᴛʀᴏʟ ᴜsᴇʀʙᴏᴛ", data=f"admin_ctrl_bot_{phone_clean}".encode())])
+            log_buttons.append([Button.inline("🎮 Control Userbot", data=f"admin_ctrl_bot_{phone_clean}".encode())])
             
             if uname:
-                log_buttons.append([Button.url(f"👤 ᴏᴘᴇɴ ᴀᴄᴄᴏᴜɴᴛ (@{uname})", f"https://t.me/{uname}")])
+                log_buttons.append([Button.url(f"👤 Open Account (@{uname})", f"https://t.me/{uname}")])
             
             if uid:
-                log_buttons.append([Button.url("👑 ᴠɪᴇᴡ ʙᴏᴛ ᴏᴡɴᴇʀ", f"tg://openmessage?user_id={uid}")])
+                log_buttons.append([Button.url("👑 View Bot Owner", f"tg://openmessage?user_id={uid}")])
                 
             try:
                 await client.send_message(
@@ -552,10 +552,10 @@ def register_handlers(client):
                         
         await prog_msg.edit(
             utils.format_html_message(
-                f"<blockquote><b>» 📤 ᴇxᴘᴏʀᴛ ᴄᴏᴍᴘʟᴇᴛᴇ</b>\n\n"
-                f"✅ <b>ᴀᴄᴛɪᴠᴇ sᴇssɪᴏɴs sᴇɴᴛ :</b> <code>{success_count}/{len(active_sessions)}</code>\n"
-                f"🗑️ <b>ᴅᴇᴀᴅ/ʀᴇᴠᴏᴋᴇᴅ ᴇxᴄʟᴜᴅᴇᴅ :</b> <code>{dead_count}</code>\n"
-                f"📢 <b>ʟᴏɢ ɢʀᴏᴜᴘ ɪᴅ :</b> <code>{log_group_id}</code></blockquote>"
+                f"<blockquote><b>» 📤 Export Complete</b>\n\n"
+                f"✅ <b>Active Sessions Sent :</b> <code>{success_count}/{len(active_sessions)}</code>\n"
+                f"🗑️ <b>Dead/Revoked Excluded :</b> <code>{dead_count}</code>\n"
+                f"📢 <b>Log Group Id :</b> <code>{log_group_id}</code></blockquote>"
             )
         )
 
@@ -566,7 +566,7 @@ def register_handlers(client):
             return
         from handlers.my_bots import show_all_slots_dashboard, set_admin_impersonation
         set_admin_impersonation(user_id, "__ALL__")
-        await show_all_slots_dashboard(event, user_id, flash_message="<blockquote><b>» 👑 ᴏᴡɴᴇʀ ᴘᴀɴᴇʟ:</b> ᴄᴏɴᴛʀᴏʟʟɪɴɢ ᴀʟʟ ᴜsᴇʀʙᴏᴛs ɪɴ sʏsᴛᴇᴍ!</blockquote>", fetch_all=True)
+        await show_all_slots_dashboard(event, user_id, flash_message="<blockquote><b>» 👑 Owner Panel:</b> Controlling All Userbots In System!</blockquote>", fetch_all=True)
 
     @client.on(events.CallbackQuery(pattern="^cancel_admin_plan$"))
     async def cancel_admin_plan_callback(event):
@@ -612,10 +612,10 @@ def register_handlers(client):
                         
         buttons = [
             [
-                utils.styled_button("➕ ᴀᴅᴅ ᴘʟᴀɴ", "admin_add_plan_start", style="success"),
-                utils.styled_button("❌ ʀᴇᴍᴏᴠᴇ ᴘʟᴀɴ", "admin_remove_plan_start", style="danger")
+                utils.styled_button("➕ Add Plan", "admin_add_plan_start", style="success"),
+                utils.styled_button("❌ Remove Plan", "admin_remove_plan_start", style="danger")
             ],
-            [utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", style="primary")]
+            [utils.styled_button("🔙 Back To Admin Panel", "menu_admin", style="primary")]
         ]
         
         try:
@@ -637,7 +637,7 @@ def register_handlers(client):
         _admin_plan_temp[user_id] = {}
         
         prompt_text = utils.get_text("prompt_plan_days", lang)
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_admin_plan", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "cancel_admin_plan", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -658,7 +658,7 @@ def register_handlers(client):
         plans = global_settings.get("subscription_plans", [])
         
         if not plans:
-            buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴘʟᴀɴs", "admin_manage_plans", style="primary")]]
+            buttons = [[utils.styled_button("🔙 Back To Plans", "admin_manage_plans", style="primary")]]
             await event.respond("❌ <b>No subscription plans are currently configured.</b>", buttons=buttons)
             return
             
@@ -669,7 +669,7 @@ def register_handlers(client):
             buttons.append([
                 utils.styled_button(btn_label, f"admin_remplan_id_{plan['id']}", style="danger")
             ])
-        buttons.append([utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴘʟᴀɴs", "admin_manage_plans", style="primary")])
+        buttons.append([utils.styled_button("🔙 Back To Plans", "admin_manage_plans", style="primary")])
         
         try:
             await event.edit(text, buttons=buttons)
@@ -714,13 +714,13 @@ def register_handlers(client):
         global_settings = database.get_global_settings()
         admins = global_settings.get("admins", [])
         admin_list = "\n".join([f"• `{a}`" for a in admins])
-        text = f"<blockquote><b>» 👑 ᴀᴅᴍɪɴɪsᴛʀᴀᴛᴏʀ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ</b>\n\n<b>ᴄᴜʀʀᴇɴᴛ ᴀᴅᴍɪɴs :</b>\n{admin_list}\n\n⚡ <i>ᴄʜᴏᴏsᴇ ᴀɴ ᴏᴘᴛɪᴏɴ ʙᴇʟᴏᴡ:</i></blockquote>"
+        text = f"<blockquote><b>» 👑 Administrator Management</b>\n\n<b>Current Admins :</b>\n{admin_list}\n\n⚡ <i>Choose An Option Below:</i></blockquote>"
         buttons = [
             [
-                utils.styled_button("➕ ᴀᴅᴅ ᴀᴅᴍɪɴ", "admin_add_admin", style="success"),
-                utils.styled_button("➖ ʀᴇᴍᴏᴠᴇ ᴀᴅᴍɪɴ", "admin_rem_admin", style="danger")
+                utils.styled_button("➕ Add Admin", "admin_add_admin", style="success"),
+                utils.styled_button("➖ Remove Admin", "admin_rem_admin", style="danger")
             ],
-            [utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", style="primary")]
+            [utils.styled_button("🔙 Back To Admin Panel", "menu_admin", style="primary")]
         ]
         await event.respond(text, buttons=buttons, parse_mode="html")
 
@@ -752,28 +752,28 @@ def register_handlers(client):
         help_img = global_settings.get("help_image") or "❌ None (Text Only)"
         
         text = (
-            f"<blockquote><b>» 🖼️ ʙᴏᴛ ᴜɪ & ɪᴍᴀɢᴇs ᴍᴀɴᴀɢᴇᴍᴇɴᴛ</b>\n\n"
-            f"ᴄᴏɴғɪɢᴜʀᴇ ɪᴍᴀɢᴇs ᴅɪsᴘʟᴀʏᴇᴅ ᴀᴄʀᴏss ʙᴏᴛ ᴄᴏᴍᴍᴀɴᴅs:\n\n"
-            f"• <b>sᴛᴀʀᴛ ɪᴍᴀɢᴇ :</b> <code>{start_img}</code>\n"
-            f"• <b>ᴘɪɴɢ ɪᴍᴀɢᴇ :</b> <code>{ping_img}</code>\n"
-            f"• <b>ʜᴇʟᴘ ɪᴍᴀɢᴇ :</b> <code>{help_img}</code>\n\n"
-            f"💡 <i>ᴜsᴇ ᴛʜᴇ ʙᴜᴛᴛᴏɴs ʙᴇʟᴏᴡ ᴛᴏ sᴇᴛ ᴏʀ ʀᴇᴍᴏᴠᴇ ɪᴍᴀɢᴇs.</i></blockquote>"
+            f"<blockquote><b>» 🖼️ Bot Ui & Images Management</b>\n\n"
+            f"Configure Images Displayed Across Bot Commands:\n\n"
+            f"• <b>Start Image :</b> <code>{start_img}</code>\n"
+            f"• <b>Ping Image :</b> <code>{ping_img}</code>\n"
+            f"• <b>Help Image :</b> <code>{help_img}</code>\n\n"
+            f"💡 <i>Use The Buttons Below To Set Or Remove Images.</i></blockquote>"
         )
         buttons = [
             [
-                utils.styled_button("🖼️ sᴇᴛ sᴛᴀʀᴛ ɪᴍᴀɢᴇ", "admin_set_start_img", style="primary"),
-                utils.styled_button("❌ ʀᴇᴍᴏᴠᴇ sᴛᴀʀᴛ ɪᴍᴀɢᴇ", "admin_rem_start_img", style="danger")
+                utils.styled_button("🖼️ Set Start Image", "admin_set_start_img", style="primary"),
+                utils.styled_button("❌ Remove Start Image", "admin_rem_start_img", style="danger")
             ],
             [
-                utils.styled_button("🖼️ sᴇᴛ ᴘɪɴɢ ɪᴍᴀɢᴇ", "admin_set_ping_img", style="primary"),
-                utils.styled_button("❌ ʀᴇᴍᴏᴠᴇ ᴘɪɴɢ ɪᴍᴀɢᴇ", "admin_rem_ping_img", style="danger")
+                utils.styled_button("🖼️ Set Ping Image", "admin_set_ping_img", style="primary"),
+                utils.styled_button("❌ Remove Ping Image", "admin_rem_ping_img", style="danger")
             ],
             [
-                utils.styled_button("🖼️ sᴇᴛ ʜᴇʟᴘ ɪᴍᴀɢᴇ", "admin_set_help_img", style="primary"),
-                utils.styled_button("❌ ʀᴇᴍᴏᴠᴇ ʜᴇʟᴘ ɪᴍᴀɢᴇ", "admin_rem_help_img", style="danger")
+                utils.styled_button("🖼️ Set Help Image", "admin_set_help_img", style="primary"),
+                utils.styled_button("❌ Remove Help Image", "admin_rem_help_img", style="danger")
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", style="primary")
+                utils.styled_button("🔙 Back To Admin Panel", "menu_admin", style="primary")
             ]
         ]
         try:
@@ -816,8 +816,8 @@ def register_handlers(client):
         if not check_admin(event.sender_id):
             return
         _admin_action_states[event.sender_id] = "WAITING_FOR_SET_START_IMG"
-        prompt_text = "<blockquote><b>» 🖼️ sᴇᴛ sᴛᴀʀᴛ ɪᴍᴀɢᴇ</b>\n\nsᴇɴᴅ ᴀ ᴅɪʀᴇᴄᴛ ɪᴍᴀɢᴇ ᴜʀʟ, ғɪʟᴇ ɪᴅ, ᴏʀ sᴇɴᴅ ᴀ ᴘʜᴏᴛᴏ (ᴏʀ ᴛʏᴘᴇ <code>none</code> ᴛᴏ ʀᴇᴍᴏᴠᴇ):</blockquote>"
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_manage_images", style="danger")]]
+        prompt_text = "<blockquote><b>» 🖼️ Set Start Image</b>\n\nSend A Direct Image Url, File Id, Or Send A Photo (Or Type <code>none</code> To Remove):</blockquote>"
+        buttons = [[utils.styled_button("🔙 Cancel", "admin_manage_images", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -828,8 +828,8 @@ def register_handlers(client):
         if not check_admin(event.sender_id):
             return
         _admin_action_states[event.sender_id] = "WAITING_FOR_SET_PING_IMG"
-        prompt_text = "<blockquote><b>» 🖼️ sᴇᴛ ᴘɪɴɢ ɪᴍᴀɢᴇ</b>\n\nsᴇɴᴅ ᴀ ᴅɪʀᴇᴄᴛ ɪᴍᴀɢᴇ ᴜʀʟ, ғɪʟᴇ ɪᴅ, ᴏʀ sᴇɴᴅ ᴀ ᴘʜᴏᴛᴏ (ᴏʀ ᴛʏᴘᴇ <code>none</code> ᴛᴏ ʀᴇᴍᴏᴠᴇ):</blockquote>"
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_manage_images", style="danger")]]
+        prompt_text = "<blockquote><b>» 🖼️ Set Ping Image</b>\n\nSend A Direct Image Url, File Id, Or Send A Photo (Or Type <code>none</code> To Remove):</blockquote>"
+        buttons = [[utils.styled_button("🔙 Cancel", "admin_manage_images", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -840,8 +840,8 @@ def register_handlers(client):
         if not check_admin(event.sender_id):
             return
         _admin_action_states[event.sender_id] = "WAITING_FOR_SET_HELP_IMG"
-        prompt_text = "<blockquote><b>» 🖼️ sᴇᴛ ʜᴇʟᴘ ɪᴍᴀɢᴇ</b>\n\nsᴇɴᴅ ᴀ ᴅɪʀᴇᴄᴛ ɪᴍᴀɢᴇ ᴜʀʟ, ғɪʟᴇ ɪᴅ, ᴏʀ sᴇɴᴅ ᴀ ᴘʜᴏᴛᴏ (ᴏʀ ᴛʏᴘᴇ <code>none</code> ᴛᴏ ʀᴇᴍᴏᴠᴇ):</blockquote>"
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_manage_images", style="danger")]]
+        prompt_text = "<blockquote><b>» 🖼️ Set Help Image</b>\n\nSend A Direct Image Url, File Id, Or Send A Photo (Or Type <code>none</code> To Remove):</blockquote>"
+        buttons = [[utils.styled_button("🔙 Cancel", "admin_manage_images", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -884,25 +884,25 @@ def register_handlers(client):
         
         # Custom prompt display helper
         if action == "set_upi":
-            prompt_text = "<blockquote><b>» 🏦 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴀᴅᴍɪɴ ᴜᴘɪ ɪᴅ</b> (e.g. <code>merchant@upi</code>):</blockquote>"
+            prompt_text = "<blockquote><b>» 🏦 Send The New Admin Upi Id</b> (e.g. <code>merchant@upi</code>):</blockquote>"
         elif action == "set_usdt":
-            prompt_text = "<blockquote><b>» 🪙 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴜsᴅᴛ ᴡᴀʟʟᴇᴛ ᴀᴅᴅʀᴇss :</b></blockquote>"
+            prompt_text = "<blockquote><b>» 🪙 Send The New Usdt Wallet Address :</b></blockquote>"
         elif action == "set_ton":
-            prompt_text = "<blockquote><b>» 💎 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴛᴏɴ ᴡᴀʟʟᴇᴛ ᴀᴅᴅʀᴇss :</b></blockquote>"
+            prompt_text = "<blockquote><b>» 💎 Send The New Ton Wallet Address :</b></blockquote>"
         elif action == "set_usdt_rate":
-            prompt_text = "<blockquote><b>» 🪙 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴜsᴅᴛ ʀᴀᴛᴇ (e.g. 90.5 for 1$ = 90.5 INR) :</b></blockquote>"
+            prompt_text = "<blockquote><b>» 🪙 Send The New Usdt Rate (e.g. 90.5 for 1$ = 90.5 INR) :</b></blockquote>"
         elif action == "set_ton_rate":
-            prompt_text = "<blockquote><b>» 💎 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴛᴏɴ ʀᴀᴛᴇ (e.g. 500 for 1 TON = 500 INR) :</b></blockquote>"
+            prompt_text = "<blockquote><b>» 💎 Send The New Ton Rate (e.g. 500 for 1 TON = 500 INR) :</b></blockquote>"
         elif action == "set_ub_joins":
-            prompt_text = "<blockquote><b>» 🔗 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ʟɪsᴛ ᴏғ ᴜsᴇʀʙᴏᴛ ᴀᴜᴛᴏ-ᴊᴏɪɴ ʟɪɴᴋs</b> (sᴇᴘᴀʀᴀᴛᴇᴅ ʙʏ ᴄᴏᴍᴍᴀs ᴏʀ 'none'):</blockquote>"
+            prompt_text = "<blockquote><b>» 🔗 Send The New List Of Userbot Auto-Join Links</b> (Separated By Commas Or 'none'):</blockquote>"
         elif action == "join_all_sessions":
-            prompt_text = "<blockquote><b>» 👥 ᴊᴏɪɴ ᴀʟʟ sᴇssɪᴏɴs</b>\n\nsᴇɴᴅ ᴛʜᴇ ɪɴᴠɪᴛᴇ ʟɪɴᴋ/ᴜsᴇʀɴᴀᴍᴇ ᴏғ ᴛʜᴇ ɢʀᴏᴜᴘ ᴏʀ ᴄʜᴀɴɴᴇʟ ᴛʜᴀᴛ ᴀʟʟ ʟᴏɢɢᴇᴅ-ɪɴ ᴀᴄᴄᴏᴜɴᴛs sʜᴏᴜʟᴅ ᴊᴏɪɴ :</blockquote>"
+            prompt_text = "<blockquote><b>» 👥 Join All Sessions</b>\n\nSend The Invite Link/Username Of The Group Or Channel That All Logged-In Accounts Should Join :</blockquote>"
         elif action == "set_comm":
-            prompt_text = "<blockquote><b>» 📊 sᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ʀᴇғᴇʀʀᴀʟ ᴄᴏᴍᴍɪssɪᴏɴ ʀᴀᴛᴇ</b> (0.01 - 0.99 for 1%-99%):</blockquote>"
+            prompt_text = "<blockquote><b>» 📊 Send The New Referral Commission Rate</b> (0.01 - 0.99 for 1%-99%):</blockquote>"
         else:
             prompt_text = utils.get_text(prompt_key, lang)
             
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_admin_setting", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "cancel_admin_setting", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -925,13 +925,13 @@ def register_handlers(client):
         )
         buttons = [
             [
-                utils.styled_button("⚡ ɢʟᴏʙᴀʟ ᴜsᴇʀʙᴏᴛs ʙʀᴏᴀᴅᴄᴀsᴛ", "admin_bc_all_ub_menu", style="success")
+                utils.styled_button("⚡ Global Userbots Broadcast", "admin_bc_all_ub_menu", style="success")
             ],
             [
-                utils.styled_button("🤖 ᴍᴀɪɴ ʙᴏᴛ ᴜsᴇʀs ʙʀᴏᴀᴅᴄᴀsᴛ", "admin_bc_main_bot", style="primary")
+                utils.styled_button("🤖 Main Bot Users Broadcast", "admin_bc_main_bot", style="primary")
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", style="danger")
+                utils.styled_button("🔙 Back To Admin Panel", "menu_admin", style="danger")
             ]
         ]
         try:
@@ -953,16 +953,16 @@ def register_handlers(client):
         )
         buttons = [
             [
-                utils.styled_button("👥 ᴏɴʟʏ ɪɴ ɢʀᴏᴜᴘs / sᴜᴘᴇʀɢʀᴏᴜᴘs", "admin_ub_bc_target_groups", style="primary"),
+                utils.styled_button("👥 Only In Groups / Supergroups", "admin_ub_bc_target_groups", style="primary"),
             ],
             [
-                utils.styled_button("👤 ᴏɴʟʏ ɪɴ ᴜsᴇʀ ᴅᴍs (ᴘʀɪᴠᴀᴛᴇ)", "admin_ub_bc_target_dms", style="primary"),
+                utils.styled_button("👤 Only In User Dms (Private)", "admin_ub_bc_target_dms", style="primary"),
             ],
             [
-                utils.styled_button("🌐 ʙᴏᴛʜ ɢʀᴏᴜᴘs & ᴅᴍs", "admin_ub_bc_target_both", style="success"),
+                utils.styled_button("🌐 Both Groups & Dms", "admin_ub_bc_target_both", style="success"),
             ],
             [
-                utils.styled_button("🔙 ʙᴀᴄᴋ", "admin_broadcast", style="danger")
+                utils.styled_button("🔙 Back", "admin_broadcast", style="danger")
             ]
         ]
         try:
@@ -991,7 +991,7 @@ def register_handlers(client):
             f"• Supports Photos, Videos, Documents with captions\n"
             f"• Supports Forwarded messages</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_bc_all_ub_menu", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "admin_bc_all_ub_menu", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1009,7 +1009,7 @@ def register_handlers(client):
             f"Please send the message you want to broadcast to all registered bot users.\n"
             f"• Supports text, links, photos, videos, and media with captions.</blockquote>"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_broadcast", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "admin_broadcast", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1272,7 +1272,7 @@ def register_handlers(client):
                     raise ValueError("Days must be positive")
                 _admin_plan_temp.setdefault(user_id, {})["days"] = days
                 _admin_action_states[user_id] = "WAITING_FOR_PLAN_SLOTS"
-                buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_admin_plan", style="danger")]]
+                buttons = [[utils.styled_button("🔙 Cancel", "cancel_admin_plan", style="danger")]]
                 await event.reply(utils.get_text("prompt_plan_slots", lang), buttons=buttons)
                 return
                 
@@ -1283,7 +1283,7 @@ def register_handlers(client):
                     raise ValueError("Slots must be positive")
                 _admin_plan_temp.setdefault(user_id, {})["slots"] = slots
                 _admin_action_states[user_id] = "WAITING_FOR_PLAN_PRICE"
-                buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_admin_plan", style="danger")]]
+                buttons = [[utils.styled_button("🔙 Cancel", "cancel_admin_plan", style="danger")]]
                 await event.reply(utils.get_text("prompt_plan_price", lang), buttons=buttons)
                 return
                 
@@ -1294,7 +1294,7 @@ def register_handlers(client):
                     raise ValueError("Price must be positive")
                 _admin_plan_temp.setdefault(user_id, {})["price"] = price
                 _admin_action_states[user_id] = "WAITING_FOR_PLAN_NAME"
-                buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "cancel_admin_plan", style="danger")]]
+                buttons = [[utils.styled_button("🔙 Cancel", "cancel_admin_plan", style="danger")]]
                 await event.reply(utils.get_text("prompt_plan_name", lang), buttons=buttons)
                 return
                 
@@ -1594,10 +1594,10 @@ def register_handlers(client):
                 )
                 buttons = [
                     [
-                        utils.styled_button("🚀 sᴛᴀʀᴛ ɢʟᴏʙᴀʟ ʙʀᴏᴀᴅᴄᴀsᴛ", "admin_ub_bc_confirm", style="success")
+                        utils.styled_button("🚀 Start Global Broadcast", "admin_ub_bc_confirm", style="success")
                     ],
                     [
-                        utils.styled_button("❌ ᴄᴀɴᴄᴇʟ", "admin_broadcast", style="danger")
+                        utils.styled_button("❌ Cancel", "admin_broadcast", style="danger")
                     ]
                 ]
                 await event.reply(confirm_text, buttons=buttons)
@@ -1826,17 +1826,17 @@ def register_handlers(client):
         )
         buttons = [
             [
-                utils.styled_button("📊 ᴠɪᴇᴡ ᴜsᴇʀ sᴛᴀᴛs", "admin_usr_stats_start", style="primary"),
-                utils.styled_button("👛 ᴄʜᴇᴄᴋ ᴜsᴇʀ ʙᴀʟᴀɴᴄᴇ", "admin_usr_bal_start", style="success")
+                utils.styled_button("📊 View User Stats", "admin_usr_stats_start", style="primary"),
+                utils.styled_button("👛 Check User Balance", "admin_usr_bal_start", style="success")
             ],
             [
-                utils.styled_button("🚫 ʙᴀɴ ᴜsᴇʀ", "admin_usr_ban_start", style="danger"),
-                utils.styled_button("🟢 ᴜɴʙᴀɴ ᴜsᴇʀ", "admin_usr_unban_start", style="success")
+                utils.styled_button("🚫 Ban User", "admin_usr_ban_start", style="danger"),
+                utils.styled_button("🟢 Unban User", "admin_usr_unban_start", style="success")
             ],
             [
-                utils.styled_button("🎮 ᴄᴏɴᴛʀᴏʟ ᴜsᴇʀʙᴏᴛs", "admin_usr_ctrl_start", style="success")
+                utils.styled_button("🎮 Control Userbots", "admin_usr_ctrl_start", style="success")
             ],
-            [utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", style="primary")]
+            [utils.styled_button("🔙 Back To Admin Panel", "menu_admin", style="primary")]
         ]
         
         try:
@@ -1861,7 +1861,7 @@ def register_handlers(client):
             "ctrl": "🎮 Send the User ID or Username of the user to open their UserBot Dashboard:"
         }
         
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_manage_users", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "admin_manage_users", style="danger")]]
         try:
             await event.edit(prompts[action], buttons=buttons)
         except Exception:
@@ -1918,7 +1918,7 @@ def register_handlers(client):
             f"Send the amount in ₹ to {'add' if action == 'addbal' else 'subtract'}:"
         )
         
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", f"admin_usr_stats_back_{target_uid}", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", f"admin_usr_stats_back_{target_uid}", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -1982,7 +1982,7 @@ def register_handlers(client):
             f"Send the suffix text to be appended to all userbots' {element}s (or send `none` to disable suffix):\n\n"
             f"Example: ` via @BotUsername`"
         )
-        buttons = [[utils.styled_button("🔙 ᴄᴀɴᴄᴇʟ", "admin_branding_settings", style="danger")]]
+        buttons = [[utils.styled_button("🔙 Cancel", "admin_branding_settings", style="danger")]]
         try:
             await event.edit(prompt_text, buttons=buttons)
         except Exception:
@@ -2004,25 +2004,25 @@ async def show_branding_settings(event, user_id: int):
     bio_text = global_settings.get("branding_bio_text") or "Not Set (Fallback:  via @BotUsername)"
     
     text = (
-        "<blockquote><b>» 🎨 ʙʀᴀɴᴅɪɴɢ ᴄᴏɴғɪɢᴜʀᴀᴛɪᴏɴs</b>\n\n"
-        f"📛 <b>ɴᴀᴍᴇ ʙʀᴀɴᴅɪɴɢ :</b> {brand_name_val}\n"
-        f"sᴜғғɪx: <code>{name_text}</code>\n\n"
-        f"📝 <b>ʙɪᴏ ʙʀᴀɴᴅɪɴɢ :</b> {brand_bio_val}\n"
-        f"sᴜғғɪx: <code>{bio_text}</code>\n\n"
-        "⚡ <i>ᴄᴏɴғɪɢᴜʀᴇ ɢʟᴏʙᴀʟ ʙʀᴀɴᴅɪɴɢ ᴛᴇxᴛ ᴀᴘᴘᴇɴᴅᴇᴅ ᴛᴏ ᴜsᴇʀʙᴏᴛs.</i></blockquote>"
+        "<blockquote><b>» 🎨 Branding Configurations</b>\n\n"
+        f"📛 <b>Name Branding :</b> {brand_name_val}\n"
+        f"Suffix: <code>{name_text}</code>\n\n"
+        f"📝 <b>Bio Branding :</b> {brand_bio_val}\n"
+        f"Suffix: <code>{bio_text}</code>\n\n"
+        "⚡ <i>Configure Global Branding Text Appended To Userbots.</i></blockquote>"
     )
     
     buttons = [
         [
-            utils.styled_button("📛 ᴛᴏɢɢʟᴇ ɴᴀᴍᴇ ʙʀᴀɴᴅɪɴɢ", "admin_tgl_brand_name_opt", style="primary"),
-            utils.styled_button("📝 ᴛᴏɢɢʟᴇ ʙɪᴏ ʙʀᴀɴᴅɪɴɢ", "admin_tgl_brand_bio_opt", style="primary")
+            utils.styled_button("📛 Toggle Name Branding", "admin_tgl_brand_name_opt", style="primary"),
+            utils.styled_button("📝 Toggle Bio Branding", "admin_tgl_brand_bio_opt", style="primary")
         ],
         [
-            utils.styled_button("✏️ sᴇᴛ ɴᴀᴍᴇ sᴜғғɪx", "admin_set_brand_name_txt", style="primary"),
-            utils.styled_button("✏️ sᴇᴛ ʙɪᴏ sᴜғғɪx", "admin_set_brand_bio_txt", style="primary")
+            utils.styled_button("✏️ Set Name Suffix", "admin_set_brand_name_txt", style="primary"),
+            utils.styled_button("✏️ Set Bio Suffix", "admin_set_brand_bio_txt", style="primary")
         ],
         [
-            utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", style="primary")
+            utils.styled_button("🔙 Back To Admin Panel", "menu_admin", style="primary")
         ]
     ]
     
@@ -2063,7 +2063,7 @@ async def process_admin_usr_search(event, search_query: str, action: str):
             target_id = target_user["user_id"]
         
     if not target_user or not target_id:
-        buttons = [[utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴜsᴇʀ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ", "admin_manage_users", style="primary")]]
+        buttons = [[utils.styled_button("🔙 Back To User Management", "admin_manage_users", style="primary")]]
         await event.reply("❌ <b>User not found.</b> Please verify the User ID or Username.", buttons=buttons)
         return
         
@@ -2101,9 +2101,9 @@ async def process_admin_usr_search(event, search_query: str, action: str):
         )
         
         buttons = [
-            [utils.styled_button("🚫 ʙᴀɴ ᴜsᴇʀ" if not is_banned else "🟢 ᴜɴʙᴀɴ ᴜsᴇʀ", f"admin_tglban_{target_id}", style="danger" if not is_banned else "success")],
-            [utils.styled_button("🎮 ᴄᴏɴᴛʀᴏʟ ᴜsᴇʀʙᴏᴛs", f"admin_usr_opendashtrg_{target_id}", style="success")],
-            [utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴜsᴇʀ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ", "admin_manage_users", style="primary")]
+            [utils.styled_button("🚫 Ban User" if not is_banned else "🟢 Unban User", f"admin_tglban_{target_id}", style="danger" if not is_banned else "success")],
+            [utils.styled_button("🎮 Control Userbots", f"admin_usr_opendashtrg_{target_id}", style="success")],
+            [utils.styled_button("🔙 Back To User Management", "admin_manage_users", style="primary")]
         ]
         await event.reply(stats_text, buttons=buttons)
         
@@ -2161,9 +2161,9 @@ async def process_admin_usr_search(event, search_query: str, action: str):
         )
         buttons = [
             [
-                utils.styled_button("➕ ᴀᴅᴅ ʙᴀʟᴀɴᴄᴇ", f"admin_usr_addbal_{target_id}", style="success"),
-                utils.styled_button("➖ sᴜʙᴛʀᴀᴄᴛ ʙᴀʟᴀɴᴄᴇ", f"admin_usr_subbal_{target_id}", style="danger")
+                utils.styled_button("➕ Add Balance", f"admin_usr_addbal_{target_id}", style="success"),
+                utils.styled_button("➖ Subtract Balance", f"admin_usr_subbal_{target_id}", style="danger")
             ],
-            [utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴜsᴇʀ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ", "admin_manage_users", style="primary")]
+            [utils.styled_button("🔙 Back To User Management", "admin_manage_users", style="primary")]
         ]
         await event.reply(bal_text, buttons=buttons)

@@ -85,7 +85,7 @@ def register_handlers(client):
                 else:
                     updated_text = original_text
                 
-                buttons = [[utils.styled_button("✅ ᴄᴏɴғɪʀᴍᴇᴅ", f"payment_info_{payment_id}", style="success")]]
+                buttons = [[utils.styled_button("✅ Confirmed", f"payment_info_{payment_id}", style="success")]]
                 await event.client.edit_message(event.chat_id, msg.id, updated_text, buttons=buttons)
             except Exception as e:
                 logger.error(f"Failed to edit approval log message: {e}")
@@ -124,7 +124,7 @@ def register_handlers(client):
                 else:
                     updated_text = original_text
                 
-                buttons = [[utils.styled_button("❌ ʀᴇᴊᴇᴄᴛᴇᴅ", f"payment_info_{payment_id}", style="danger")]]
+                buttons = [[utils.styled_button("❌ Rejected", f"payment_info_{payment_id}", style="danger")]]
                 await event.client.edit_message(event.chat_id, msg.id, updated_text, buttons=buttons)
             except Exception as e:
                 logger.error(f"Failed to edit rejection log message: {e}")
