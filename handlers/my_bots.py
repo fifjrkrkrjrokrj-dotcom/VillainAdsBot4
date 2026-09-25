@@ -3467,6 +3467,7 @@ def register_handlers(client):
                         ok = await join_channel_single(bot_obj.client, link)
                         if ok:
                             total_joins_success += 1
+                            bot_obj.groups_cache_time = 0
                         else:
                             total_joins_failed += 1
                     except Exception as e:
@@ -3642,6 +3643,7 @@ def register_handlers(client):
                 except Exception:
                     pass
                 if success:
+                    bot_obj.groups_cache_time = 0
                     flash = f"<blockquote><b>» ✅ sᴜᴄᴄᴇssғᴜʟʟʏ ᴊᴏɪɴᴇᴅ ɢʀᴏᴜᴘ!</b>\n\n• <b>ᴛᴀʀɢᴇᴛ :</b> <code>{link}</code>\n• <i>ʏᴏᴜ ᴄᴀɴ ɴᴏᴡ ᴄʟɪᴄᴋ '🎙️ ᴊᴏɪɴ ᴠᴄ' ᴛᴏ ᴇɴᴛᴇʀ ᴛʜᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ.</i></blockquote>"
                 else:
                     flash = f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴊᴏɪɴ ɢʀᴏᴜᴘ</b>\n\n• <b>ᴛᴀʀɢᴇᴛ :</b> <code>{link}</code>\n• <i>ᴍᴀᴋᴇ sᴜʀᴇ ᴛʜᴇ ʟɪɴᴋ ɪs ᴠᴀʟɪᴅ ᴏʀ ɴᴏᴛ ᴇxᴘɪʀᴇᴅ.</i></blockquote>"
@@ -3654,6 +3656,7 @@ def register_handlers(client):
                         ok = await join_channel_single(bot_obj.client, link)
                         if ok:
                             success_count += 1
+                            bot_obj.groups_cache_time = 0
                         else:
                             failed_count += 1
                     except Exception as e:

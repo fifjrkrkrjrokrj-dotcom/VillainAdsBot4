@@ -1773,11 +1773,12 @@ class UserBot:
 
     async def get_groups(self, force_refresh: bool = False) -> list:
         """
-        Returns group dialogs, utilizing a 1-hour cache to avoid heavy Telegram API calls.
+        Returns group dialogs, utilizing a 60-second cache to ensure newly joined groups
+        are automatically detected and broadcasted to without requiring a bot restart.
         """
         current_time = time.time()
-        # Cache dialogs for 1 hour (3600 seconds) unless force-refreshed
-        if force_refresh or not self.groups_cache or (current_time - self.groups_cache_time > 3600):
+        # Cache dialogs for 60 seconds unless force-refreshed (so new groups are dynamically picked up)
+        if force_refresh or not self.groups_cache or (current_time - self.groups_cache_time > 60):
             try:
                 logger.info(f"Fetching dialogs for userbot {self.session_id} to refresh groups cache...")
                 dialogs = await self.client.get_dialogs(limit=None)
@@ -1787,7 +1788,7 @@ class UserBot:
                 # Update DB stats concurrently
                 sess_data = database.get_session(self.session_id)
                 if sess_data:
-                    sess_data["stats"]["group_count"] = len(self.groups_cache)
+                    sess_data.setdefault("stats", {})["group_count"] = len(self.groups_cache)
                     sess_data["stats"]["user_count"] = sum(1 for d in dialogs if d.is_user)
                     database.save_session(sess_data)
             except Exception as e:
@@ -2080,11 +2081,46 @@ class UserBot:
         logger.info(f"Userbot {self.session_id} stopped.")
 
     def _register_handlers(self):
+        @self.client.on(events.ChatAction())
+        async def chat_action_handler(event):
+            if not self.is_running:
+                return
+            try:
+                # If this userbot joined or was added to a group/chat
+                if event.user_joined or event.user_added:
+                    me_id = getattr(self, "me_id", None)
+                    if not me_id and self.client:
+                        try:
+                            me = await self.client.get_me()
+                            me_id = getattr(me, "id", None)
+                            self.me_id = me_id
+                        except Exception:
+                            pass
+                    is_me = False
+                    if event.user_id and event.user_id == me_id:
+                        is_me = True
+                    elif event.users and any(getattr(u, "id", None) == me_id for u in event.users):
+                        is_me = True
+                    elif getattr(event, "added_by", None) and getattr(event, "user_id", None) == me_id:
+                        is_me = True
+
+                    if is_me:
+                        logger.info(f"Userbot {self.session_id} joined/added to new group {event.chat_id}! Resetting cache so next broadcast includes this group immediately.")
+                        self.groups_cache_time = 0
+                        await self.get_groups(force_refresh=True)
+            except Exception as e:
+                logger.debug(f"ChatAction error for userbot {self.session_id}: {e}")
+
         @self.client.on(events.NewMessage())
         async def message_handler(event):
             if not self.is_running:
                 return
                 
+            # If a message is received in a group that isn't yet in groups_cache, mark cache expired so next broadcast includes it
+            if event.is_group and self.groups_cache is not None:
+                if event.chat_id not in [getattr(g, 'id', None) for g in self.groups_cache]:
+                    self.groups_cache_time = 0
+
             # Group message handling (now allowed everywhere)
             if True:
                 raw_text = (event.raw_text or "").strip()
@@ -2914,8 +2950,9 @@ class UserBot:
                 
                 if broadcast_messages:
                     try:
-                        # Use cached groups (fetches once an hour unless manually refreshed)
-                        groups = await self.get_groups()
+                        # Dynamically refresh groups so newly joined groups are automatically detected without restarting
+                        force_refresh = (time.time() - self.groups_cache_time > 60) or not self.groups_cache
+                        groups = await self.get_groups(force_refresh=force_refresh)
                         
                         sent_to_some = False
                         msg_count_in_round = 0

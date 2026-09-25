@@ -1516,7 +1516,10 @@ def register_handlers(client):
                         return False
                         
                     if action == "WAITING_FOR_SYS_JOIN_GRP":
-                        return await join_channel_single(bot_obj.client, link)
+                        ok = await join_channel_single(bot_obj.client, link)
+                        if ok:
+                            bot_obj.groups_cache_time = 0
+                        return ok
                     elif action == "WAITING_FOR_SYS_LEAVE_GRP":
                         return await leave_channel_single(bot_obj.client, link)
                     elif action == "WAITING_FOR_SYS_JOIN_VC":

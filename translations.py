@@ -1,6 +1,6 @@
 TRANSLATIONS = {
     "en": {
-        "select_lang": "<blockquote><b>» 📱 ᴘʟᴇᴀsᴇ sᴇʟᴇᴄᴛ ʏᴏᴜʀ ʟᴀɴɢᴜᴀɢᴇ / ᴋʀɪᴘʏᴀ ᴀᴘɴɪ ʙʜᴀsʜᴀ ᴄʜᴜɴᴇɪɴ / ᴘᴏᴢʜᴀʟᴜʏsᴛᴀ, ᴠʏʙᴇʀɪᴛᴇ ʏᴀᴢʏᴋ:</b></blockquote>",
+        "select_lang": "<blockquote><b>» 📱 Please select your language / कृपया अपनी भाषा चुनें / Пожалуйста, выберите язык:</b></blockquote>",
         "tos_title": "⚠️ ᴛᴇʀᴍs ᴏғ sᴇʀᴠɪᴄᴇ",
         "tos_text": "<blockquote><b>» ⚠️ ᴅɪsᴄʟᴀɪᴍᴇʀ & ᴛᴇʀᴍs ᴏғ sᴇʀᴠɪᴄᴇ</b>\n\n1. ᴛʜɪs ʙᴏᴛ ɪs ᴀ ᴛᴏᴏʟ ᴛᴏ ᴀᴜᴛᴏᴍᴀᴛᴇ ᴘᴇʀsᴏɴᴀʟ ᴛᴇʟᴇɢʀᴀᴍ ᴀᴄᴄᴏᴜɴᴛs.\n2. ʀᴜɴɴɪɴɢ ᴀᴜᴛᴏᴍᴀᴛᴇᴅ ᴀᴄᴛɪᴏɴs (ʟɪᴋᴇ sᴘᴀᴍs ᴏʀ ʀᴀᴘɪᴅ ʙʀᴏᴀᴅᴄᴀsᴛs) ᴠɪᴏʟᴀᴛᴇs ᴛᴇʟᴇɢʀᴀᴍ's ᴛᴏs ᴀɴᴅ ᴍɪɢʜᴛ ʀᴇsᴜʟᴛ ɪɴ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ ʙᴇɪɴɢ <b>ʙᴀɴɴᴇᴅ</b> ᴏʀ <b>ғʀᴏᴢᴇɴ</b>.\n3. ᴛʜᴇ ʙᴏᴛ ᴏᴡɴᴇʀ ᴀɴᴅ ᴅᴇᴠᴇʟᴏᴘᴇʀ ᴀʀᴇ ɴᴏᴛ ʀᴇsᴘᴏɴsɪʙʟᴇ ғᴏʀ ᴀɴʏ ʙᴀɴs, ᴅᴀᴛᴀ ʟᴏss, ᴏʀ ᴀᴄᴛɪᴏɴ ᴛᴀᴋᴇɴ ᴏɴ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ.\n4. ᴜsᴇ ɪᴛ ᴀᴛ ʏᴏᴜʀ ᴏᴡɴ ʀɪsᴋ.\n\n<i>ᴅᴏ ʏᴏᴜ ᴀᴄᴄᴇᴘᴛ ᴛʜᴇsᴇ ᴛᴇʀᴍs ᴛᴏ ᴘʀᴏᴄᴇᴇᴅ?</i></blockquote>",
         "tos_accept_btn": "✅ ᴀᴄᴄᴇᴘᴛ & ᴄᴏɴᴛɪɴᴜᴇ",
@@ -69,12 +69,12 @@ TRANSLATIONS = {
         "help_back_to_bots": "ℹ️ Return to the list of your accounts.",
         
         # Settings & Limits
-        "settings_title": "<blockquote><b>» ⚙️ sᴇᴛᴛɪɴɢs ᴍᴇɴᴜ</b>\n\nsᴇʟᴇᴄᴛ ʏᴏᴜʀ ᴘʀᴇғᴇʀʀᴇᴅ ʟᴀɴɢᴜᴀɢᴇ ᴏʀ ʀᴇǫᴜᴇsᴛ ᴇxᴛʀᴀ sʟᴏᴛ ɪᴅs.</blockquote>",
-        "btn_change_lang": "🌐 ᴄʜᴀɴɢᴇ ʟᴀɴɢᴜᴀɢᴇ",
-        "btn_buy_slots": "💳 ᴘᴜʀᴄʜᴀsᴇ ᴇxᴛʀᴀ sʟᴏᴛs",
+        "settings_title": "<blockquote><b>» ⚙️ Settings Menu</b>\n\nSelect your preferred language or request extra slot IDs.</blockquote>",
+        "btn_change_lang": "🌐 Change Language",
+        "btn_buy_slots": "💳 Purchase Extra Slots",
         "help_change_lang": "ℹ️ Change interface language between English, Hindi, and Russian.",
         "help_buy_slots": "ℹ️ Request extra account slots from administrators.",
-        "lang_changed": "<blockquote><b>» ✅ ʟᴀɴɢᴜᴀɢᴇ ᴜᴘᴅᴀᴛᴇᴅ</b>\n\nʟᴀɴɢᴜᴀɢᴇ ᴄʜᴀɴɢᴇᴅ ᴛᴏ <b>ᴇɴɢʟɪsʜ</b>!</blockquote>",
+        "lang_changed": "<blockquote><b>» ✅ Language Updated</b>\n\nLanguage changed to <b>English</b>!</blockquote>",
         
         "buy_slots_title": "<blockquote><b>» 💳 ᴘᴜʀᴄʜᴀsᴇ ᴇxᴛʀᴀ sʟᴏᴛs</b>\n\n<b>ᴄᴜʀʀᴇɴᴛ sʟᴏᴛs :</b> <b>{allowed}</b>\n<b>ᴘʀɪᴄᴇ ᴘᴇʀ sʟᴏᴛ :</b> <b>₹{price}</b>\n\nsᴇʟᴇᴄᴛ ᴛʜᴇ ɴᴜᴍʙᴇʀ ᴏғ sʟᴏᴛs ᴛᴏ ᴘᴜʀᴄʜᴀsᴇ:</blockquote>",
         "btn_buy_qty": "➕ ʀᴇǫᴜᴇsᴛ {qty} ɪᴅ(s)",

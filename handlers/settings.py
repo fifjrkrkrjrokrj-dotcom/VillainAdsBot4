@@ -17,11 +17,23 @@ async def show_settings_menu(event, user_id: int):
     # Fetch user wallet balance
     wallet_bal = user.get("wallet_balance", 0.0)
     
+    LANG_NAMES = {
+        "en": "English 🇬🇧",
+        "hi": "Hindi 🇮🇳",
+        "ru": "Russian 🇷🇺",
+        "ja": "Japanese 🇯🇵",
+        "fr": "French 🇫🇷",
+        "de": "German 🇩🇪",
+        "zh": "Chinese 🇨🇳",
+        "ar": "Arabic 🇸🇦"
+    }
+    lang_display = LANG_NAMES.get(lang, lang.upper())
+    
     text = (
-        f"<blockquote><b>» ⚙️ ᴜsᴇʀ sᴇᴛᴛɪɴɢs</b>\n\n"
-        f"👛 <b>ᴡᴀʟʟᴇᴛ ʙᴀʟᴀɴᴄᴇ :</b> <code>₹{wallet_bal:.2f}</code>\n"
-        f"🌐 <b>ᴄᴜʀʀᴇɴᴛ ʟᴀɴɢᴜᴀɢᴇ :</b> <code>{lang.upper()}</code>\n\n"
-        f"⚡ <i>sᴇʟᴇᴄᴛ ᴀɴ ᴀᴄᴛɪᴏɴ ʙᴇʟᴏᴡ ᴛᴏ ᴍᴀɴᴀɢᴇ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ :</i></blockquote>"
+        f"<blockquote><b>» ⚙️ User Settings</b>\n\n"
+        f"👛 <b>Wallet Balance :</b> <code>₹{wallet_bal:.2f}</code>\n"
+        f"🌐 <b>Current Language :</b> <code>{lang_display}</code>\n\n"
+        f"⚡ <i>Select an action below to manage your account :</i></blockquote>"
     )
     buttons = [
         [
@@ -29,8 +41,8 @@ async def show_settings_menu(event, user_id: int):
             utils.styled_button(utils.get_text("btn_buy_slots", lang), "settings_buy_slots", style="primary")
         ],
         [
-            utils.styled_button("🎟️ ʀᴇᴅᴇᴇᴍ ᴄᴏᴜᴘᴏɴ", "settings_redeem_coupon", style="primary"),
-            utils.styled_button("👥 ʀᴇғᴇʀʀᴀʟs", "settings_referrals", style="primary")
+            utils.styled_button("🎟️ Redeem Coupon", "settings_redeem_coupon", style="primary"),
+            utils.styled_button("👥 Referrals", "settings_referrals", style="primary")
         ],
         [utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")]
     ]
@@ -77,10 +89,10 @@ async def show_purchase_menu(event, user_id: int):
         return
         
     text = (
-        f"<blockquote><b>» 💳 ᴘᴜʀᴄʜᴀsᴇ sʟᴏᴛ ᴜᴘɢʀᴀᴅᴇs</b>\n\n"
+        f"<blockquote><b>» 💳 Purchase Slot Upgrades</b>\n\n"
         f"> ━━━━━━━━━━━━━━━━━━━━\n"
-        f"📊 <b>ᴄᴜʀʀᴇɴᴛ ᴀʟʟᴏᴡᴇᴅ sʟᴏᴛs :</b> <code>{allowed}</code>\n"
-        f"⚡ <i>sᴇʟᴇᴄᴛ ᴀ sᴜʙsᴄʀɪᴘᴛɪᴏɴ ᴘʟᴀɴ ʙᴇʟᴏᴡ ᴛᴏ ᴜᴘɢʀᴀᴅᴇ:</i></blockquote>"
+        f"📊 <b>Current Allowed Slots :</b> <code>{allowed}</code>\n"
+        f"⚡ <i>Select a subscription plan below to upgrade:</i></blockquote>"
         f"> ━━━━━━━━━━━━━━━━━━━━"
     )
     
@@ -125,18 +137,18 @@ def register_handlers(client):
         
         buttons = [
             [
-                utils.styled_button("ᴇɴɢʟɪsʜ 🇬🇧", "set_lang_en", style="primary"),
-                utils.styled_button("ʜɪɴᴅɪ 🇮🇳", "set_lang_hi", style="primary"),
-                utils.styled_button("ʀᴜssɪᴀɴ 🇷🇺", "set_lang_ru", style="primary")
+                utils.styled_button("English 🇬🇧", "set_lang_en", style="primary"),
+                utils.styled_button("Hindi 🇮🇳", "set_lang_hi", style="primary"),
+                utils.styled_button("Russian 🇷🇺", "set_lang_ru", style="primary")
             ],
             [
-                utils.styled_button("ᴊᴀᴘᴀɴᴇsᴇ 🇯🇵", "set_lang_ja", style="primary"),
-                utils.styled_button("ғʀᴇɴᴄʜ 🇫🇷", "set_lang_fr", style="primary"),
-                utils.styled_button("ɢᴇʀᴍᴀɴ 🇩🇪", "set_lang_de", style="primary")
+                utils.styled_button("Japanese 🇯🇵", "set_lang_ja", style="primary"),
+                utils.styled_button("French 🇫🇷", "set_lang_fr", style="primary"),
+                utils.styled_button("German 🇩🇪", "set_lang_de", style="primary")
             ],
             [
-                utils.styled_button("ᴄʜɪɴᴇsᴇ 🇨🇳", "set_lang_zh", style="primary"),
-                utils.styled_button("ᴀʀᴀʙɪᴄ 🇸🇦", "set_lang_ar", style="primary")
+                utils.styled_button("Chinese 🇨🇳", "set_lang_zh", style="primary"),
+                utils.styled_button("Arabic 🇸🇦", "set_lang_ar", style="primary")
             ],
             [utils.styled_button(utils.get_text("back_to_menu", lang), "menu_settings", style="primary")]
         ]
