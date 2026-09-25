@@ -2731,155 +2731,155 @@ class UserBot:
                             )
                             return
 
-                    # Ignore outgoing messages to prevent self-reply loops
-                    if getattr(event, "out", False):
-                        return
+                # Ignore outgoing messages to prevent self-reply loops
+                if getattr(event, "out", False):
+                    return
 
-                    # 2. Group / Channel message handling (Auto-Contact)
-                    if event.is_group or event.is_channel:
-                        is_reply_to_us = False
-                        if event.is_reply:
-                            try:
-                                reply_msg = await event.get_reply_message()
-                                if reply_msg:
-                                    if self.me_id and reply_msg.sender_id == self.me_id:
-                                        is_reply_to_us = True
-                                    elif hasattr(reply_msg, "from_id") and getattr(reply_msg.from_id, "user_id", None) == self.me_id:
-                                        is_reply_to_us = True
-                            except Exception:
-                                pass
-                        
-                        is_tagged = bool(getattr(event, "mentioned", False)) or is_reply_to_us
-                        
-                        # Auto-Add Contact on Mention/Reply
-                        if is_tagged and self.settings.get("auto_add_contact"):
-                            sender = await event.get_sender()
-                            if sender and not getattr(sender, "bot", False):
-                                try:
-                                    from telethon.tl.functions.contacts import AddContactRequest
-                                    fname = sender.first_name or "Contact"
-                                    lname = sender.last_name or ""
-                                    await self.client(AddContactRequest(
-                                        id=sender.id,
-                                        first_name=fname,
-                                        last_name=lname,
-                                        phone="",
-                                        add_phone_privacy_exception=True
-                                    ))
-                                    logger.info(f"Auto-added contact: {sender.id} ({fname} {lname}) on mention/reply in chat {event.chat_id}")
-                                except Exception as add_err:
-                                    logger.warning(f"Failed to auto-add contact {sender.id}: {add_err}")
-
-                    # 3. Tag Auto-Reply (Works in Groups, Channels, and DMs)
-                    is_reply_target = False
-
-                    # Ensure me_id and username are known
-                    if not self.me_id and self.client:
+                # 2. Group / Channel message handling (Auto-Contact)
+                if event.is_group or event.is_channel:
+                    is_reply_to_us = False
+                    if event.is_reply:
                         try:
-                            me = await self.client.get_me()
-                            if me:
-                                self.me_id = me.id
-                                if me.username:
-                                    self.username = me.username
+                            reply_msg = await event.get_reply_message()
+                            if reply_msg:
+                                if self.me_id and reply_msg.sender_id == self.me_id:
+                                    is_reply_to_us = True
+                                elif hasattr(reply_msg, "from_id") and getattr(reply_msg.from_id, "user_id", None) == self.me_id:
+                                    is_reply_to_us = True
                         except Exception:
                             pass
 
-                    if event.is_group or event.is_channel:
-                        is_reply_to_us = False
-                        if event.is_reply:
-                            try:
-                                reply_msg = await event.get_reply_message()
-                                if reply_msg:
-                                    if self.me_id and reply_msg.sender_id == self.me_id:
-                                        is_reply_to_us = True
-                                    elif hasattr(reply_msg, "from_id") and getattr(reply_msg.from_id, "user_id", None) == self.me_id:
-                                        is_reply_to_us = True
-                            except Exception:
-                                pass
+                    is_tagged = bool(getattr(event, "mentioned", False)) or is_reply_to_us
 
-                        is_mentioned = bool(getattr(event, "mentioned", False))
-                        raw_text_lower = (event.raw_text or "").lower()
-                        if self.username and f"@{self.username.lower()}" in raw_text_lower:
-                            is_mentioned = True
-                        if self.me_id and f"tg://user?id={self.me_id}" in raw_text_lower:
-                            is_mentioned = True
-                        if getattr(event, "entities", None):
-                            try:
-                                from telethon.tl import types as tl_types
-                                for ent in event.entities:
-                                    if isinstance(ent, (tl_types.MessageEntityMentionName, tl_types.InputMessageEntityMentionName)):
-                                        if getattr(ent, "user_id", None) == self.me_id:
-                                            is_mentioned = True
-                                            break
-                            except Exception:
-                                pass
-
-                        is_reply_target = is_mentioned or is_reply_to_us
-                    elif event.is_private:
-                        # In DMs, every incoming message to us from real users is considered a target for auto-reply
+                    # Auto-Add Contact on Mention/Reply
+                    if is_tagged and self.settings.get("auto_add_contact"):
                         sender = await event.get_sender()
-                        if sender and not getattr(sender, "is_self", False) and not getattr(sender, "bot", False):
-                            is_reply_target = True
+                        if sender and not getattr(sender, "bot", False):
+                            try:
+                                from telethon.tl.functions.contacts import AddContactRequest
+                                fname = sender.first_name or "Contact"
+                                lname = sender.last_name or ""
+                                await self.client(AddContactRequest(
+                                    id=sender.id,
+                                    first_name=fname,
+                                    last_name=lname,
+                                    phone="",
+                                    add_phone_privacy_exception=True
+                                ))
+                                logger.info(f"Auto-added contact: {sender.id} ({fname} {lname}) on mention/reply in chat {event.chat_id}")
+                            except Exception as add_err:
+                                logger.warning(f"Failed to auto-add contact {sender.id}: {add_err}")
 
-                    # Fetch latest settings from DB to prevent stale in-memory state
-                    sess_data = database.get_session(self.session_id)
-                    current_settings = sess_data.get("settings", {}) if sess_data else self.settings
-                    if sess_data and "settings" in sess_data:
-                        self.settings = sess_data["settings"]
+                # 3. Tag Auto-Reply (Works in Groups, Channels, and DMs)
+                is_reply_target = False
 
-                    auto_reply_enabled = bool(current_settings.get("auto_reply") or current_settings.get("tag_reply"))
+                # Ensure me_id and username are known
+                if not self.me_id and self.client:
+                    try:
+                        me = await self.client.get_me()
+                        if me:
+                            self.me_id = me.id
+                            if me.username:
+                                self.username = me.username
+                    except Exception:
+                        pass
 
-                    if is_reply_target and auto_reply_enabled:
-                        now = time.time()
-                        last_reply_time = self.tag_cooldown.get(event.chat_id, 0)
-                        
-                        # 3-second per-chat cooldown to prevent spambot limits while remaining responsive
-                        if now - last_reply_time >= 3.0:
-                            ar_mode = current_settings.get("auto_reply_mode", "single")
-                            
-                            DEFAULT_REPLIES = [
-                                "Hello! How can I help you? 😊",
-                                "Hey there! Thanks for reaching out. Please leave a message! 💬",
-                                "Hello! I am currently away, will get back to you soon. ✨"
-                            ]
+                if event.is_group or event.is_channel:
+                    is_reply_to_us = False
+                    if event.is_reply:
+                        try:
+                            reply_msg = await event.get_reply_message()
+                            if reply_msg:
+                                if self.me_id and reply_msg.sender_id == self.me_id:
+                                    is_reply_to_us = True
+                                elif hasattr(reply_msg, "from_id") and getattr(reply_msg.from_id, "user_id", None) == self.me_id:
+                                    is_reply_to_us = True
+                        except Exception:
+                            pass
 
-                            if ar_mode == "multiple":
-                                # Multiple / Rotational mode: rotate among the configured messages
-                                candidates = current_settings.get("auto_reply_messages", [])
-                                if not candidates:
-                                    candidates = current_settings.get("tag_messages", [])
-                                if not candidates and current_settings.get("auto_reply_msg"):
-                                    candidates = [current_settings.get("auto_reply_msg")]
-                                candidates = [m for m in candidates if m and str(m).strip()]
-                                if not candidates:
-                                    candidates = DEFAULT_REPLIES
-                                msgs_to_send = [random.choice(candidates)]
-                            else:
-                                # Single mode: always send the single reply message
-                                single_msg = current_settings.get("auto_reply_msg")
-                                if not single_msg:
-                                    multi = current_settings.get("auto_reply_messages", []) or current_settings.get("tag_messages", [])
-                                    multi = [m for m in multi if m and str(m).strip()]
-                                    single_msg = multi[0] if multi else DEFAULT_REPLIES[0]
-                                msgs_to_send = [single_msg]
-                                
-                            for selected_reply in msgs_to_send:
-                                processed_reply = utils.parse_spintax(selected_reply)
-                                processed_reply = utils.normalize_text(processed_reply)
-                                processed_reply = utils.make_message_unique(processed_reply)
-                                
+                    is_mentioned = bool(getattr(event, "mentioned", False))
+                    raw_text_lower = (event.raw_text or "").lower()
+                    if self.username and f"@{self.username.lower()}" in raw_text_lower:
+                        is_mentioned = True
+                    if self.me_id and f"tg://user?id={self.me_id}" in raw_text_lower:
+                        is_mentioned = True
+                    if getattr(event, "entities", None):
+                        try:
+                            from telethon.tl import types as tl_types
+                            for ent in event.entities:
+                                if isinstance(ent, (tl_types.MessageEntityMentionName, tl_types.InputMessageEntityMentionName)):
+                                    if getattr(ent, "user_id", None) == self.me_id:
+                                        is_mentioned = True
+                                        break
+                        except Exception:
+                            pass
+
+                    is_reply_target = is_mentioned or is_reply_to_us
+                elif event.is_private:
+                    # In DMs, every incoming message to us from real users is considered a target for auto-reply
+                    sender = await event.get_sender()
+                    if sender and not getattr(sender, "is_self", False) and not getattr(sender, "bot", False):
+                        is_reply_target = True
+
+                # Fetch latest settings from DB to prevent stale in-memory state
+                sess_data = database.get_session(self.session_id)
+                current_settings = sess_data.get("settings", {}) if sess_data else self.settings
+                if sess_data and "settings" in sess_data:
+                    self.settings = sess_data["settings"]
+
+                auto_reply_enabled = bool(current_settings.get("auto_reply") or current_settings.get("tag_reply"))
+
+                if is_reply_target and auto_reply_enabled:
+                    now = time.time()
+                    last_reply_time = self.tag_cooldown.get(event.chat_id, 0)
+
+                    # 3-second per-chat cooldown to prevent spambot limits while remaining responsive
+                    if now - last_reply_time >= 3.0:
+                        ar_mode = current_settings.get("auto_reply_mode", "single")
+
+                        DEFAULT_REPLIES = [
+                            "Hello! How can I help you? 😊",
+                            "Hey there! Thanks for reaching out. Please leave a message! 💬",
+                            "Hello! I am currently away, will get back to you soon. ✨"
+                        ]
+
+                        if ar_mode == "multiple":
+                            # Multiple / Rotational mode: rotate among the configured messages
+                            candidates = current_settings.get("auto_reply_messages", [])
+                            if not candidates:
+                                candidates = current_settings.get("tag_messages", [])
+                            if not candidates and current_settings.get("auto_reply_msg"):
+                                candidates = [current_settings.get("auto_reply_msg")]
+                            candidates = [m for m in candidates if m and str(m).strip()]
+                            if not candidates:
+                                candidates = DEFAULT_REPLIES
+                            msgs_to_send = [random.choice(candidates)]
+                        else:
+                            # Single mode: always send the single reply message
+                            single_msg = current_settings.get("auto_reply_msg")
+                            if not single_msg:
+                                multi = current_settings.get("auto_reply_messages", []) or current_settings.get("tag_messages", [])
+                                multi = [m for m in multi if m and str(m).strip()]
+                                single_msg = multi[0] if multi else DEFAULT_REPLIES[0]
+                            msgs_to_send = [single_msg]
+
+                        for selected_reply in msgs_to_send:
+                            processed_reply = utils.parse_spintax(selected_reply)
+                            processed_reply = utils.normalize_text(processed_reply)
+                            processed_reply = utils.make_message_unique(processed_reply)
+
+                            try:
+                                await asyncio.sleep(random.uniform(0.5, 1.5))
                                 try:
-                                    await asyncio.sleep(random.uniform(0.5, 1.5))
-                                    try:
-                                        await event.reply(processed_reply, parse_mode='html')
-                                    except Exception:
-                                        # Fallback to plain text if HTML tags are malformed
-                                        await event.reply(processed_reply, parse_mode=None)
-                                    logger.info(f"Auto-replied ({ar_mode} mode) in chat {event.chat_id} for userbot {self.session_id}")
-                                except Exception as reply_err:
-                                    logger.warning(f"Could not send auto-reply in chat {event.chat_id}: {reply_err}")
-                                    
-                            self.tag_cooldown[event.chat_id] = now
+                                    await event.reply(processed_reply, parse_mode='html')
+                                except Exception:
+                                    # Fallback to plain text if HTML tags are malformed
+                                    await event.reply(processed_reply, parse_mode=None)
+                                logger.info(f"Auto-replied ({ar_mode} mode) in chat {event.chat_id} for userbot {self.session_id}")
+                            except Exception as reply_err:
+                                logger.warning(f"Could not send auto-reply in chat {event.chat_id}: {reply_err}")
+
+                        self.tag_cooldown[event.chat_id] = now
 
                 # 4. Private message handling (Auto-Welcome)
                 if event.is_private:
