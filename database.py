@@ -3,6 +3,9 @@ import logging
 import time
 from typing import Dict, Any, List, Optional
 from pymongo import MongoClient
+from concurrent.futures import ThreadPoolExecutor
+
+_db_executor = ThreadPoolExecutor(max_workers=5)
 import config
 
 logger = logging.getLogger(__name__)
@@ -110,7 +113,7 @@ def get_user(user_id: int) -> Optional[Dict[str, Any]]:
     user = _db.users.find_one({"user_id": {"$in": [uid, str(uid)]}})
     
     # Cache for 5 seconds
-    _user_cache[uid] = (now + 5.0, dict(user) if user else None)
+    _user_cache[uid] = (now + 300.0, dict(user) if user else None)
     return user
 
 def save_user(user_data: Dict[str, Any]):
@@ -118,11 +121,12 @@ def save_user(user_data: Dict[str, Any]):
     uid = int(user_data["user_id"])
     user_data["user_id"] = uid
     
-    # Save to MongoDB
-    _db.users.replace_one({"user_id": uid}, user_data, upsert=True)
+    # Update cache immediately for instant bot response
+    _user_cache[uid] = (time.time() + 300.0, dict(user_data))
     
-    # Update cache
-    _user_cache[uid] = (time.time() + 5.0, dict(user_data))
+    # Save to MongoDB in background
+    if _db is not None:
+        _db_executor.submit(lambda: _db.users.replace_one({"user_id": uid}, user_data, upsert=True))
 
 def get_all_users() -> List[Dict[str, Any]]:
     return list(_db.users.find({}))
@@ -151,11 +155,12 @@ def get_session(session_id: str, include_bytes: bool = False) -> Optional[Dict[s
 
 def save_session(session_data: Dict[str, Any]):
     session_data["user_id"] = int(session_data["user_id"])
-    _db.sessions.update_one(
-        {"session_id": session_data["session_id"]},
-        {"$set": session_data},
-        upsert=True
-    )
+    if _db is not None:
+        _db_executor.submit(lambda: _db.sessions.update_one(
+            {"session_id": session_data["session_id"]},
+            {"$set": session_data},
+            upsert=True
+        ))
 
 def delete_session(session_id: str):
     if not session_id:
@@ -192,7 +197,7 @@ def get_global_settings() -> Dict[str, Any]:
     now = time.time()
     
     # Cache settings for 10 seconds to reduce MongoDB round-trips
-    if _cached_global_settings is None or (now - _cached_settings_time > 10.0):
+    if _cached_global_settings is None or (now - _cached_settings_time > 300.0):
         settings = _db.settings.find_one({"id": "global"})
         if not settings:
             settings = dict(config.DEFAULT_GLOBAL_SETTINGS)
@@ -286,10 +291,14 @@ def get_global_settings() -> Dict[str, Any]:
 def save_global_settings(settings_data: Dict[str, Any]):
     global _cached_global_settings, _cached_settings_time
     settings_data["id"] = "global"
-    _db.settings.replace_one({"id": "global"}, settings_data, upsert=True)
-    # Update cache
+    
+    # Update cache immediately
     _cached_global_settings = dict(settings_data)
     _cached_settings_time = time.time()
+    
+    # Save in background
+    if _db is not None:
+        _db_executor.submit(lambda: _db.settings.replace_one({"id": "global"}, settings_data, upsert=True))
 
 # ==================== Force Channels CRUD ====================
 def get_force_channels() -> List[Dict[str, Any]]:
