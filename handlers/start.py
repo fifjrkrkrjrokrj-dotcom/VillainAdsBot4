@@ -232,10 +232,8 @@ def register_handlers(client):
                     return
                     
                 target_user_id = sess.get("user_id")
-                from .my_bots import set_admin_impersonation, show_bot_dashboard
-                # Set impersonation so owner can perform all actions on this user's bot
-                set_admin_impersonation(user_id, target_user_id)
-                
+                from .my_bots import show_bot_dashboard
+                # Admins have full access to control without replacing their own userbot dashboard
                 await show_bot_dashboard(
                     event, 
                     sess.get("phone", phone_target), 

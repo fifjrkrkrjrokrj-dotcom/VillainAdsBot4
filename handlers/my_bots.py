@@ -213,7 +213,14 @@ async def show_bots_list(event, user_id: int, flash_message: Optional[str] = Non
     user = database.get_user(user_id) if (user_id and user_id != "__ALL__") else None
     lang = user.get("language", "en") if user else "en"
     
-    sessions = get_effective_sessions(getattr(event, "sender_id", user_id))
+    sender_id = getattr(event, "sender_id", user_id)
+    if user_id == "__ALL__" or str(user_id) == "__ALL__":
+        sessions = database.get_sessions(None)
+    elif user_id:
+        sessions = database.get_sessions(user_id)
+    else:
+        sessions = get_effective_sessions(sender_id)
+
     if not sessions:
         await show_mock_dashboard(event, user_id, flash_message)
         return
@@ -258,8 +265,12 @@ async def show_bots_list(event, user_id: int, flash_message: Optional[str] = Non
         "\n💡 <i>sᴇʟᴇᴄᴛ ᴀ ʙᴏᴛ ʙᴇʟᴏᴡ ᴛᴏ ᴏᴘᴇɴ ɪᴛs ᴄᴏɴᴛʀᴏʟ ᴘᴀɴᴇʟ ᴏʀ ᴛᴀᴘ <b>ᴀʟʟ sʟᴏᴛs</b>.</i></blockquote>"
     )
         
-    if event.sender_id in _admin_impersonation:
-        buttons.append([utils.styled_button("🚪 ᴇxɪᴛ ᴀᴅᴍɪɴ ᴀᴄᴄᴇss", "admin_exit_impersonation", style="danger")])
+    is_managing_other = (str(user_id) != str(sender_id)) or (sender_id in _admin_impersonation)
+    if is_managing_other:
+        buttons.append([
+            utils.styled_button("🔙 ᴍʏ ᴜsᴇʀʙᴏᴛs", "menu_my_bots", style="primary"),
+            utils.styled_button("🚪 ᴇxɪᴛ ᴛᴏ ᴀᴅᴍɪɴ", "admin_exit_impersonation", style="danger")
+        ])
     else:
         buttons.append([utils.styled_button(utils.get_text("back_to_menu", lang), "menu_start", style="primary")])
     
@@ -400,9 +411,17 @@ async def show_bot_dashboard(event, phone: str, user_id: int, flash_message: Opt
         ])
         
         # Row 6: Back to Bots
-        rows.append([
-            ("btn_back_to_bots", "menu_my_bots", None, "primary")
-        ])
+        sender_id = getattr(event, "sender_id", user_id)
+        is_other_bot = sess and str(sess.get("user_id")) != str(sender_id)
+        if is_other_bot:
+            rows.append([
+                ("🔙 ᴍʏ ᴜsᴇʀʙᴏᴛs", "menu_my_bots", None, "primary"),
+                ("👑 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ", "menu_admin", None, "danger")
+            ])
+        else:
+            rows.append([
+                ("btn_back_to_bots", "menu_my_bots", None, "primary")
+            ])
 
 
         styles = ["success", "danger", "primary"]
@@ -430,10 +449,13 @@ async def show_bot_dashboard(event, phone: str, user_id: int, flash_message: Opt
                     label = "🎙️ ᴠᴄ + ɢʀᴘ ᴊᴏɪɴɪɴɢ"
                 elif key == "btn_music_guide":
                     label = "🎵 ᴍᴜsɪᴄ ᴄᴏᴍᴍᴀɴᴅs"
-                elif state is not None:
-                    label = utils.get_text(key, lang, state=state)
+                elif key.startswith("btn_"):
+                    if state is not None:
+                        label = utils.get_text(key, lang, state=state)
+                    else:
+                        label = utils.get_text(key, lang)
                 else:
-                    label = utils.get_text(key, lang)
+                    label = key
                     
                 row_buttons.append(utils.styled_button(label, callback, style=style))
             buttons.append(row_buttons)
@@ -2119,14 +2141,15 @@ def register_handlers(client):
     # ------------------ Navigation ------------------
     @client.on(events.CallbackQuery(pattern="^menu_my_bots$"))
     async def bots_list_callback(event):
-        user_id = _admin_impersonation.get(event.sender_id, event.sender_id)
-        await show_bots_list(event, user_id)
+        # Always clear impersonation so caller always sees their OWN bots
+        _admin_impersonation.pop(event.sender_id, None)
+        _admin_impersonation.pop(str(event.sender_id), None)
+        await show_bots_list(event, event.sender_id)
 
     @client.on(events.CallbackQuery(pattern=r"^select_bot_(.+)$"))
     async def select_bot_callback(event):
-        user_id = _admin_impersonation.get(event.sender_id, event.sender_id)
         phone = event.pattern_match.group(1)
-        await show_bot_dashboard(event, phone, user_id)
+        await show_bot_dashboard(event, phone, event.sender_id)
 
     @client.on(events.CallbackQuery(pattern=r"^admin_ctrl_bot_(.+)$"))
     async def admin_ctrl_bot_callback(event):
@@ -2148,7 +2171,7 @@ def register_handlers(client):
             return
             
         target_user_id = sess.get("user_id")
-        set_admin_impersonation(user_id, target_user_id)
+        # Admins have full access to control without replacing their own userbot dashboard
         
         if not event.is_private:
             try:

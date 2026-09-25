@@ -1,8 +1,11 @@
 [phases.setup]
-nixPkgs = ["python311", "ffmpeg", "nodejs"]
+nixPkgs = ["python311", "gcc", "gnumake", "pkg-config", "openssl", "libffi", "ffmpeg", "nodejs"]
 
 [phases.install]
-cmds = ["pip install --no-cache-dir -r requirements.txt"]
+cmds = [
+    "python -m pip install --upgrade pip setuptools wheel",
+    "pip install --no-cache-dir -r requirements.txt"
+]
 
 [start]
 cmd = "python main.py"

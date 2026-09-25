@@ -1612,68 +1612,85 @@ def register_handlers(client):
                     total_users = len(all_users)
                     success_count = 0
                     fail_count = 0
+                    processed_count = 0
                     last_edit_time = time.time()
-                    
-                    for idx, u in enumerate(all_users, 1):
+                    sem = asyncio.Semaphore(12)
+                    lock = asyncio.Lock()
+
+                    async def _send_to_user(u):
+                        nonlocal success_count, fail_count, processed_count, last_edit_time
                         uid = u.get("user_id")
                         if not uid:
-                            continue
-                            
-                        target_peer = None
-                        # 1. Try resolving by cached input entity
-                        try:
-                            target_peer = await client.get_input_entity(int(uid))
-                        except Exception:
-                            # 2. Try resolving by username if available
-                            if u.get("username"):
-                                try:
-                                    target_peer = await client.get_input_entity(u["username"])
-                                except Exception:
-                                    pass
-                            # 3. Try stored access_hash if available
-                            if not target_peer and u.get("access_hash"):
+                            return
+
+                        async with sem:
+                            target_peer = None
+                            # 1. Stored access_hash is fastest (0 network roundtrips)
+                            if u.get("access_hash"):
                                 try:
                                     from telethon.tl.types import InputPeerUser
                                     target_peer = InputPeerUser(int(uid), int(u["access_hash"]))
                                 except Exception:
                                     pass
-                                    
-                        if not target_peer:
-                            logger.warning(f"Could not resolve entity for user {uid} (@{u.get('username')})")
-                            fail_count += 1
-                            continue
 
-                        try:
-                            await client.send_message(target_peer, broadcast_message)
-                            success_count += 1
-                        except FloodWaitError as fwe:
-                            logger.warning(f"Flood wait during broadcast: sleeping for {fwe.seconds}s")
-                            await asyncio.sleep(min(fwe.seconds, 15))
+                            # 2. Try Telethon internal cache / entity lookup
+                            if not target_peer:
+                                try:
+                                    target_peer = await client.get_input_entity(int(uid))
+                                except Exception:
+                                    if u.get("username"):
+                                        try:
+                                            target_peer = await client.get_input_entity(u["username"])
+                                        except Exception:
+                                            pass
+
+                            if not target_peer:
+                                async with lock:
+                                    fail_count += 1
+                                    processed_count += 1
+                                return
+
+                            sent = False
                             try:
                                 await client.send_message(target_peer, broadcast_message)
-                                success_count += 1
-                            except Exception as retry_err:
-                                logger.error(f"Failed retry to {uid}: {retry_err}")
-                                fail_count += 1
-                        except Exception as err:
-                            logger.warning(f"Failed to send broadcast to {uid}: {err}")
-                            fail_count += 1
+                                sent = True
+                            except FloodWaitError as fwe:
+                                wait_time = min(fwe.seconds, 15)
+                                logger.warning(f"Flood wait {wait_time}s for user {uid}")
+                                await asyncio.sleep(wait_time)
+                                try:
+                                    await client.send_message(target_peer, broadcast_message)
+                                    sent = True
+                                except Exception as retry_err:
+                                    logger.error(f"Failed retry to {uid}: {retry_err}")
+                            except Exception as err:
+                                logger.warning(f"Failed to send broadcast to {uid}: {err}")
 
-                        await asyncio.sleep(0.08)
-                        
-                        # Live progress updates every 3 seconds
-                        now = time.time()
-                        if now - last_edit_time >= 3.0:
-                            last_edit_time = now
-                            try:
-                                await prog_msg.edit(
-                                    f"<blockquote><b>» 📢 MAIN BOT BROADCAST IN PROGRESS</b>\n\n"
-                                    f"👥 <b>Processed:</b> <code>[{idx} / {total_users}]</code>\n"
-                                    f"✅ <b>Delivered:</b> <code>{success_count}</code>\n"
-                                    f"❌ <b>Failed / Skipped:</b> <code>{fail_count}</code></blockquote>"
-                                )
-                            except Exception:
-                                pass
+                            async with lock:
+                                if sent:
+                                    success_count += 1
+                                else:
+                                    fail_count += 1
+                                processed_count += 1
+
+                                now = time.time()
+                                if now - last_edit_time >= 3.0:
+                                    last_edit_time = now
+                                    try:
+                                        await prog_msg.edit(
+                                            f"<blockquote><b>» 📢 MAIN BOT BROADCAST IN PROGRESS</b>\n\n"
+                                            f"👥 <b>Processed:</b> <code>[{processed_count} / {total_users}]</code>\n"
+                                            f"✅ <b>Delivered:</b> <code>{success_count}</code>\n"
+                                            f"❌ <b>Failed / Skipped:</b> <code>{fail_count}</code></blockquote>"
+                                        )
+                                    except Exception:
+                                        pass
+
+                            await asyncio.sleep(0.04)
+
+                    tasks = [asyncio.create_task(_send_to_user(u)) for u in all_users]
+                    if tasks:
+                        await asyncio.gather(*tasks, return_exceptions=True)
 
                     report = (
                         f"<blockquote><b>» 📢 MAIN BOT BROADCAST COMPLETED</b>\n\n"
