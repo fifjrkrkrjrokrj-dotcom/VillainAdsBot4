@@ -2864,7 +2864,8 @@ class UserBot:
                             processed_reply = utils.make_message_unique(processed_reply)
 
                             try:
-                                await asyncio.sleep(random.uniform(0.5, 1.5))
+                                # Added 10s delay as requested
+                                await asyncio.sleep(10.0)
                                 try:
                                     await event.reply(processed_reply, parse_mode='html')
                                 except Exception:
