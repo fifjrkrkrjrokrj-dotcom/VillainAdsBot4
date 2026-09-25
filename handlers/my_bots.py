@@ -808,10 +808,13 @@ def register_handlers(client):
             ],
             [
                 utils.styled_button("🎙️ ᴊᴏɪɴ ᴀʟʟ ɢʀᴏᴜᴘ ᴠᴄs", f"vc_join_all_{phone}", style="primary"),
-                utils.styled_button("❌ ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ", f"vc_leave_grp_{phone}", style="danger")
+                utils.styled_button("🔴 ʟᴇᴀᴠᴇ ᴀʟʟ ɢʀᴏᴜᴘ ᴠᴄs", f"vc_leave_all_{phone}", style="danger")
             ],
             [
-                utils.styled_button("🎵 ᴘʟᴀʏ sᴏɴɢ", f"play_song_{phone}", style="primary"),
+                utils.styled_button("❌ ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ", f"vc_leave_grp_{phone}", style="danger"),
+                utils.styled_button("🎵 ᴘʟᴀʏ sᴏɴɢ", f"play_song_{phone}", style="primary")
+            ],
+            [
                 utils.styled_button("🔙 ʙᴀᴄᴋ ᴛᴏ ᴅᴀsʜʙᴏᴀʀᴅ", f"select_bot_{phone}", style="primary")
             ]
         ]
@@ -874,7 +877,8 @@ def register_handlers(client):
             f"<b>🎙️ ᴠᴄ ᴍᴏᴅᴜʟᴇ (ᴀʟʟ) :</b>\n"
             f"• ᴊᴏɪɴ ᴠᴄ : ᴄᴏɴɴᴇᴄᴛ ᴀʟʟ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs ᴛᴏ ᴠᴄ.\n"
             f"• ʟᴇᴀᴠᴇ ᴠᴄ : ᴅɪsᴄᴏɴɴᴇᴄᴛ ᴀʟʟ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs ғʀᴏᴍ ᴠᴄ.\n"
-            f"• ᴊᴏɪɴ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs : ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴊᴏɪɴ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ɢʀᴏᴜᴘ ᴠᴄs ᴀᴄʀᴏss ᴀᴄᴄᴏᴜɴᴛs.\n\n"
+            f"• ᴊᴏɪɴ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs : ᴀᴜᴛᴏ-ᴊᴏɪɴ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ɢʀᴏᴜᴘ ᴠᴄs.\n"
+            f"• ʟᴇᴀᴠᴇ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs : ᴀᴜᴛᴏ-ʟᴇᴀᴠᴇ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ɢʀᴏᴜᴘ ᴠᴄs.\n\n"
             f"<b>🎵 ᴘʟᴀʏɪɴɢ ᴍᴏᴅᴜʟᴇ (ᴀʟʟ) :</b>\n"
             f"• ᴘʟᴀʏ sᴏɴɢ : sᴛʀᴇᴀᴍ ᴏɴ ᴀʟʟ ʀᴜɴɴɪɴɢ ᴜsᴇʀʙᴏᴛs.</blockquote>"
         )
@@ -889,11 +893,14 @@ def register_handlers(client):
                 utils.styled_button("🔴 ʟᴇᴀᴠᴇ ᴠᴄ (ᴀʟʟ)", "all_slots_vc_leave", style="danger")
             ],
             [
-                utils.styled_button("🎙️ ᴊᴏɪɴ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ɢʀᴏᴜᴘ ᴠᴄs (ᴀʟʟ)", "all_slots_vc_join_all", style="primary"),
-                utils.styled_button("❌ ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ (ᴀʟʟ)", "all_slots_vc_leave_grp", style="danger")
+                utils.styled_button("🎙️ ᴊᴏɪɴ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs (ᴀʟʟ)", "all_slots_vc_join_all", style="primary"),
+                utils.styled_button("🔴 ʟᴇᴀᴠᴇ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs (ᴀʟʟ)", "all_slots_vc_leave_all", style="danger")
             ],
             [
-                utils.styled_button("🎵 ᴘʟᴀʏ sᴏɴɢ (ᴀʟʟ)", "all_slots_play_song", style="primary"),
+                utils.styled_button("❌ ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ (ᴀʟʟ)", "all_slots_vc_leave_grp", style="danger"),
+                utils.styled_button("🎵 ᴘʟᴀʏ sᴏɴɢ (ᴀʟʟ)", "all_slots_play_song", style="primary")
+            ],
+            [
                 utils.styled_button("🔙 ʙᴀᴄᴋ", "menu_all_slots", style="primary")
             ]
         ]
@@ -961,24 +968,111 @@ def register_handlers(client):
         )
         await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(event.sender_id))
 
-    @client.on(events.CallbackQuery(pattern=r"^vc_leave_(\+.+)$"))
+    @client.on(events.CallbackQuery(pattern="^all_slots_vc_leave_all$"))
+    async def all_slots_vc_leave_all_callback(event):
+        try:
+            await event.answer()
+        except Exception:
+            pass
+        user_id = _admin_impersonation.get(event.sender_id, event.sender_id)
+        sessions = get_effective_sessions(event.sender_id)
+        if not sessions:
+            await event.answer("⚠️ No slots found.", alert=True)
+            return
+
+        running_phones = [s["phone"] for s in sessions if userbot_manager.is_bot_running(s["phone"])]
+        if not running_phones:
+            await event.answer("⚠️ Please start at least one userbot first!", alert=True)
+            return
+
+        progress_msg = await event.reply("⏳ <b>ʟᴇᴀᴠɪɴɢ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs ᴀᴄʀᴏss ᴀʟʟ ᴜsᴇʀʙᴏᴛs...</b>", parse_mode="html")
+        total_left = 0
+        total_processed = 0
+
+        async def _leave_all_one(p):
+            bot = userbot_manager.find_running_bot(p)
+            if bot:
+                try:
+                    c, _ = await bot.leave_all_voice_chats()
+                    return c
+                except Exception as e:
+                    logger.warning(f"Error leaving all VCs for {p}: {e}")
+                    return 0
+            else:
+                return 0
+
+        results = await asyncio.gather(*[_leave_all_one(p) for p in running_phones], return_exceptions=True)
+        for r in results:
+            if not isinstance(r, Exception) and r:
+                total_left += r
+            total_processed += 1
+
+        try:
+            await progress_msg.delete()
+        except Exception:
+            pass
+
+        flash = (
+            f"<blockquote><b>» 🔴 ᴀʟʟ sʟᴏᴛs : ʟᴇᴀᴠᴇ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴄs</b>\n\n"
+            f"• <b>ᴛᴏᴛᴀʟ ᴠᴄs ʟᴇғᴛ :</b> <b>{total_left}</b>\n"
+            f"• <b>ᴜsᴇʀʙᴏᴛs ᴘʀᴏᴄᴇssᴇᴅ :</b> <b>{total_processed} / {len(running_phones)}</b></blockquote>"
+        )
+        await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(event.sender_id))
+
+    @client.on(events.CallbackQuery(pattern=r"^vc_leave_all_(.+)$"))
+    async def vc_leave_all_callback(event):
+        try:
+            await event.answer()
+        except Exception:
+            pass
+        phone = event.pattern_match.group(1).strip()
+        user_id = event.sender_id
+        bot_obj = userbot_manager.find_running_bot(phone)
+        if not bot_obj:
+            await event.answer("⚠️ Userbot is not running.", alert=True)
+            return
+
+        progress_msg = await event.reply("⏳ <b>ʟᴇᴀᴠɪɴɢ ᴀʟʟ ᴀᴄᴛɪᴠᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛs...</b>", parse_mode="html")
+        try:
+            left_count, msg = await bot_obj.leave_all_voice_chats()
+        except Exception as e:
+            logger.error(f"Error during leave_all_voice_chats for {phone}: {e}")
+            left_count, msg = 0, f"Error: {e}"
+
+        try:
+            await progress_msg.delete()
+        except Exception:
+            pass
+
+        flash_text = (
+            f"<blockquote><b>» 🔴 ʟᴇᴀᴠᴇ ᴀʟʟ ᴠᴄs ʀᴇsᴜʟᴛs</b>\n\n"
+            f"• <b>sᴛᴀᴛᴜs :</b> {msg}\n"
+            f"• <b>ᴠᴄs ʟᴇғᴛ :</b> <b>{left_count}</b></blockquote>"
+        )
+        await show_bot_dashboard(event, phone, user_id, flash_message=flash_text)
+
+    @client.on(events.CallbackQuery(pattern=r"^vc_leave_(?!all_|grp_)(.+)$"))
     async def vc_leave_callback(event):
         phone = event.pattern_match.group(1).strip()
         user_id = event.sender_id
-        bot_obj = userbot_manager._running_bots.get(phone)
+        bot_obj = userbot_manager.find_running_bot(phone)
         if not bot_obj:
             await event.answer("⚠️ Userbot is not running.", alert=True)
             return
             
         progress_msg = await event.reply("<blockquote><b>» ⏳ ʟᴇᴀᴠɪɴɢ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ...</b></blockquote>", parse_mode="html")
-        success, msg = await bot_obj.leave_voice_chat()
+        try:
+            success, msg = await bot_obj.leave_voice_chat()
+        except Exception as e:
+            logger.error(f"Error during leave_voice_chat for {phone}: {e}")
+            success, msg = False, f"Error: {e}"
+
         try:
             await progress_msg.delete()
         except Exception:
             pass
         
         flash_text = f"<blockquote><b>» 🎙️ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ sᴛᴀᴛᴜs</b>\n\n• {msg}</blockquote>"
-        from .my_bots import show_bot_dashboard
         await show_bot_dashboard(event, phone, user_id, flash_message=flash_text)
 
     @client.on(events.CallbackQuery(pattern=r"^vc_leave_grp_(.+)$"))
@@ -2994,72 +3088,6 @@ def register_handlers(client):
             await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
             return
 
-        elif action == "WAITING_FOR_ALL_VC_GRP_LINK":
-            link = event.text.strip()
-            if not link:
-                await event.reply("<blockquote><b>❌ ɢʀᴏᴜᴘ ɪɴᴠɪᴛᴇ ʟɪɴᴋ ᴄᴀɴɴᴏᴛ ʙᴇ ᴇᴍᴘᴛʏ.</b></blockquote>", parse_mode="html")
-                return
-                
-            sessions = get_effective_sessions(user_id)
-            if not sessions:
-                await event.reply("<blockquote><b>❌ ɴᴏ ᴜsᴇʀʙᴏᴛ sʟᴏᴛs ғᴏᴜɴᴅ.</b></blockquote>", parse_mode="html")
-                return
-                
-            progress_msg = await event.reply(f"<blockquote><b>» ⏳ ᴀʟʟ {len(sessions)} ᴜsᴇʀʙᴏᴛs ᴊᴏɪɴɪɴɢ ɢʀᴏᴜᴘ...</b></blockquote>", parse_mode="html")
-            
-            async def _join_grp_concurrent(s):
-                phone_num = s["phone"]
-                if not userbot_manager.is_bot_running(phone_num):
-                    await userbot_manager.start_userbot(phone_num)
-                    
-                bot_obj = userbot_manager._running_bots.get(phone_num)
-                if bot_obj:
-                    success = await join_channel_single(bot_obj.client, link)
-                    return phone_num, success
-                return phone_num, False
-                
-            results = await asyncio.gather(*[_join_grp_concurrent(s) for s in sessions], return_exceptions=True)
-            try:
-                await progress_msg.delete()
-            except Exception:
-                pass
-            
-            success_count = 0
-            for res in results:
-                if not isinstance(res, Exception) and res[1]:
-                    success_count += 1
-                    
-            flash = f"<blockquote><b>» 🔗 ᴀʟʟ sʟᴏᴛs : ɢʀᴏᴜᴘ ᴊᴏɪɴ ʀᴇsᴜʟᴛs</b>\n\n• <b>sᴜᴄᴄᴇssғᴜʟʟʏ ᴊᴏɪɴᴇᴅ :</b> <b>{success_count} / {len(sessions)}</b> ᴜsᴇʀʙᴏᴛs</blockquote>"
-            await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
-            return
-
-        elif action == "WAITING_FOR_ALL_LEAVE_GRP":
-            link = event.text.strip()
-            if not link:
-                await event.reply("❌ Input cannot be empty.")
-                return
-                
-            sessions = get_effective_sessions(user_id)
-            running_phones = [s["phone"] for s in sessions if userbot_manager.is_bot_running(s["phone"])]
-            if not running_phones:
-                await event.reply("❌ No userbots are currently running.")
-                return
-                
-            progress_msg = await event.reply(f"⏳ <b>Leaving group concurrently on {len(running_phones)} userbots...</b>")
-            
-            async def _leave_grp_concurrent(phone_num):
-                bot_obj = userbot_manager._running_bots[phone_num]
-                success = await leave_chat_single(bot_obj.client, link)
-                return phone_num, success
-                
-            results = await asyncio.gather(*[_leave_grp_concurrent(p) for p in running_phones], return_exceptions=True)
-            await progress_msg.delete()
-            
-            success_count = sum(1 for r in results if not isinstance(r, Exception) and r[1])
-            flash = f"<blockquote><b>» ❌ ᴀʟʟ sʟᴏᴛs : ʟᴇᴀᴠᴇ ɢʀᴏᴜᴘ(s) ᴄᴏᴍᴘʟᴇᴛᴇᴅ</b>\n\n• <b>sᴜᴄᴄᴇssғᴜʟʟʏ ʟᴇғᴛ ɪɴsᴛᴀɴᴄᴇs :</b> <b>{success_count}</b></blockquote>"
-            await show_all_slots_dashboard(event, user_id, flash_message=flash, fetch_all=is_system_all_mode(user_id))
-            return
-
         elif action == "WAITING_FOR_ALL_BROADCAST":
             broadcast_msg = event.text
             sessions = get_effective_sessions(user_id)
@@ -3893,6 +3921,10 @@ def register_handlers(client):
             else:
                 flash = f"<blockquote><b>» ❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴘʟᴀʏ:</b> {msg}</blockquote>"
                 
+        else:
+            logger.warning(f"Unhandled action in text_input_handler: {action}")
+            flash = "<blockquote><b>» ⚠️ ᴜɴᴋɴᴏᴡɴ ᴏʀ ᴇxᴘɪʀᴇᴅ ᴀᴄᴛɪᴏɴ.</b></blockquote>"
+
         # Return to dashboard showing updated stats and flash notification
         userbot_manager.reload_bot_settings(phone)
         await show_bot_dashboard(event, phone, user_id, flash_message=flash)

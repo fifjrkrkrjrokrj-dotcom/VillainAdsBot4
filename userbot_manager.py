@@ -156,30 +156,83 @@ async def start_all_running_bots():
 
 async def remove_userbot(session_id: str):
     """
-    Stops the userbot, deletes its session file from disk, and removes its database entry.
+    Logs out the userbot session from Telegram servers (so the session is expired from active devices),
+    stops the userbot, deletes its session file from disk, and removes its database entry.
     """
-    # 1. Stop if running
-    await stop_userbot(session_id)
-    
+    if not session_id:
+        return
+
+    # 1. If currently running, call log_out() to invalidate Telegram cloud auth key
+    bot = find_running_bot(session_id)
+    logged_out = False
+    if bot and getattr(bot, "client", None):
+        try:
+            if not bot.client.is_connected():
+                await bot.client.connect()
+            if await bot.client.is_user_authorized():
+                await bot.client.log_out()
+                logged_out = True
+                logger.info(f"Running userbot {session_id} successfully logged out from Telegram.")
+        except Exception as e:
+            logger.warning(f"Error logging out running userbot {session_id}: {e}")
+
     # 2. Retrieve session record to locate session file
     sess = database.get_session(session_id)
+    session_file = None
     if sess:
-        session_file = sess["session_file"]
-        # Delete DB record
-        database.delete_session(session_id)
-        
-        # Delete file(s) from disk
-        if session_file:
-            # Delete primary session file and any journals
-            for f in glob.glob(session_file + "*"):
+        session_file = sess.get("session_file")
+        if not session_file:
+            user_id = sess.get("user_id", "")
+            phone = sess.get("phone", session_id)
+            session_file = f"{config.USER_DATA_DIR}/{user_id}/sessions/{phone}.session"
+
+    # If offline and not logged out yet, connect temporary client to call log_out()
+    if not logged_out and session_file:
+        raw_base = session_file.replace(".session", "")
+        file_to_check = raw_base + ".session"
+        if os.path.exists(file_to_check):
+            try:
+                from telethon import TelegramClient
+                dev_prof = utils.get_device_profile(session_id)
+                api_id, api_hash = config.get_random_api_id_hash()
+                temp_client = TelegramClient(
+                    raw_base,
+                    api_id,
+                    api_hash,
+                    device_model=dev_prof["device_model"],
+                    system_version=dev_prof["system_version"],
+                    app_version=dev_prof["app_version"]
+                )
+                await temp_client.connect()
+                if await temp_client.is_user_authorized():
+                    await temp_client.log_out()
+                    logger.info(f"Offline userbot {session_id} successfully logged out from Telegram.")
+                else:
+                    await temp_client.disconnect()
+            except Exception as e:
+                logger.warning(f"Could not log out offline userbot {session_id}: {e}")
+
+    # 3. Stop running instance and clear memory references
+    await stop_userbot(session_id)
+    
+    # 4. Delete DB record
+    database.delete_session(session_id)
+    if sess and sess.get("phone") and sess.get("phone") != session_id:
+        database.delete_session(sess["phone"])
+    
+    # 5. Delete file(s) from disk
+    if session_file:
+        raw_prefix = session_file.replace(".session", "")
+        for pattern in (raw_prefix + "*", session_file + "*"):
+            for f in glob.glob(pattern):
                 try:
                     if os.path.exists(f):
                         os.remove(f)
                         logger.info(f"Deleted local session file: {f}")
                 except Exception as e:
                     logger.warning(f"Could not delete session file {f}: {e}")
-                    
-    logger.info(f"Userbot session {session_id} completely removed.")
+                
+    logger.info(f"Userbot session {session_id} completely removed and session expired.")
 
 async def stop_all_bots():
     """
@@ -437,8 +490,16 @@ async def set_userbot_name(session_id: str, new_name: str) -> tuple[bool, str]:
     if os.path.exists(session_file):
         try:
             from telethon.tl.functions.account import UpdateProfileRequest
+            dev_prof = utils.get_device_profile(session_id)
             api_id, api_hash = config.get_random_api_id_hash()
-            temp_client = TelegramClient(session_file, api_id, api_hash)
+            temp_client = TelegramClient(
+                session_file, 
+                api_id, 
+                api_hash,
+                device_model=dev_prof["device_model"],
+                system_version=dev_prof["system_version"],
+                app_version=dev_prof["app_version"]
+            )
             await temp_client.connect()
             if await temp_client.is_user_authorized():
                 await temp_client(UpdateProfileRequest(first_name=new_name))

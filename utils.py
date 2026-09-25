@@ -505,33 +505,17 @@ def make_message_unique(text: str) -> str:
     return text
 
 
-def get_device_profile(session_id: str) -> dict:
+def get_device_profile(session_id: Optional[str] = None) -> dict:
     """
-    Generates a deterministic mobile/desktop device header profile based on the session ID.
-    This ensures that the userbot session always connects with the same device model on every launch.
+    Returns custom branded device profile (XTRADSBOT) for TelegramClient sessions.
+    This ensures that when a user logs in, the active device in Telegram Settings -> Devices
+    shows up clearly as 'XTRADSBOT'.
     """
-    import hashlib
-    if not session_id:
-        return {"device_model": "Samsung SM-S908B", "system_version": "Android 13", "app_version": "9.6.1"}
-        
-    hasher = hashlib.md5(str(session_id).encode('utf-8'))
-    digest = hasher.hexdigest()
-    val = int(digest, 16)
-    
-    profiles = [
-        {"device_model": "Samsung SM-S908B", "system_version": "Android 13", "app_version": "9.6.1"},
-        {"device_model": "Xiaomi 12 Pro", "system_version": "Android 12", "app_version": "9.3.3"},
-        {"device_model": "OnePlus 10 Pro", "system_version": "Android 13", "app_version": "9.5.4"},
-        {"device_model": "Google Pixel 7 Pro", "system_version": "Android 13", "app_version": "9.4.2"},
-        {"device_model": "iPhone 14 Pro", "system_version": "iOS 16.1", "app_version": "9.6.2"},
-        {"device_model": "iPhone 13", "system_version": "iOS 15.7", "app_version": "9.2.1"},
-        {"device_model": "Huawei P50 Pro", "system_version": "HarmonyOS 2.0", "app_version": "8.9.3"},
-        {"device_model": "Samsung SM-G991B", "system_version": "Android 12", "app_version": "9.1.2"},
-        {"device_model": "Redmi Note 11", "system_version": "Android 11", "app_version": "8.8.4"},
-        {"device_model": "POCO F4 GT", "system_version": "Android 12", "app_version": "9.0.0"}
-    ]
-    
-    return profiles[val % len(profiles)]
+    return {
+        "device_model": "XTRADSBOT",
+        "system_version": "Android 14",
+        "app_version": "XTRADSBOT 4.0"
+    }
 
 
 _handled_commands = {}

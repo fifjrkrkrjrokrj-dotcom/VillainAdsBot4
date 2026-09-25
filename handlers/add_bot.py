@@ -272,7 +272,15 @@ def register_handlers(client):
                 try:
                     shutil.copy2(sf_path, dest_path)
                     api_id, api_hash = config.get_random_api_id_hash()
-                    test_client = TelegramClient(dest_path.replace(".session", ""), api_id, api_hash)
+                    dev_prof = utils.get_device_profile(phone_clean)
+                    test_client = TelegramClient(
+                        dest_path.replace(".session", ""), 
+                        api_id, 
+                        api_hash,
+                        device_model=dev_prof["device_model"],
+                        system_version=dev_prof["system_version"],
+                        app_version=dev_prof["app_version"]
+                    )
                     await test_client.connect()
                     me = await test_client.get_me()
                     if not me:
@@ -371,7 +379,15 @@ def register_handlers(client):
             
             # Initialize temporary client using in-memory StringSession to prevent ANY SQLite file locks
             api_id, api_hash = config.get_random_api_id_hash()
-            temp_client = TelegramClient(StringSession(), api_id, api_hash)
+            dev_prof = utils.get_device_profile(phone)
+            temp_client = TelegramClient(
+                StringSession(), 
+                api_id, 
+                api_hash,
+                device_model=dev_prof["device_model"],
+                system_version=dev_prof["system_version"],
+                app_version=dev_prof["app_version"]
+            )
             state["phone"] = phone
             state["client"] = temp_client
             state["session_path"] = session_path

@@ -1484,6 +1484,47 @@ class UserBot:
             logger.warning(f"Error leaving VC for userbot {self.session_id}: {e}")
             return False, f"Error leaving VC: {e}"
 
+    async def leave_all_voice_chats(self) -> tuple:
+        """
+        Leaves all active voice chats / group calls that this userbot has joined.
+        Returns (left_count: int, message: str)
+        """
+        if not self.is_running or not self.client:
+            return 0, "Userbot is not running."
+
+        left_count = 0
+        chats_to_leave = set(getattr(self, "joined_vcs", set()))
+        if self.current_vc_chat_id:
+            chats_to_leave.add(self.current_vc_chat_id)
+
+        # Also check MongoDB for any saved vc_chat_id
+        sess_data = database.get_session(self.session_id)
+        if sess_data and sess_data.get("vc_chat_id"):
+            chats_to_leave.add(sess_data["vc_chat_id"])
+
+        for cid in list(chats_to_leave):
+            try:
+                if self.pytgcalls_client:
+                    await self.pytgcalls_client.leave_group_call(cid)
+                left_count += 1
+            except Exception as e:
+                logger.warning(f"Error leaving group call {cid} for userbot {self.session_id}: {e}")
+            finally:
+                if hasattr(self, "joined_vcs"):
+                    self.joined_vcs.discard(cid)
+
+        self.current_vc_chat_id = None
+        self.current_vc_link = None
+
+        if sess_data:
+            sess_data["vc_chat_id"] = None
+            sess_data["vc_link"] = None
+            sess_data["current_song"] = None
+            database.save_session(sess_data)
+
+        msg = f"Successfully left {max(left_count, 1)} voice chat(s)." if left_count > 0 else "Left all voice chats."
+        return max(left_count, 1 if chats_to_leave else 0), msg
+
     async def get_pytgcalls(self) -> PyTgCalls:
         if not self.pytgcalls_client:
             self.pytgcalls_client = PyTgCalls(self.client)

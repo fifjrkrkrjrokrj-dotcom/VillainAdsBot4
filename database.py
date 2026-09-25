@@ -158,7 +158,18 @@ def save_session(session_data: Dict[str, Any]):
     )
 
 def delete_session(session_id: str):
-    _db.sessions.delete_one({"session_id": session_id})
+    if not session_id:
+        return
+    session_id_str = str(session_id).strip()
+    alt = session_id_str.lstrip("+") if session_id_str.startswith("+") else f"+{session_id_str}"
+    _db.sessions.delete_many({
+        "$or": [
+            {"session_id": session_id_str},
+            {"phone": session_id_str},
+            {"session_id": alt},
+            {"phone": alt}
+        ]
+    })
 
 # ==================== Payment CRUD Operations ====================
 def get_payment_requests(user_id: Optional[int] = None) -> List[Dict[str, Any]]:
