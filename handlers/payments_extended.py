@@ -309,7 +309,7 @@ def register_handlers(client):
         if global_settings.get("payment_upi_enabled", True):
             buttons.append([utils.styled_button("💳 Upi Payment", f"pay_method_upi_{qty}_{payment_id}", style="primary")])
         if global_settings.get("payment_usdt_enabled", True):
-            buttons.append([utils.styled_button("🪙 Usdt (ʙᴇᴘ20)", f"pay_method_usdt_{qty}_{payment_id}", style="primary")])
+            buttons.append([utils.styled_button("🪙 Usdt (BEP20)", f"pay_method_usdt_{qty}_{payment_id}", style="primary")])
         if global_settings.get("payment_ton_enabled", True):
             buttons.append([utils.styled_button("💎 Ton (Toncoin)", f"pay_method_ton_{qty}_{payment_id}", style="primary")])
         
@@ -447,7 +447,7 @@ def register_handlers(client):
             qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=jpg&data={urllib.parse.quote(upi_uri)}"
             amount_text = f"Amount To Pay: <b>₹{cost_inr:.2f}</b>"
         elif method == "usdt":
-            address_text = f"🪙 Usdt (ʙᴇᴘ20) Address:\n`{global_settings.get('usdt_bep20_address', '0x000')}`"
+            address_text = f"🪙 Usdt (BEP20) Address:\n`{global_settings.get('usdt_bep20_address', '0x000')}`"
             qr_url = None
             usdt_rate = global_settings.get("usdt_rate", 90.0)
             cost_crypto = cost_inr / usdt_rate if usdt_rate > 0 else 0
